@@ -22,9 +22,22 @@ export interface AddSinkMessage {
   channels: number;
 }
 
+// TODO: implement sink removal messages and handling
+
 export interface RemoveSourceMessage {
   type: 'removeRemoteSource' | 'removeLocalSource';
   uuid: string;
 }
 
-export type ControllerMessage = LightMessage | AddSourceMessage | RemoveSourceMessage | AddSinkMessage;
+export interface CreatePipeMessage {
+  type: 'createPipe';
+  sourceUuid: string;
+  sinkUuid: string;
+}
+
+export type ControllerMessage =
+  LightMessage |
+  AddSourceMessage |
+  RemoveSourceMessage |
+  AddSinkMessage |
+  CreatePipeMessage;

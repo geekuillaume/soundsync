@@ -1,22 +1,27 @@
-import { Coordinator } from './coordinator';
+import debug from 'debug';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { ControllerMessage, AddSourceMessage, AddSinkMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
-import { SinkType } from '../audio/sink_type';
+import { AudioSource } from '../audio/audio_source';
+import { AudioSink } from '../audio/audio_sink';
 
-interface RemoteSink {
-  name: string;
-  uuid: string;
-  type: SinkType;
-  peer: WebrtcPeer;
+interface Pipe {
+  source: AudioSource;
+  sink: AudioSink;
 }
 
-export class HostCoordinator extends Coordinator {
-  sinks: RemoteSink[] = [];
+export class HostCoordinator {
+  webrtcServer: WebrtcServer;
+  audioSourcesSinksManager: AudioSourcesSinksManager;
+  log: debug.Debugger;
 
-  constructor(webrtcServer: WebrtcServer, audioSourceManager: AudioSourcesSinksManager) {
-    super(webrtcServer, audioSourceManager);
+  pipes: Pipe[] = [];
+
+  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
+    this.webrtcServer = webrtcServer;
+    this.audioSourcesSinksManager = audioSourcesSinksManager;
+    this.log = debug(`soundsync:hostCoordinator`);
     this.log(`Created host coordinator`);
 
     this.webrtcServer.on('controllerMessage', ({peer, message}: {peer: WebrtcPeer, message: ControllerMessage}) => {
@@ -35,14 +40,6 @@ export class HostCoordinator extends Coordinator {
 
   private handleNewSourceFromPeer = (peer: WebrtcPeer, message: AddSourceMessage) => {
     this.log(`Registering new source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
-    // Adding source to own Source Manager
-    this.audioSourcesSinksManager.addSource({
-      type: 'remote',
-      name: message.name,
-      uuid: message.uuid,
-      channels: message.channels,
-      peer,
-    });
     // Sending new source info to all peers
     this.webrtcServer.broadcast({
       type: 'addRemoteSource',
@@ -53,7 +50,6 @@ export class HostCoordinator extends Coordinator {
     }, [peer.uuid]);
 
     peer.once('disconnected', () => {
-      this.audioSourcesSinksManager.removeSource(message.uuid);
       this.webrtcServer.broadcast({
         type: 'removeRemoteSource',
         uuid: message.uuid,
@@ -75,14 +71,25 @@ export class HostCoordinator extends Coordinator {
 
   private handleNewSinkFromPeer = (peer: WebrtcPeer, message: AddSinkMessage) => {
     this.log(`Registering new sink ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
-    this.sinks.push({
+    this.audioSourcesSinksManager.addSink({
+      type: 'remote',
       name: message.name,
-      type: message.sinkType,
       uuid: message.uuid,
       peer,
+      channels: message.channels,
     });
     peer.once('disconnected', () => {
-      this.sinks = this.sinks.filter(({uuid}) => uuid !== message.uuid);
+      this.audioSourcesSinksManager.removeSink(message.uuid);
     });
+  }
+
+  createPipe = (source: AudioSource, sink: AudioSink) => {
+    const pipe: Pipe = {
+      source,
+      sink,
+    };
+    this.pipes.push(pipe);
+    sink.linkSource(source);
+    return pipe;
   }
 }

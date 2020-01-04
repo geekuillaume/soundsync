@@ -5,28 +5,23 @@ import _ from 'lodash';
 import { CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER } from '../utils/constants';
 import { EventEmitter } from 'events';
 import { ControllerMessage } from './messages';
+import { Peer } from './peer';
 
-export class WebrtcPeer extends EventEmitter {
-  name: string;
-  uuid: string;
-  state: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
-
+export class WebrtcPeer extends Peer {
   connection: RTCPeerConnection;
   controllerChannel: RTCDataChannel;
   candidates = [];
   log: Debugger;
-  heartbeatInterval;
+  private heartbeatInterval;
 
   constructor({uuid, name}) {
-    super();
+    super({ uuid, name });
     this.name = name;
     this.uuid = uuid;
     this.connection = new RTCPeerConnection();
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
       id: CONTROLLER_CHANNEL_ID,
-      ordered: false,
-      maxPacketLifeTime: 10,
     });
 
     this.connection.onicecandidate = (e) => {
@@ -51,6 +46,11 @@ export class WebrtcPeer extends EventEmitter {
     this.log(`Created new peer`);
 
     this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
+  }
+
+  setUuid = (uuid: string) => {
+    this.uuid = uuid;
+    this.log = debug(`soundsync:wrtcPeer:${uuid}`);
   }
 
   private handleDisconnect = () => {

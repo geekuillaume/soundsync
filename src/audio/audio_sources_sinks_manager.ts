@@ -9,6 +9,7 @@ import { RemoteSource } from './remote_source';
 import { AudioSink } from './audio_sink';
 import { SinkDescriptor } from './sink_type';
 import { DefaultPhysicalSink } from './default_physical_sink';
+import { RemoteSink } from './remote_sink';
 
 const log = debug(`soundsync:sourcesManager`);
 
@@ -23,6 +24,11 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSource(sourceDescriptor: SourceDescriptor) {
+    if (_.find(this.sources, {uuid: sourceDescriptor.uuid})) {
+      log(`Trying to add source which already exists, ignoring`);
+      return;
+    }
+
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
     if (sourceDescriptor.type === 'librespot') {
       const source = new LibrespotSource(sourceDescriptor);
@@ -30,11 +36,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       this.emit('newLocalSource', source);
     }
     if (sourceDescriptor.type === 'remote') {
-      if (_.find(this.sources, {uuid: sourceDescriptor.uuid})) {
-        log(`Trying to add source which already exists, ignoring`);
-        return;
-      }
       const source = new RemoteSource(sourceDescriptor);
+      // @ts-ignore
       this.sources.push(source);
     }
   }
@@ -51,11 +54,30 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
+    if (_.find(this.sinks, {uuid: sinkDescriptor.uuid})) {
+      log(`Trying to add sink which already exists, ignoring`);
+      return;
+    }
+
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);
-    if (sinkDescriptor.type === 'defaultPhysicalSink') {
+    if (sinkDescriptor.type === 'defaultPhysical') {
       const sink = new DefaultPhysicalSink(sinkDescriptor);
       this.sinks.push(sink);
       this.emit('newLocalSink', sink);
+    } else if (sinkDescriptor.type === 'remote') {
+      const sink = new RemoteSink(sinkDescriptor);
+      this.sinks.push(sink);
     }
+  }
+
+  removeSink(uuid: string) {
+    const sink = _.find(this.sinks, {uuid});
+    if (!sink) {
+      log(`Tried to remove unknown sink ${uuid}, ignoring`);
+      return;
+    }
+    // TODO: stop sink
+    log(`Removing sink ${sink.name} (type: ${sink.type} uuid: ${uuid})`);
+    this.sinks = _.filter(this.sinks, (sink) => sink.uuid !== uuid);
   }
 }

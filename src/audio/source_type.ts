@@ -1,8 +1,9 @@
-import { WebrtcPeer } from '../communication/wrtc_peer';
+import { Peer } from '../communication/peer';
 
 export interface BaseSourceDescriptor {
   name: string;
   uuid?: string;
+  peer?: Peer;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
@@ -18,7 +19,6 @@ export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
 export interface RemoteSourceDescriptor extends BaseSourceDescriptor {
   type: 'remote';
   uuid: string;
-  peer?: WebrtcPeer; // Only available for HostController
   channels: number;
 }
 

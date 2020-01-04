@@ -5,6 +5,7 @@ import { assert } from './utils/assert';
 import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
+import { ApiController } from './api/api';
 
 const main = async () => {
   const argv = yargs
@@ -20,6 +21,11 @@ const main = async () => {
     .option('enableDefaultOutput', {
       type: 'boolean',
       description: 'Create an output sending audio to the default audio device'
+    })
+    .option('api', {
+      type: 'boolean',
+      description: 'Enable the JSON REST API, only for coordinator',
+      default: true,
     })
     .option('librespot', {
       type: 'boolean',
@@ -37,13 +43,21 @@ const main = async () => {
   if (argv.startCoordinator) {
     const httpServer = await createHttpServer(8080);
     webrtcServer.attachToSignalingServer(httpServer);
+
+    const hostCoordinator = new HostCoordinator(webrtcServer, audioSourcesSinksManager);
+    if (argv.api) {
+      const apiController = new ApiController(
+        httpServer,
+        hostCoordinator,
+        audioSourcesSinksManager,
+        webrtcServer,
+      )
+    }
   } else if (argv.coordinatorHost) {
     await webrtcServer.connectToCoordinatorHost(argv.coordinatorHost);
   }
 
-  const coordinator = argv.startCoordinator ?
-    new HostCoordinator(webrtcServer, audioSourcesSinksManager) :
-    new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
+  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
 
   if (argv.librespot) {
     audioSourcesSinksManager.addSource({
@@ -54,7 +68,7 @@ const main = async () => {
   }
   if (argv.enableDefaultOutput) {
     audioSourcesSinksManager.addSink({
-      type: 'defaultPhysicalSink',
+      type: 'defaultPhysical',
       name: 'Default Sink'
     });
   }
