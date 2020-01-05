@@ -1,0 +1,44 @@
+- Handle pipe deduplication
+
+- Fix librespot seeking bug
+
+- Handle pipe deletion
+  - Handle sink / source stoping
+    - Reference counting
+- Add webapp
+- Package it in executable
+  - Maybe electron
+
+- Handle reconnection
+  - With controller
+  - With another peer
+
+- Auto recreate pipes
+  - Cache sinks / source uuid on device
+
+- Handle frequency resampling
+  - https://github.com/Rantanen/node-jitterbuffer
+  - https://speex.org/docs/manual/speex-manual/node7.html#SECTION00760000000000000000
+  - https://github.com/dmooney65/node-libsamplerate
+  - https://dxr.mozilla.org/mozilla-central/source/media/libspeex_resampler/src/resample.c#35
+  - https://github.com/taisel/XAudioJS/blob/master/resampler.js
+
+- Handle track synchronization
+  - Dynamic latency between sinks
+  - Network latency
+  - Received time vs playing time
+  - Unordered chunks (JitterBuffer / Circular Buffer)
+
+- Windows output loopback
+- Bluetooth
+- Airplay: Shairport-sync
+- Spotifyd ?
+- UPnP: gmrender-resurrect
+
+- Sink volume with hardware control
+
+- Auto controller discovery
+  - Bonjour / zeroconf
+
+- https://www.npmjs.com/package/waveform-data
+- libsoundio / rtaudio
