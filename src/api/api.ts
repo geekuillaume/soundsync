@@ -37,18 +37,11 @@ export class ApiController {
     ctx.body = {
       sources: this.audioSourcesSinksManager.sources.map((source) => source.toObject()),
       sinks: this.audioSourcesSinksManager.sinks.map((sink) => sink.toObject()),
-      peers: [
-        ..._.map(this.webrtcServer.peers, (peer) => ({
-          name: peer.name,
-          uuid: peer.uuid,
-          coordinator: false,
-        })),
-        {
-          name: localPeer.name,
-          uuid: localPeer.uuid,
-          coordinator: true,
-        }
-      ],
+      peers: _.map(this.webrtcServer.peers, (peer) => ({
+        name: peer.name,
+        uuid: peer.uuid,
+        coordinator: peer.coordinator,
+      })),
       pipes: this.coordinator.pipes.map((pipe) => ({
         sourceUuid: pipe.source.uuid,
         sinkUuid: pipe.sink.uuid,

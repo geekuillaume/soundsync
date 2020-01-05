@@ -18,9 +18,9 @@ const main = async () => {
       type: 'string',
       description: 'Coordinator host to connect to',
     })
-    .option('enableDefaultOutput', {
+    .option('autodetectAudioDevices', {
       type: 'boolean',
-      description: 'Create an output sending audio to the default audio device'
+      description: 'Autodetect and create matching source / sink for every audio device on current host'
     })
     .option('api', {
       type: 'boolean',
@@ -37,7 +37,7 @@ const main = async () => {
 
   const webrtcServer = new WebrtcServer();
   const audioSourcesSinksManager = new AudioSourcesSinksManager({
-    autodetect: false
+    autodetect: argv.autodetectAudioDevices,
   });
 
   if (argv.startCoordinator) {
@@ -64,12 +64,6 @@ const main = async () => {
       type: 'librespot',
       name: 'soundsync librespot',
       librespotOptions: {},
-    });
-  }
-  if (argv.enableDefaultOutput) {
-    audioSourcesSinksManager.addSink({
-      type: 'defaultPhysical',
-      name: 'Default Sink'
     });
   }
 }

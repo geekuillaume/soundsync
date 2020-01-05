@@ -15,21 +15,18 @@ export class LibrespotSource extends AudioSource {
     this.local = true;
 
     this.log(`Starting librespot process`);
-    this.librespotProcess = spawn(`librespot`, [
-      '-n', this.options.name,
-      '--backend', 'pipe',
-      ...(this.options.bitrate ? ['-b', String(this.options.bitrate)] : []),
-      ...(this.options.username ? [
-        '-u', this.options.username,
-        '-p', this.options.password,
-      ] : [])
+    // this.librespotProcess = spawn(`librespot`, [
+    //   '-n', this.options.name,
+    //   '--backend', 'pipe',
+    //   ...(this.options.bitrate ? ['-b', String(this.options.bitrate)] : []),
+    //   ...(this.options.username ? [
+    //     '-u', this.options.username,
+    //     '-p', this.options.password,
+    //   ] : [])
+    // ]);
+    this.librespotProcess = spawn(`pacat`, [
+      '-r', '--raw', '--rate=48000'
     ]);
-    this.librespotProcess.stdout.on('data', (d) => {
-      // console.log(d);
-    })
-    this.librespotProcess.stderr.on('data', (d) => {
-      console.log(d.toString());
-    })
   }
 
   _startBackend() {

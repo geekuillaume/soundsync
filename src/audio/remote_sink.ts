@@ -4,6 +4,8 @@ import { RemoteSinkDescriptor } from './sink_type';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 
 export class RemoteSink extends AudioSink {
+  type: 'remote' = 'remote';
+
   constructor(descriptor: RemoteSinkDescriptor) {
     super(descriptor);
     this.local = false;

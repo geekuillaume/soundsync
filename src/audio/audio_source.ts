@@ -1,17 +1,18 @@
-import {Encoder} from 'node-opus';
+import { OpusEncoder, OpusApplication } from 'audify';
 import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
-import { AUDIO_SOURCE_SAMPLES_PER_SECOND, OPUS_ENCODER_RATE } from '../utils/constants';
+import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE } from '../utils/constants';
 import { SourceDescriptor, SourceType } from './source_type';
 import { Peer } from '../communication/peer';
 import { localPeer } from '../communication/local_peer';
+import { createOpusEncoder } from './opus_streams';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
   name: string;
   type: SourceType;
-  encoder: NodeJS.ReadWriteStream;
+  encoder: OpusEncoder;
   rate: number;
   channels: number;
   frameSize: number;
@@ -29,7 +30,7 @@ export abstract class AudioSource {
     this.uuid = descriptor.uuid || uuidv4();
     this.peer = descriptor.peer || localPeer;
     this.channels = 2;
-    this.frameSize = this.rate / AUDIO_SOURCE_SAMPLES_PER_SECOND; // number of samples in a frame, default to 10ms
+    this.frameSize = this.rate / OPUS_ENCODER_FRAME_SAMPLES_COUNT; // number of samples in a frame, default to 10ms
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -37,12 +38,9 @@ export abstract class AudioSource {
   async start(): Promise<NodeJS.ReadableStream> {
     this.log(`Starting audio source`);
     const sourceStream = await this._startBackend();
-    // if (!this.encoder) {
-    //   this.encoder = new Encoder(this.rate, this.channels, this.frameSize)
-    // }
-    // sourceStream.pipe(this.encoder);
-    // return <NodeJS.ReadStream>this.encoder;
-    return sourceStream;
+    const encoderStream = createOpusEncoder(sourceStream, this.channels);
+    // Todo: encode timestamp in each message
+    return encoderStream;
   }
 
   toObject = () => ({

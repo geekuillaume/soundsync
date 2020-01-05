@@ -4,12 +4,14 @@ import { ControllerMessage } from '../communication/messages';
 export abstract class Peer extends EventEmitter {
   uuid: string;
   name: string;
+  coordinator: boolean;
   state: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
 
-  constructor({ uuid, name }) {
+  constructor({ uuid, name, coordinator = false }) {
     super();
     this.name = name;
     this.uuid = uuid;
+    this.coordinator = coordinator;
   }
 
   setUuid = (uuid: string) => {

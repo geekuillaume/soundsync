@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
+import { RtAudio } from 'audify';
 
 import { AudioSource } from './audio_source';
 import { LibrespotSource } from './librespot_source';
@@ -8,8 +9,9 @@ import { SourceDescriptor } from './source_type';
 import { RemoteSource } from './remote_source';
 import { AudioSink } from './audio_sink';
 import { SinkDescriptor } from './sink_type';
-import { DefaultPhysicalSink } from './default_physical_sink';
+import { RtAudioSink } from './rtaudio_sink';
 import { RemoteSink } from './remote_sink';
+import { localPeer } from '../communication/local_peer';
 
 const log = debug(`soundsync:sourcesManager`);
 
@@ -17,10 +19,27 @@ export class AudioSourcesSinksManager extends EventEmitter {
   autodetect: boolean;
   sources: AudioSource[] = [];
   sinks: AudioSink[] = [];
+  rtaudio: RtAudio;
 
   constructor({ autodetect}) {
     super();
     this.autodetect = autodetect;
+    if (autodetect) {
+      this.autodetectDevices();
+    }
+  }
+
+  autodetectDevices = () => {
+    log(`Detecting local audio devices`);
+    this.rtaudio = new RtAudio();
+    const devices = this.rtaudio.getDevices();
+    devices.forEach((device) => {
+      this.addSink({
+        type: 'rtaudio',
+        deviceName: device.name,
+        name: device.name,
+      });
+    });
   }
 
   addSource(sourceDescriptor: SourceDescriptor) {
@@ -54,14 +73,20 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
-    if (_.find(this.sinks, {uuid: sinkDescriptor.uuid})) {
+    if (_.find(this.sinks, {uuid: sinkDescriptor.uuid}) || (
+      sinkDescriptor.type === 'rtaudio' && _.find(this.sinks, (sink) =>
+        sink.type === 'rtaudio' &&
+        // @ts-ignore
+        sink.deviceName === sinkDescriptor.deviceName
+      )
+    )) {
       log(`Trying to add sink which already exists, ignoring`);
       return;
     }
 
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);
-    if (sinkDescriptor.type === 'defaultPhysical') {
-      const sink = new DefaultPhysicalSink(sinkDescriptor);
+    if (sinkDescriptor.type === 'rtaudio') {
+      const sink = new RtAudioSink(sinkDescriptor);
       this.sinks.push(sink);
       this.emit('newLocalSink', sink);
     } else if (sinkDescriptor.type === 'remote') {

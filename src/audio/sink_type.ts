@@ -6,8 +6,9 @@ export interface BaseSinkDescriptor {
   peer?: Peer;
 }
 
-export interface LocalSinkDescriptor extends BaseSinkDescriptor {
-  type: 'defaultPhysical';
+export interface RtAudioSinkDescriptor extends BaseSinkDescriptor {
+  type: 'rtaudio';
+  deviceName: string;
 }
 
 export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
@@ -16,5 +17,5 @@ export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
   channels: number;
 }
 
-export type SinkDescriptor = LocalSinkDescriptor | RemoteSinkDescriptor;
+export type SinkDescriptor = RtAudioSinkDescriptor | RemoteSinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

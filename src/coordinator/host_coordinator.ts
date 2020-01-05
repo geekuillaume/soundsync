@@ -1,7 +1,7 @@
 import debug from 'debug';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { ControllerMessage, AddSourceMessage, AddSinkMessage } from '../communication/messages';
+import { ControllerMessage, AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { AudioSource } from '../audio/audio_source';
 import { AudioSink } from '../audio/audio_sink';
@@ -35,10 +35,13 @@ export class HostCoordinator {
       if (message.type === 'addLocalSink') {
         this.handleNewSinkFromPeer(peer, message);
       }
+      if (message.type === 'peerConnectionInfo') {
+        this.handlePeerConnectionInfo(peer, message);
+      }
     });
   }
 
-  private handleNewSourceFromPeer = (peer: WebrtcPeer, message: AddSourceMessage) => {
+  private handleNewSourceFromPeer = (peer: WebrtcPeer, message: AddLocalSourceMessage) => {
     this.log(`Registering new source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
     // Sending new source info to all peers
     this.webrtcServer.broadcast({
@@ -47,6 +50,7 @@ export class HostCoordinator {
       uuid: message.uuid,
       sourceType: message.sourceType,
       channels: message.channels,
+      peerUuid: peer.uuid,
     }, [peer.uuid]);
 
     peer.once('disconnected', () => {
@@ -65,6 +69,7 @@ export class HostCoordinator {
         uuid: source.uuid,
         sourceType: source.type,
         channels: source.channels,
+        peerUuid: source.peer.uuid,
       })
     })
   }
@@ -80,6 +85,19 @@ export class HostCoordinator {
     });
     peer.once('disconnected', () => {
       this.audioSourcesSinksManager.removeSink(message.uuid);
+    });
+  }
+
+  private handlePeerConnectionInfo = (peer: WebrtcPeer, message: PeerConnectionInfoMessage) => {
+    const targetPeer = this.webrtcServer.peers[message.peerUuid];
+    if (!targetPeer) {
+      this.log(`Tried to pass PeerConnectionInfo message to unknown peer ${message.peerUuid}`);
+    }
+    targetPeer.sendControllerMessage({
+      type: 'peerConnectionInfo',
+      peerUuid: peer.uuid,
+      offer: message.offer,
+      iceCandidates: message.iceCandidates,
     });
   }
 
