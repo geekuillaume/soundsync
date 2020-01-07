@@ -1,0 +1,3 @@
+/home/geekuillaume/code/soundsync/speex-resampler/build/CMakeFiles/rebuild_cache.dir
+/home/geekuillaume/code/soundsync/speex-resampler/build/CMakeFiles/speex-resampler.dir
+/home/geekuillaume/code/soundsync/speex-resampler/build/CMakeFiles/edit_cache.dir
