@@ -1675,6 +1675,14 @@ source-map@^0.6.0:
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
 
+speex-resampler@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-1.0.4.tgz#da01562189980b577dd869b8537e3aa15ac6999d"
+  integrity sha512-xfOoSscOk0dtj1/0NfWMnJGiuETE/kRvuDIT4TdZO9k4SDCr0kRxUA2CQ5007pWImJJjVvKxPxOVHYPbyxdQVg==
+  dependencies:
+    bindings "^1.5.0"
+    prebuild-install "^5.3.3"
+
 splitargs@0:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/splitargs/-/splitargs-0.0.7.tgz#fe9f7ae657371b33b10cb80da143cf8249cf6b3b"
