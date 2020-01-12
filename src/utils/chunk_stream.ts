@@ -1,32 +1,88 @@
-import { Transform } from 'stream';
+import { Readable, Transform } from 'stream';
+import { performance } from 'perf_hooks';
 
-export class ChunkStream extends Transform {
-  chunkSize: number;
-  buffer: Buffer = Buffer.alloc(0);
+export interface AudioChunkStreamOutput {
+  i: number;
+  chunk: Buffer;
+}
 
-  constructor(chunkSize: number) {
-    super();
-    this.chunkSize = chunkSize;
+export class AudioChunkStream extends Readable {
+  interval: number;
+  sampleSize: number;
+  sourceStream: NodeJS.ReadableStream;
+  readInterval: NodeJS.Timeout;
+  creationTime: number = performance.now();
+  lastEmitTime: number;
+
+  constructor(sourceStream: NodeJS.ReadableStream, interval: number, sampleSize: number) {
+    super({
+      objectMode: true,
+    });
+    this.sourceStream = sourceStream;
+    this.interval = interval;
+    this.sampleSize = sampleSize;
   }
 
-  _transform(data: Buffer, encoding, callback) {
-    const dataWithBuffer = Buffer.concat([
-      this.buffer,
-      data,
-    ]);
+  // TODO handle close of this stream
 
-    const chunksAvailables = Math.floor(dataWithBuffer.length / this.chunkSize);
-    for (let i = 0; i < chunksAvailables; i++) {
-      this.push(dataWithBuffer.subarray(i * this.chunkSize, (i * this.chunkSize) + this.chunkSize));
+  _read() {
+    if (this.readInterval) {
+      return;
     }
+    this.lastEmitTime = performance.now();
+    this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
+  }
 
-    const bytesNotPushed = dataWithBuffer.length % this.chunkSize;
-    if (bytesNotPushed) {
-      this.buffer = dataWithBuffer.subarray(dataWithBuffer.length - bytesNotPushed, dataWithBuffer.length);
-    } else {
-      this.buffer = Buffer.alloc(0);
+  _pushNecessaryChunks = () => {
+    const now = performance.now();
+    const chunksToEmit = Math.floor((now - this.lastEmitTime) / this.interval);
+    for (let i = 0; i < chunksToEmit; i++) {
+      const chunkGlobalIndex = Math.floor(((this.lastEmitTime - this.creationTime) + (i * this.interval)) / this.interval);
+      const chunk = <Buffer>this.sourceStream.read(this.sampleSize);
+      if (chunk === null) {
+        break;
+      }
+      const chunkOutput: AudioChunkStreamOutput = {
+        i: chunkGlobalIndex,
+        chunk,
+      }
+      const canPush = this.push(chunkOutput);
+      if (!canPush) {
+        clearInterval(this.readInterval);
+        return;
+      }
     }
+    this.lastEmitTime = now;
+  }
+}
 
-    callback(null);
+export class AudioChunkStreamEncoder extends Transform {
+  constructor() {
+    super({
+      writableObjectMode: true,
+    });
+  }
+  _transform(d: AudioChunkStreamOutput, encoding, callback) {
+    const encodedChunk = Buffer.alloc(
+      4 // Index: UInt32
+      + d.chunk.length
+    );
+    encodedChunk.writeUInt32LE(d.i, 0);
+    d.chunk.copy(encodedChunk, 4);
+    callback(null, encodedChunk);
+  }
+}
+
+export class AudioChunkStreamDecoder extends Transform {
+  constructor() {
+    super({
+      readableObjectMode: true,
+    });
+  }
+  _transform(d: Buffer, encoding, callback) {
+    callback(null, {
+      i: d.readUInt32LE(0),
+      chunk: d.subarray(4),
+    });
   }
 }

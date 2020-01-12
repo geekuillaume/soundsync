@@ -7,7 +7,7 @@ import { AudioSource } from './audio_source';
 import { SinkDescriptor, SinkType } from './sink_type';
 import { Peer } from '../communication/peer';
 import { localPeer } from '../communication/local_peer';
-import { OpusDecodeStream } from './opus_streams';
+import { OpusDecodeStream, createAudioDecodedStream } from './opus_streams';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {
@@ -16,7 +16,6 @@ export abstract class AudioSink {
   decoder: NodeJS.ReadWriteStream;
   rate: number;
   channels: number;
-  frameSize: number;
   log: debug.Debugger;
   local: boolean;
   uuid: string;
@@ -34,7 +33,6 @@ export abstract class AudioSink {
     this.uuid = descriptor.uuid || uuidv4();
     this.peer = descriptor.peer || localPeer;
     this.channels = 2;
-    this.frameSize = this.rate / OPUS_ENCODER_FRAME_SAMPLES_COUNT; // number of samples in a frame, default to 10ms
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink`);
   }
@@ -42,11 +40,10 @@ export abstract class AudioSink {
   async linkSource(source: AudioSource) {
     this.log(`Linking audio source ${source.name} (uuid ${source.uuid}) to sink`);
     this.sourceStream = await source.start();
-    const decoder = new OpusDecodeStream(OPUS_ENCODER_RATE, source.channels);
-    this.sourceStream.pipe(decoder);
+    const decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
     await this._startSink(source);
 
-    this._pipeSourceStreamToSink(decoder);
+    this._pipeSourceStreamToSink(decodedStream);
   }
 
   toObject = () => ({
