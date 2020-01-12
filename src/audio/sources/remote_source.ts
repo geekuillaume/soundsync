@@ -2,7 +2,7 @@
 import { AudioSource } from './audio_source';
 import { hostname } from 'os';
 import { RemoteSourceDescriptor } from './source_type';
-import { WebrtcPeer } from '../communication/wrtc_peer';
+import { WebrtcPeer } from '../../communication/wrtc_peer';
 
 export class RemoteSource extends AudioSource {
   constructor(descriptor: RemoteSourceDescriptor) {

@@ -3,8 +3,8 @@ import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { ControllerMessage, AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
-import { AudioSource } from '../audio/audio_source';
-import { AudioSink } from '../audio/audio_sink';
+import { AudioSource } from '../audio/sources/audio_source';
+import { AudioSink } from '../audio/sinks/audio_sink';
 
 interface Pipe {
   source: AudioSource;

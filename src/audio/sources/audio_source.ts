@@ -2,9 +2,9 @@ import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
 import { SourceDescriptor, SourceType } from './source_type';
-import { Peer } from '../communication/peer';
-import { localPeer } from '../communication/local_peer';
-import { createAudioEncodedStream } from './opus_streams';
+import { Peer } from '../../communication/peer';
+import { localPeer } from '../../communication/local_peer';
+import { createAudioEncodedStream } from '../opus_streams';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {

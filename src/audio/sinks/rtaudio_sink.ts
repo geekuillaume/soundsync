@@ -1,10 +1,10 @@
 // import Speaker from 'speaker';
 import { AudioSink } from './audio_sink';
-import { AudioSource } from './audio_source';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT } from '../utils/constants';
+import { AudioSource } from '../sources/audio_source';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { RtAudio, RtAudioFormat, RtAudioStreamFlags } from 'audify';
-import { AudioChunkStreamOutput } from '../utils/chunk_stream';
+import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';

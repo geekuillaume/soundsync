@@ -1,7 +1,7 @@
 import { AudioSink } from './audio_sink';
-import { AudioSource } from './audio_source';
+import { AudioSource } from '../sources/audio_source';
 import { RemoteSinkDescriptor } from './sink_type';
-import { WebrtcPeer } from '../communication/wrtc_peer';
+import { WebrtcPeer } from '../../communication/wrtc_peer';
 
 export class RemoteSink extends AudioSink {
   type: 'remote' = 'remote';

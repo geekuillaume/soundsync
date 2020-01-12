@@ -2,12 +2,12 @@
 import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
-import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE } from '../utils/constants';
-import { AudioSource } from './audio_source';
+import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE } from '../../utils/constants';
+import { AudioSource } from '../sources/audio_source';
 import { SinkDescriptor, SinkType } from './sink_type';
-import { Peer } from '../communication/peer';
-import { localPeer } from '../communication/local_peer';
-import { OpusDecodeStream, createAudioDecodedStream } from './opus_streams';
+import { Peer } from '../../communication/peer';
+import { localPeer } from '../../communication/local_peer';
+import { OpusDecodeStream, createAudioDecodedStream } from '../opus_streams';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {

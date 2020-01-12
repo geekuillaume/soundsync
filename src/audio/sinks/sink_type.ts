@@ -1,4 +1,4 @@
-import { Peer } from '../communication/peer';
+import { Peer } from '../../communication/peer';
 
 export interface BaseSinkDescriptor {
   name: string;

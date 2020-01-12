@@ -3,9 +3,9 @@ import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { RTCIceCandidate } from 'wrtc';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { AudioSource } from '../audio/audio_source';
+import { AudioSource } from '../audio/sources/audio_source';
 import { ControllerMessage, CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage } from '../communication/messages';
-import { AudioSink } from '../audio/audio_sink';
+import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 

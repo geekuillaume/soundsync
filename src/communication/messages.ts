@@ -1,5 +1,5 @@
-import { SourceType } from '../audio/source_type';
-import { SinkType } from '../audio/sink_type';
+import { SourceType } from '../audio/sources/source_type';
+import { SinkType } from '../audio/sinks/sink_type';
 
 export interface LightMessage {
   type: 'ping' | 'pong' | 'requestSourcesList';

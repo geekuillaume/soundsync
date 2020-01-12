@@ -3,14 +3,14 @@ import debug from 'debug';
 import _ from 'lodash';
 import { RtAudio } from 'audify';
 
-import { AudioSource } from './audio_source';
-import { LibrespotSource } from './librespot_source';
-import { SourceDescriptor } from './source_type';
-import { RemoteSource } from './remote_source';
-import { AudioSink } from './audio_sink';
-import { SinkDescriptor } from './sink_type';
-import { RtAudioSink } from './rtaudio_sink';
-import { RemoteSink } from './remote_sink';
+import { AudioSource } from './sources/audio_source';
+import { LibrespotSource } from './sources/librespot_source';
+import { SourceDescriptor } from './sources/source_type';
+import { RemoteSource } from './sources/remote_source';
+import { AudioSink } from './sinks/audio_sink';
+import { SinkDescriptor } from './sinks/sink_type';
+import { RtAudioSink } from './sinks/rtaudio_sink';
+import { RemoteSink } from './sinks/remote_sink';
 import { localPeer } from '../communication/local_peer';
 
 const log = debug(`soundsync:sourcesManager`);
