@@ -2,15 +2,16 @@ import { AudioSource } from './audio_source';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { hostname } from 'os';
 import { LibresportSourceDescriptor } from './source_type';
-import { createWriteStream } from 'fs';
+import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { createAudioEncodedStream } from '../opus_streams';
 
 export class LibrespotSource extends AudioSource {
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
   encoderStream: NodeJS.WritableStream;
 
-  constructor(descriptor: LibresportSourceDescriptor) {
-    super(descriptor);
+  constructor(descriptor: LibresportSourceDescriptor, manager: AudioSourcesSinksManager) {
+    super(descriptor, manager);
     this.options = descriptor.librespotOptions;
     this.options.name = this.options.name || hostname();
     this.local = true;
@@ -30,7 +31,7 @@ export class LibrespotSource extends AudioSource {
     ]);
   }
 
-  async _startBackend() {
-    return this.librespotProcess.stdout;
+  async _getAudioEncodedStream() {
+    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
 }

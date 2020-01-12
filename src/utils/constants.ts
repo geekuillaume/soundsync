@@ -10,3 +10,5 @@ export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
   maxPacketLifeTime: 10,
 }
 export const ICE_GATHERING_TIMEOUT = 20000;
+
+export const TIMEKEEPER_REFRESH_INTERVAL = 10000;

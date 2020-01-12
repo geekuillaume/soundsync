@@ -42,7 +42,7 @@ export abstract class AudioSink {
     this.sourceStream = await source.start();
     const decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
     await this._startSink(source);
-
+    // TODO do not pipe to stream but read from source stored chunks to handle latency / sync
     this._pipeSourceStreamToSink(decodedStream);
   }
 

@@ -57,13 +57,15 @@ const main = async () => {
     await webrtcServer.connectToCoordinatorHost(argv.coordinatorHost);
   }
 
-  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
+  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager, !!argv.startCoordinator);
 
   if (argv.librespot) {
     audioSourcesSinksManager.addSource({
       type: 'librespot',
-      name: 'soundsync librespot',
-      librespotOptions: {},
+      name: 'Librespot',
+      librespotOptions: {
+        name: 'Soundsync'
+      },
     });
   }
 }

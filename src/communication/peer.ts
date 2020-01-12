@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter, once } from 'events';
 import { ControllerMessage } from '../communication/messages';
 
 export abstract class Peer extends EventEmitter {
@@ -22,9 +22,7 @@ export abstract class Peer extends EventEmitter {
     if (this.state === 'connected') {
       return;
     }
-    await new Promise((resolve) => {
-      this.once('connected', resolve);
-    });
+    await once(this, 'connected');
   }
 
   abstract sendControllerMessage(message: ControllerMessage): void;

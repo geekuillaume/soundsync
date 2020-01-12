@@ -1,20 +1,21 @@
 import debug from 'debug';
 import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-import { RTCIceCandidate } from 'wrtc';
+// import { RTCIceCandidate } from 'wrtc';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { AudioSource } from '../audio/sources/audio_source';
-import { ControllerMessage, CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage } from '../communication/messages';
+import { CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage, RemoveSourceMessage } from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
-import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
+// import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
+import { attachTimekeeperClient } from './timekeeper';
 
 export class ClientCoordinator {
   webrtcServer: WebrtcServer;
   audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
 
-  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
+  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager, isCoordinator = false) {
     this.webrtcServer = webrtcServer;
     this.audioSourcesSinksManager = audioSourcesSinksManager;
     this.log = debug(`soundsync:hostCoordinator`);
@@ -26,28 +27,30 @@ export class ClientCoordinator {
     this.webrtcServer.coordinatorPeer.on('connected', this.announceAllSourcesSinksToController);
     audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
     audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
+    audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
 
     this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
 
-    this.webrtcServer.coordinatorPeer.on('controllerMessage', ({message}: {message: ControllerMessage}) => {
-      if (message.type === 'addRemoteSource') {
-        this.handleAddRemoteSource(message);
-      }
-      if (message.type === 'removeRemoteSource') {
-        this.audioSourcesSinksManager.removeSource(message.uuid);
-      }
-      if (message.type === 'createPipe') {
-        this.handleCreatePipe(message);
-      }
-      if (message.type === 'peerConnectionInfo') {
-        this.handlePeerConnectionInfo(message);
-      }
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:addRemoteSource', ({message}: {message: AddRemoteSourceMessage}) => {
+      this.handleAddRemoteSource(message);
+    });
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:removeRemoteSource', ({message}: {message: RemoveSourceMessage}) => {
+      this.audioSourcesSinksManager.removeSource(message.uuid);
+    });
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:createPipe', ({message}: {message: CreatePipeMessage}) => {
+      this.handleCreatePipe(message);
+    });
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:peerConnectionInfo', ({message}: {message: PeerConnectionInfoMessage}) => {
+      this.handlePeerConnectionInfo(message);
     });
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(() => {
       this.webrtcServer.coordinatorPeer.sendControllerMessage({
         type: 'requestSourcesList',
       })
+      if (!isCoordinator) {
+        attachTimekeeperClient(webrtcServer);
+      }
     });
   }
 
@@ -73,6 +76,8 @@ export class ClientCoordinator {
       sourceType: source.type,
       uuid: source.uuid,
       channels: source.channels,
+      latency: source.latency,
+      startedAt: source.startedAt,
     });
   }
 
@@ -84,6 +89,8 @@ export class ClientCoordinator {
       uuid: message.uuid,
       channels: message.channels,
       peer: this.webrtcServer.getPeerByUuid(message.peerUuid),
+      latency: message.latency,
+      startedAt: message.startedAt,
     });
   }
 

@@ -1,10 +1,11 @@
 import debug from 'debug';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { ControllerMessage, AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
+import { AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
+import { attachTimekeeperCoordinator } from './timekeeper';
 
 interface Pipe {
   source: AudioSource;
@@ -24,25 +25,25 @@ export class HostCoordinator {
     this.log = debug(`soundsync:hostCoordinator`);
     this.log(`Created host coordinator`);
 
-    this.webrtcServer.on('controllerMessage', ({peer, message}: {peer: WebrtcPeer, message: ControllerMessage}) => {
-      if (message.type === 'addLocalSource') {
-        // A peer has a new source, we need to register it and send it to everyone else
-        this.handleNewSourceFromPeer(peer, message);
-      }
-      if (message.type === 'requestSourcesList') {
-        this.handleRequestSourceList(peer);
-      }
-      if (message.type === 'addLocalSink') {
-        this.handleNewSinkFromPeer(peer, message);
-      }
-      if (message.type === 'peerConnectionInfo') {
-        this.handlePeerConnectionInfo(peer, message);
-      }
+    this.webrtcServer.on(`peerControllerMessage:addLocalSource`, ({peer, message}: {peer: WebrtcPeer, message: AddLocalSourceMessage}) => {
+      // A peer has a new source, we need to register it and send it to everyone else
+      this.handleNewSourceFromPeer(peer, message);
     });
+    this.webrtcServer.on(`peerControllerMessage:requestSourcesList`, ({peer}: {peer: WebrtcPeer}) => {
+      this.handleRequestSourceList(peer);
+    });
+    this.webrtcServer.on(`peerControllerMessage:addLocalSink`, ({peer, message}: {peer: WebrtcPeer, message: AddSinkMessage}) => {
+      this.handleNewSinkFromPeer(peer, message);
+    });
+    this.webrtcServer.on(`peerControllerMessage:peerConnectionInfo`, ({peer, message}: {peer: WebrtcPeer, message: PeerConnectionInfoMessage}) => {
+      this.handlePeerConnectionInfo(peer, message);
+    });
+
+    attachTimekeeperCoordinator(webrtcServer);
   }
 
   private handleNewSourceFromPeer = (peer: WebrtcPeer, message: AddLocalSourceMessage) => {
-    this.log(`Registering new source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
+    this.log(`Received source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
     // Sending new source info to all peers
     this.webrtcServer.broadcast({
       type: 'addRemoteSource',
@@ -51,6 +52,8 @@ export class HostCoordinator {
       sourceType: message.sourceType,
       channels: message.channels,
       peerUuid: peer.uuid,
+      latency: message.latency,
+      startedAt: message.startedAt,
     }, [peer.uuid]);
 
     peer.once('disconnected', () => {
@@ -70,7 +73,9 @@ export class HostCoordinator {
         sourceType: source.type,
         channels: source.channels,
         peerUuid: source.peer.uuid,
-      })
+        latency: source.latency,
+        startedAt: source.startedAt,
+      });
     })
   }
 

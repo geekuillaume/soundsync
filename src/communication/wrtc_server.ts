@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter, once } from 'events';
 import _ from 'lodash';
 import superagent from 'superagent';
 import debug from 'debug';
@@ -26,9 +26,9 @@ export class WebrtcServer extends EventEmitter {
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
     this.coordinatorPeer = localPeer;
     this.coordinatorPeer.coordinator = true;
-    this.coordinatorPeer.on('controllerMessage', (message: ControllerMessage) => {
-      this.emit('controllerMessage', { peer: localPeer, message });
-    })
+    this.coordinatorPeer.on('controllerMessage:all', ({message}: {message: ControllerMessage}) => {
+      this.emit(`peerControllerMessage:${message.type}`, {peer: localPeer, message});
+    });
 
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
       const { name, uuid, sdp } = ctx.request.body;
@@ -92,9 +92,7 @@ export class WebrtcServer extends EventEmitter {
           peer.setUuid(uuid);
           peer.log(`Got response from other peer http server`);
           await peer.connection.setRemoteDescription(sdp);
-          await new Promise((resolve) => {
-            peer.once('connected', resolve);
-          });
+          await once(peer, 'connected');
         }
     });
 
@@ -131,9 +129,7 @@ export class WebrtcServer extends EventEmitter {
             peerUuid: peer.uuid,
             offer: peer.connection.localDescription,
           });
-          await new Promise((resolve) => {
-            peer.once('connected', resolve);
-          });
+          await once(peer, 'connected');
         }
       });
     }

@@ -87,8 +87,9 @@ export class WebrtcPeer extends Peer {
       return;
     }
     this.log('Received controller message', message);
-    this.emit('controllerMessage', {peer: this, message});
-    this.webrtcServer.emit('controllerMessage', {peer: this, message});
+    this.emit(`controllerMessage:all`, {peer: this, message});
+    this.emit(`controllerMessage:${message.type}`, {peer: this, message});
+    this.webrtcServer.emit(`peerControllerMessage:${message.type}`, {peer: this, message});
   }
 
   sendControllerMessage(message: ControllerMessage) {

@@ -11,7 +11,8 @@ class LocalPeer extends Peer {
   }
 
   sendControllerMessage(message: ControllerMessage) {
-    this.emit('controllerMessage', {peer: this, message});
+    this.emit(`controllerMessage:all`, {peer: this, message});
+    this.emit(`controllerMessage:${message.type}`, {peer: this, message});
   }
 }
 

@@ -11,7 +11,6 @@ import { AudioSink } from './sinks/audio_sink';
 import { SinkDescriptor } from './sinks/sink_type';
 import { RtAudioSink } from './sinks/rtaudio_sink';
 import { RemoteSink } from './sinks/remote_sink';
-import { localPeer } from '../communication/local_peer';
 
 const log = debug(`soundsync:sourcesManager`);
 
@@ -43,19 +42,21 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSource(sourceDescriptor: SourceDescriptor) {
+    const existingSource = _.find(this.sources, {uuid: sourceDescriptor.uuid});
     if (_.find(this.sources, {uuid: sourceDescriptor.uuid})) {
-      log(`Trying to add source which already exists, ignoring`);
+      log(`Trying to add source which already exists, updating existing`);
+      existingSource.updateInfo(sourceDescriptor);
       return;
     }
 
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
     if (sourceDescriptor.type === 'librespot') {
-      const source = new LibrespotSource(sourceDescriptor);
+      const source = new LibrespotSource(sourceDescriptor, this);
       this.sources.push(source);
       this.emit('newLocalSource', source);
     }
     if (sourceDescriptor.type === 'remote') {
-      const source = new RemoteSource(sourceDescriptor);
+      const source = new RemoteSource(sourceDescriptor, this);
       // @ts-ignore
       this.sources.push(source);
     }

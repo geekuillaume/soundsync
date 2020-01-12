@@ -4,6 +4,8 @@ export interface BaseSourceDescriptor {
   name: string;
   uuid?: string;
   peer?: Peer;
+  startedAt?: number;
+  latency?: number;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {

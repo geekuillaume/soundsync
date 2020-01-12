@@ -11,6 +11,8 @@ export interface AddLocalSourceMessage {
   name: string;
   uuid: string;
   channels: number;
+  latency: number;
+  startedAt: number;
 }
 
 export interface AddRemoteSourceMessage {
@@ -19,6 +21,8 @@ export interface AddRemoteSourceMessage {
   name: string;
   uuid: string;
   channels: number;
+  latency: number;
+  startedAt: number;
   peerUuid: string;
 }
 
@@ -50,6 +54,17 @@ export interface PeerConnectionInfoMessage {
   iceCandidates?: string[];
 }
 
+export interface TimekeepRequest {
+  type: 'timekeepRequest';
+  sentAt: number;
+}
+
+export interface TimekeepResponse {
+  type: 'timekeepResponse';
+  sentAt: number;
+  respondedAt: number;
+}
+
 export type ControllerMessage =
   LightMessage |
   AddRemoteSourceMessage |
@@ -57,4 +72,5 @@ export type ControllerMessage =
   RemoveSourceMessage |
   AddSinkMessage |
   CreatePipeMessage |
-  PeerConnectionInfoMessage;
+  PeerConnectionInfoMessage |
+  TimekeepRequest | TimekeepResponse;
