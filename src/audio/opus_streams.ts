@@ -2,7 +2,7 @@ import SpeexResampler from 'speex-resampler';
 import { OpusEncoder, OpusApplication, OpusDecoder } from 'audify';
 import { Transform } from 'stream';
 import { AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder } from '../utils/chunk_stream';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_PER_SECONDS } from '../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_DURATION } from '../utils/constants';
 
 export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
   let source = sourceStream;
@@ -11,8 +11,8 @@ export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, so
     source = source.pipe(resampler);
   }
   const chunkStream = new AudioChunkStream(
-    sourceStream,
-    1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS,
+    source,
+    OPUS_ENCODER_SAMPLES_DURATION,
     OPUS_ENCODER_FRAME_SAMPLES_COUNT * channels * 2); // *2 because this is 16bits so 2 bytes
   const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_AUDIO)
   const chunkEncoder = new AudioChunkStreamEncoder();

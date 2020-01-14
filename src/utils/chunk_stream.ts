@@ -29,15 +29,16 @@ export class AudioChunkStream extends Readable {
     if (this.readInterval) {
       return;
     }
-    this.lastEmitTime = performance.now();
+    this.lastEmitTime = this.now();
     this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
   }
 
+  now = () => performance.now() - this.creationTime;
+
   _pushNecessaryChunks = () => {
-    const now = performance.now();
-    const chunksToEmit = Math.floor((now - this.lastEmitTime) / this.interval);
+    const chunksToEmit = Math.floor((this.now() - this.lastEmitTime) / this.interval);
     for (let i = 0; i < chunksToEmit; i++) {
-      const chunkGlobalIndex = Math.floor(((this.lastEmitTime - this.creationTime) + (i * this.interval)) / this.interval);
+      const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
       const chunk = <Buffer>this.sourceStream.read(this.sampleSize);
       if (chunk === null) {
         break;
@@ -47,12 +48,12 @@ export class AudioChunkStream extends Readable {
         chunk,
       }
       const canPush = this.push(chunkOutput);
+      this.lastEmitTime = this.interval * chunkGlobalIndex;
       if (!canPush) {
         clearInterval(this.readInterval);
-        return;
+        break;
       }
     }
-    this.lastEmitTime = now;
   }
 }
 

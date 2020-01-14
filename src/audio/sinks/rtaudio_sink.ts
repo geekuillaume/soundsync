@@ -1,7 +1,7 @@
 // import Speaker from 'speaker';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT } from '../../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_PER_SECONDS } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { RtAudio, RtAudioFormat, RtAudioStreamFlags } from 'audify';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
@@ -31,22 +31,22 @@ export class RtAudioSink extends AudioSink {
       OPUS_ENCODER_FRAME_SAMPLES_COUNT, // samples per frame
       `soundsync-${source.name}`, // name
       null, // input callback, not used
-      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
+      // RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
     );
+    setTimeout(() => {
+      this.log('Starting reading chunks');
+      this.rtaudio.start();
+    }, 2500);
+    setInterval(this.writeNextAudioChunk, 1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS);
   }
 
-  _pipeSourceStreamToSink(sourceStream: NodeJS.ReadableStream) {
-    sourceStream.on('data', (d: AudioChunkStreamOutput) => {
-      this.rtaudio.write(d.chunk);
-    });
-    this.rtaudio.start();
+  _stopSink() {
+    // TODO: implement sink stop
   }
 
-  _unpipeSourceStreamToSink() {
-    // if (this.decoder) {
-    //   this.log(`Unpiping decoder to speaker`);
-    //   this.decoder.unpipe(this.speaker);
-    // }
+  writeNextAudioChunk = () => {
+    const chunk = this.getAudioChunkAtDelayFromNow(0);
+    this.rtaudio.write(chunk);
   }
 
 }

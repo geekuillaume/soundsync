@@ -20,10 +20,7 @@ export class RemoteSink extends AudioSink {
   }
   _startSink(source: AudioSource) {
   }
-
-  _pipeSourceStreamToSink(decoderStream: NodeJS.ReadableStream) {
+  _stopSink() {
   }
 
-  _unpipeSourceStreamToSink() {
-  }
 }

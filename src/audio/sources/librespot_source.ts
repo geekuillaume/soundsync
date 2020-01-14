@@ -4,6 +4,7 @@ import { hostname } from 'os';
 import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
+import { createReadStream } from 'fs';
 
 export class LibrespotSource extends AudioSource {
   options: LibresportSourceDescriptor['librespotOptions'];
@@ -32,6 +33,8 @@ export class LibrespotSource extends AudioSource {
   }
 
   async _getAudioEncodedStream() {
+    const testPcm = createReadStream('./test.pcm');
+    // return createAudioEncodedStream(testPcm, this.rate, this.channels)
     return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
 }
