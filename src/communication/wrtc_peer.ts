@@ -86,7 +86,7 @@ export class WebrtcPeer extends Peer {
       this.handleReceivedHeartbeat(message.type === 'ping');
       return;
     }
-    this.log('Received controller message', message);
+    this.log.extend(message.type)('Received controller message', message);
     this.emit(`controllerMessage:all`, {peer: this, message});
     this.emit(`controllerMessage:${message.type}`, {peer: this, message});
     this.webrtcServer.emit(`peerControllerMessage:${message.type}`, {peer: this, message});
@@ -98,7 +98,7 @@ export class WebrtcPeer extends Peer {
       return;
     }
     if (message.type !== 'ping' && message.type !== 'pong') {
-      this.log('Sending controller message', message);
+      this.log.extend(message.type)('Sending controller message', message);
     }
     return this.controllerChannel.send(JSON.stringify(message));
   }
