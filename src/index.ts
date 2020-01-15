@@ -34,7 +34,6 @@ const main = async () => {
     .completion().argv;
 
   assert(!argv.startCoordinator || !argv.coordinatorHost, 'Cannot be coordinator and connect to another coordinator at the same time, use only one option');
-  assert(argv.startCoordinator || argv.coordinatorHost, 'Need to be a coordinator or connect to one');
 
   const webrtcServer = new WebrtcServer();
   const audioSourcesSinksManager = new AudioSourcesSinksManager({
@@ -42,7 +41,7 @@ const main = async () => {
   });
 
   if (argv.startCoordinator) {
-    const httpServer = await createHttpServer(8080);
+    const httpServer = await createHttpServer(6512);
     webrtcServer.attachToSignalingServer(httpServer);
 
     const hostCoordinator = new HostCoordinator(webrtcServer, audioSourcesSinksManager);
@@ -54,7 +53,7 @@ const main = async () => {
         webrtcServer,
       )
     }
-  } else if (argv.coordinatorHost) {
+  } else {
     await webrtcServer.connectToCoordinatorHost(argv.coordinatorHost);
   }
 

@@ -8,6 +8,7 @@ const l = debug(`soundsync:httpserver`);
 export interface SoundSyncHttpServer {
   app: Koa<Koa.DefaultState, Koa.DefaultContext>;
   router: Router<any, {}>;
+  port: number;
 }
 
 export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer> => {
@@ -32,6 +33,7 @@ export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer
 
   return {
     app,
-    router
+    router,
+    port
   };
 }

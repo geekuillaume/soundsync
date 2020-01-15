@@ -1,4 +1,5 @@
 import { EventEmitter, once } from 'events';
+import bonjour from 'bonjour';
 import _ from 'lodash';
 import superagent from 'superagent';
 import debug from 'debug';
@@ -55,6 +56,12 @@ export class WebrtcServer extends EventEmitter {
       this.peers[uuid] = peer;
     });
 
+    bonjour().publish({
+      name: 'soundsync',
+      port: httpServer.port,
+      type: 'soundsync'
+    });
+
     // httpServer.router.post('/ice_candidate', async (ctx) => {
     //   const { uuid, iceCandidates } = ctx.request.body;
     //   if (iceCandidates) {
@@ -71,6 +78,16 @@ export class WebrtcServer extends EventEmitter {
   }
 
   async connectToCoordinatorHost(host: string) {
+    let coordinatorHost = host;
+    if (!coordinatorHost) {
+      const service: any = await new Promise((resolve) => {
+        const browser = bonjour().findOne({
+          type: 'soundsync',
+        }, resolve);
+      });
+      coordinatorHost = `${service.addresses[0]}:${service.port}`;
+    }
+
     const name = 'test';  // TODO change with own name
     const peer = new WebrtcPeer({
       name,
@@ -82,7 +99,7 @@ export class WebrtcServer extends EventEmitter {
         await peer.connection.setLocalDescription(offer);
         await waitUntilIceGatheringStateComplete(peer.connection);
 
-        const {body: {sdp, uuid}} = await superagent.post(`${host}/connect_webrtc_peer`)
+        const {body: {sdp, uuid}} = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
           .send({
             name,
             uuid: ownUuid,
