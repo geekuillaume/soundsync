@@ -68,8 +68,11 @@ export class WebrtcPeer extends Peer {
     this.emit('disconnected');
 
     this.controllerChannel.close();
+    this.datachannels.forEach((channel) => channel.close());
     // TODO: this makes nodejs segfault, should investigate why
     // this.connection.close();
+
+    this.webrtcServer.unregisterPeer(this);
 
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout)

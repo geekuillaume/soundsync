@@ -18,6 +18,7 @@ export abstract class AudioSource {
   uuid: string;
   peer: Peer;
   manager: AudioSourcesSinksManager;
+  encodedAudioStream: NodeJS.ReadableStream;
   startedAt: number;
   // TODO handle dynamic latency
   latency = 2000;
@@ -44,12 +45,15 @@ export abstract class AudioSource {
 
   async start(): Promise<NodeJS.ReadableStream> {
     this.log(`Starting audio source`);
-    const encodedAudioStream = await this._getAudioEncodedStream();
+    if (this.encodedAudioStream) {
+      return this.encodedAudioStream;
+    }
+    this.encodedAudioStream = await this._getAudioEncodedStream();
     if (this.local) {
       this.startedAt = getCurrentSynchronizedTime();
       this.manager.emit('sourceUpdate', this);
     }
-    return encodedAudioStream;
+    return this.encodedAudioStream;
   }
 
   toObject = () => ({

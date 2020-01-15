@@ -6,10 +6,11 @@ import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
 import { createReadStream } from 'fs';
 
+
 export class LibrespotSource extends AudioSource {
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
-  encoderStream: NodeJS.WritableStream;
+  testPcm: NodeJS.ReadableStream;
 
   constructor(descriptor: LibresportSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -30,11 +31,11 @@ export class LibrespotSource extends AudioSource {
         '-p', this.options.password,
       ] : [])
     ]);
+    this.testPcm = createReadStream('./test.pcm');
   }
 
   async _getAudioEncodedStream() {
-    const testPcm = createReadStream('./test.pcm');
-    // return createAudioEncodedStream(testPcm, this.rate, this.channels)
-    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
+    return createAudioEncodedStream(this.testPcm, this.rate, this.channels)
+    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
 }

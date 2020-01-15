@@ -113,6 +113,11 @@ export class HostCoordinator {
     };
     this.pipes.push(pipe);
     sink.linkSource(source);
+    const closePipe = () => {
+      this.pipes = this.pipes.filter((pipe) => pipe.source !== source && pipe.sink !== sink)
+    }
+    source.peer.once('disconnected', closePipe);
+    sink.peer.once('disconnected', closePipe);
     return pipe;
   }
 }

@@ -12,16 +12,6 @@ export class RemoteSource extends AudioSource {
     this.channels = descriptor.channels;
   }
 
-  async start() {
-    if (!(this.peer instanceof WebrtcPeer)) {
-      // this should never happens as a remote source should have a webrtc peer
-      return;
-    }
-    await this.peer.connect();
-    const stream = await this.peer.createAudioSourceChannel(this.uuid);
-    return stream;
-  }
-
   async _getAudioEncodedStream() {
     if (!(this.peer instanceof WebrtcPeer)) {
       // this should never happens as a remote source should have a webrtc peer
@@ -29,6 +19,7 @@ export class RemoteSource extends AudioSource {
     }
     await this.peer.connect();
     const stream = await this.peer.createAudioSourceChannel(this.uuid);
+    this.log(`Created audio channel with source peer`);
     return stream;
   }
 }

@@ -30,7 +30,8 @@ const main = async () => {
     .option('librespot', {
       type: 'boolean',
       description: 'Enable a Spotify connect server with Librespot',
-    }).argv;
+    })
+    .completion().argv;
 
   assert(!argv.startCoordinator || !argv.coordinatorHost, 'Cannot be coordinator and connect to another coordinator at the same time, use only one option');
   assert(argv.startCoordinator || argv.coordinatorHost, 'Need to be a coordinator or connect to one');

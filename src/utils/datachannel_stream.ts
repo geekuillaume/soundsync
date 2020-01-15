@@ -15,7 +15,9 @@ export class DataChannelStream extends Duplex {
   }
 
   _write(chunk, encoding, callback) {
-    this.datachannel.send(chunk);
+    if (this.datachannel.readyState === 'open') {
+      this.datachannel.send(chunk);
+    }
     callback(null);
   }
 
