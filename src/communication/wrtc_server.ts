@@ -80,8 +80,9 @@ export class WebrtcServer extends EventEmitter {
   async connectToCoordinatorHost(host: string) {
     let coordinatorHost = host;
     if (!coordinatorHost) {
+      log('Looking for a coordinator with Bonjour...');
       const service: any = await new Promise((resolve) => {
-        const browser = bonjour().findOne({
+        bonjour().findOne({
           type: 'soundsync',
         }, resolve);
       });
