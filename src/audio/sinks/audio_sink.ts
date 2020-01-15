@@ -51,18 +51,20 @@ export abstract class AudioSink {
   }
 
   private handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
+    // TODO: handle removing previous non read chunks
     this.buffer[chunk.i] = chunk.chunk;
   }
 
   getAudioChunkAtDelayFromNow(localDelay: number) {
     if (!this.pipedSource) {
-      return Buffer.alloc(OPUS_ENCODER_FRAME_SAMPLES_COUNT * this.pipedSource.channels * 2);
+      return null;
     }
     const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + localDelay;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_SAMPLES_DURATION);
     const chunk = this.buffer[correspondingChunkIndex]
+    this.buffer[correspondingChunkIndex] = undefined;
     if (!chunk) {
-      return Buffer.alloc(OPUS_ENCODER_FRAME_SAMPLES_COUNT * this.pipedSource.channels * 2);
+      return null;
     }
     return chunk;
   }

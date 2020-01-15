@@ -37,7 +37,7 @@ export class RtAudioSink extends AudioSink {
       this.log('Starting reading chunks');
       this.rtaudio.start();
     }, 2500);
-    setInterval(this.writeNextAudioChunk, 1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS);
+    setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
   }
 
   _stopSink() {
@@ -46,7 +46,9 @@ export class RtAudioSink extends AudioSink {
 
   writeNextAudioChunk = () => {
     const chunk = this.getAudioChunkAtDelayFromNow(0);
-    this.rtaudio.write(chunk);
+    if (chunk) {
+      this.rtaudio.write(chunk);
+    }
   }
 
 }
