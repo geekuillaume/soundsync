@@ -24,5 +24,6 @@ export interface RemoteSourceDescriptor extends BaseSourceDescriptor {
   channels: number;
 }
 
+export type LocalSourceDescriptor = LibresportSourceDescriptor;
 export type SourceDescriptor = LibresportSourceDescriptor | RemoteSourceDescriptor;
 export type SourceType = SourceDescriptor['type'];

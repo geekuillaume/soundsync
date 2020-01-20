@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
-import { ownUuid } from '../utils/ownUuid';
+import { getConfigField } from '../coordinator/config';
 
 class LocalPeer extends Peer {
   constructor({ uuid, name }) {
@@ -16,7 +16,13 @@ class LocalPeer extends Peer {
   }
 }
 
-export const localPeer = new LocalPeer({
-  name: 'test',
-  uuid: ownUuid,
-})
+let localPeer;
+export const getLocalPeer = () => {
+  if (!localPeer) {
+    localPeer = new LocalPeer({
+      name: getConfigField('name'),
+      uuid: getConfigField('uuid'),
+    });
+  }
+  return localPeer;
+}

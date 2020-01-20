@@ -5,7 +5,7 @@ import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPL
 import { AudioSource } from '../sources/audio_source';
 import { SinkDescriptor, SinkType } from './sink_type';
 import { Peer } from '../../communication/peer';
-import { localPeer } from '../../communication/local_peer';
+import { getLocalPeer } from '../../communication/local_peer';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
@@ -34,7 +34,7 @@ export abstract class AudioSink {
     this.type = descriptor.type;
     this.rate = OPUS_ENCODER_RATE;
     this.uuid = descriptor.uuid || uuidv4();
-    this.peer = descriptor.peer || localPeer;
+    this.peer = descriptor.peer || getLocalPeer();
     this.channels = 2;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink`);

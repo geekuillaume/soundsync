@@ -6,6 +6,7 @@ import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
+import { initConfig } from './coordinator/config';
 
 const main = async () => {
   const argv = yargs
@@ -18,27 +19,22 @@ const main = async () => {
       type: 'string',
       description: 'Coordinator host to connect to',
     })
-    .option('autodetectAudioDevices', {
-      type: 'boolean',
-      description: 'Autodetect and create matching source / sink for every audio device on current host'
-    })
     .option('api', {
       type: 'boolean',
       description: 'Enable the JSON REST API, only for coordinator',
       default: true,
     })
-    .option('librespot', {
-      type: 'boolean',
-      description: 'Enable a Spotify connect server with Librespot',
+    .option('configDir', {
+      type: 'string',
+      description: 'Directory where the config and cache files can be found, if it doesn\'t exists it will be created',
     })
     .completion().argv;
 
   assert(!argv.startCoordinator || !argv.coordinatorHost, 'Cannot be coordinator and connect to another coordinator at the same time, use only one option');
 
+  initConfig(argv.configDir);
   const webrtcServer = new WebrtcServer();
-  const audioSourcesSinksManager = new AudioSourcesSinksManager({
-    autodetect: argv.autodetectAudioDevices,
-  });
+  const audioSourcesSinksManager = new AudioSourcesSinksManager();
 
   if (argv.startCoordinator) {
     const httpServer = await createHttpServer(6512);
@@ -56,18 +52,9 @@ const main = async () => {
   } else {
     await webrtcServer.connectToCoordinatorHost(argv.coordinatorHost);
   }
-
   const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager, !!argv.startCoordinator);
 
-  if (argv.librespot) {
-    audioSourcesSinksManager.addSource({
-      type: 'librespot',
-      name: 'Librespot',
-      librespotOptions: {
-        name: 'Soundsync'
-      },
-    });
-  }
+  audioSourcesSinksManager.addFromConfig();
 }
 
 main().catch(e => {

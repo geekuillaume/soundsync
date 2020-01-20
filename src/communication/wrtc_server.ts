@@ -6,9 +6,8 @@ import debug from 'debug';
 
 import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
-import { localPeer } from './local_peer';
+import { getLocalPeer } from './local_peer';
 import { ControllerMessage } from './messages';
-import { ownUuid } from '../utils/ownUuid';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 
@@ -20,15 +19,15 @@ export class WebrtcServer extends EventEmitter {
 
   constructor() {
     super();
-    log(`Creating new Webrtc server with peer uuid ${ownUuid}`);
-    this.peers[localPeer.uuid] = localPeer;
+    log(`Creating new Webrtc server with peer uuid ${getLocalPeer().uuid}`);
+    this.peers[getLocalPeer().uuid] = getLocalPeer();
   }
 
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
-    this.coordinatorPeer = localPeer;
+    this.coordinatorPeer = getLocalPeer();
     this.coordinatorPeer.coordinator = true;
     this.coordinatorPeer.on('controllerMessage:all', ({message}: {message: ControllerMessage}) => {
-      this.emit(`peerControllerMessage:${message.type}`, {peer: localPeer, message});
+      this.emit(`peerControllerMessage:${message.type}`, {peer: getLocalPeer(), message});
     });
 
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
@@ -51,7 +50,7 @@ export class WebrtcServer extends EventEmitter {
       ctx.body = {
         status: 'ok',
         sdp: peer.connection.localDescription,
-        uuid: ownUuid,
+        uuid: getLocalPeer().uuid,
       }
       this.peers[uuid] = peer;
     });
@@ -103,7 +102,7 @@ export class WebrtcServer extends EventEmitter {
         const {body: {sdp, uuid}} = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
           .send({
             name,
-            uuid: ownUuid,
+            uuid: getLocalPeer().uuid,
             sdp: peer.connection.localDescription,
           });
 

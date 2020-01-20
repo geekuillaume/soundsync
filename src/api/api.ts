@@ -6,7 +6,8 @@ import { SoundSyncHttpServer } from '../communication/http_server';
 import { HostCoordinator } from '../coordinator/host_coordinator';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { localPeer } from '../communication/local_peer';
+import Router from 'koa-router';
+import cors from '@koa/cors';
 
 const log = debug(`soundsync:api`);
 
@@ -27,8 +28,11 @@ export class ApiController {
     this.audioSourcesSinksManager = audioSourcesSinksManager;
     this.webrtcServer = webrtcServer;
 
-    this.httpServer.router.get('/state', this.handleStateRoute);
-    this.httpServer.router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
+    const router = new Router();
+    router.use(cors());
+    router.get('/state', this.handleStateRoute);
+    router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
+    this.httpServer.app.use(router.routes());
     log(`Regitered API`);
   }
 

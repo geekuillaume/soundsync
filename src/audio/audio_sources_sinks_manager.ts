@@ -11,6 +11,7 @@ import { AudioSink } from './sinks/audio_sink';
 import { SinkDescriptor } from './sinks/sink_type';
 import { RtAudioSink } from './sinks/rtaudio_sink';
 import { RemoteSink } from './sinks/remote_sink';
+import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
 
 const log = debug(`soundsync:sourcesManager`);
 
@@ -20,12 +21,21 @@ export class AudioSourcesSinksManager extends EventEmitter {
   sinks: AudioSink[] = [];
   rtaudio: RtAudio;
 
-  constructor({ autodetect}) {
+  constructor() {
     super();
-    this.autodetect = autodetect;
-    if (autodetect) {
+    if (getConfigField('autoDetectAudioDevices')) {
       this.autodetectDevices();
     }
+    this.on('sourceUpdate', (source: AudioSource) => {
+      if (source instanceof LibrespotSource) {
+        updateConfigArrayItem('sources', source.toDescriptor());
+      }
+    })
+    this.on('newLocalSource', (source: AudioSource) => {
+      if (source instanceof LibrespotSource) {
+        updateConfigArrayItem('sources', source.toDescriptor());
+      }
+    })
   }
 
   autodetectDevices = () => {
@@ -42,11 +52,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSource(sourceDescriptor: SourceDescriptor) {
-    const existingSource = _.find(this.sources, {uuid: sourceDescriptor.uuid});
-    if (_.find(this.sources, {uuid: sourceDescriptor.uuid})) {
-      log(`Trying to add source which already exists, updating existing`);
-      existingSource.updateInfo(sourceDescriptor);
-      return;
+    if (sourceDescriptor.uuid) {
+      const existingSource = _.find(this.sources, {uuid: sourceDescriptor.uuid});
+      if (existingSource) {
+        log(`Trying to add source which already exists, updating existing`);
+        existingSource.updateInfo(sourceDescriptor);
+        return;
+      }
     }
 
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
@@ -105,5 +117,12 @@ export class AudioSourcesSinksManager extends EventEmitter {
     // TODO: stop sink
     log(`Removing sink ${sink.name} (type: ${sink.type} uuid: ${uuid})`);
     this.sinks = _.filter(this.sinks, (sink) => sink.uuid !== uuid);
+  }
+
+  addFromConfig() {
+    const sources = getConfigField('sources');
+    sources.forEach((source) => {
+      this.addSource(source);
+    });
   }
 }

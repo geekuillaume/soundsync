@@ -38,4 +38,11 @@ export class LibrespotSource extends AudioSource {
     return createAudioEncodedStream(this.testPcm, this.rate, this.channels)
     // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
+
+  toDescriptor: (() => LibresportSourceDescriptor) = () => ({
+    type: 'librespot',
+    name: this.name,
+    uuid: this.uuid,
+    librespotOptions: this.options,
+  })
 }
