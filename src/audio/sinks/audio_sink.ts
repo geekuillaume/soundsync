@@ -9,6 +9,7 @@ import { getLocalPeer } from '../../communication/local_peer';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
+import { PassThrough } from 'stream';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {
@@ -20,7 +21,8 @@ export abstract class AudioSink {
   log: debug.Debugger;
   local: boolean;
   uuid: string;
-  sourceStream: NodeJS.ReadableStream;
+  sourceStream: PassThrough;
+  decodedStream: NodeJS.ReadableStream;
   peer: Peer;
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
@@ -45,9 +47,22 @@ export abstract class AudioSink {
     this.pipedSource = source;
     this.buffer = {};
     this.sourceStream = await this.pipedSource.start();
-    const decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
+    this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
     await this._startSink(this.pipedSource);
-    decodedStream.on('data', this.handleAudioChunk);
+    this.decodedStream.on('data', this.handleAudioChunk);
+  }
+
+  unlinkSource() {
+    if (!this.sourceStream) {
+      return;
+    }
+    this._stopSink();
+    delete this.pipedSource;
+    this.sourceStream.end();
+    delete this.sourceStream;
+    this.decodedStream.off('data', this.handleAudioChunk);
+    delete this.decodedStream;
+    this.buffer = {};
   }
 
   private handleAudioChunk = (chunk: AudioChunkStreamOutput) => {

@@ -12,6 +12,7 @@ export class RtAudioSink extends AudioSink {
   deviceName: string;
 
   rtaudio: RtAudio;
+  private cleanStream;
   // @ts-ignore
   // speaker: Speaker;
 
@@ -25,7 +26,10 @@ export class RtAudioSink extends AudioSink {
   _startSink(source: AudioSource) {
     const outputConfig:RtAudioStreamParameters = {nChannels: source.channels};
     if (this.deviceName) {
-      outputConfig.deviceId = getAudioDevices().map((name) => name.toString()).indexOf(this.deviceName);
+      outputConfig.deviceId = getAudioDevices().map(({name}) => name).indexOf(this.deviceName);
+      if (outputConfig.deviceId === -1) {
+        delete outputConfig.deviceId;
+      }
     }
     this.log(`Creating speaker`);
     this.rtaudio.openStream(
@@ -38,15 +42,23 @@ export class RtAudioSink extends AudioSink {
       null, // input callback, not used
       // RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
     );
-    setTimeout(() => {
+    const startTimeout = setTimeout(() => {
       this.log('Starting reading chunks');
       this.rtaudio.start();
     }, 2500);
-    setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
+    const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
+    this.cleanStream = () => {
+      clearInterval(writeInterval);
+      clearTimeout(startTimeout);
+      this.rtaudio.closeStream();
+    }
   }
 
   _stopSink() {
-    // TODO: implement sink stop
+    if (this.cleanStream) {
+      this.cleanStream();
+      delete this.cleanStream;
+    }
   }
 
   writeNextAudioChunk = () => {

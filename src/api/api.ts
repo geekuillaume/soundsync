@@ -32,6 +32,7 @@ export class ApiController {
     router.use(cors());
     router.get('/state', this.handleStateRoute);
     router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
+    router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
     this.httpServer.app.use(router.routes());
     log(`Regitered API`);
   }
@@ -67,9 +68,30 @@ export class ApiController {
       return;
     }
 
-    const pipe = this.coordinator.createPipe(source, sink);
+    this.coordinator.createPipe(source, sink);
     ctx.body = {
       status: 'ok',
     }
   }
+
+  handleDeletePipe = async (ctx: Context) => {
+    const {sourceUuid, sinkUuid} = ctx.params;
+    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: sourceUuid});
+    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: sinkUuid});
+
+    if (!source || !sink) {
+      ctx.body = {
+        status: 'error',
+        error: 'Source or sink unknown',
+      };
+      ctx.status = 400;
+      return;
+    }
+
+    this.coordinator.destroyPipe(source, sink);
+    ctx.body = {
+      status: 'ok',
+    }
+  }
+
 }

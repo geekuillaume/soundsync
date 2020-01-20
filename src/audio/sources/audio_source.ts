@@ -6,6 +6,7 @@ import { Peer } from '../../communication/peer';
 import { getLocalPeer } from '../../communication/local_peer';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { PassThrough } from 'stream';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
@@ -43,17 +44,18 @@ export abstract class AudioSource {
     });
   }
 
-  async start(): Promise<NodeJS.ReadableStream> {
+  async start(): Promise<PassThrough> {
     this.log(`Starting audio source`);
-    if (this.encodedAudioStream) {
-      return this.encodedAudioStream;
+    if (!this.encodedAudioStream) {
+      this.encodedAudioStream = await this._getAudioEncodedStream();
+      if (this.local) {
+        this.startedAt = getCurrentSynchronizedTime();
+        this.manager.emit('sourceUpdate', this);
+      }
     }
-    this.encodedAudioStream = await this._getAudioEncodedStream();
-    if (this.local) {
-      this.startedAt = getCurrentSynchronizedTime();
-      this.manager.emit('sourceUpdate', this);
-    }
-    return this.encodedAudioStream;
+    const sourceStream = new PassThrough();
+    // TODO count stream references to close encodedStream if no usage
+    return this.encodedAudioStream.pipe(sourceStream);
   }
 
   toObject = () => ({

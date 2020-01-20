@@ -1,4 +1,5 @@
 import debug from 'debug';
+import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
@@ -107,6 +108,9 @@ export class HostCoordinator {
   }
 
   createPipe = (source: AudioSource, sink: AudioSink) => {
+    if (_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
+      return;
+    }
     const pipe: Pipe = {
       source,
       sink,
@@ -114,10 +118,18 @@ export class HostCoordinator {
     this.pipes.push(pipe);
     sink.linkSource(source);
     const closePipe = () => {
+      sink.unlinkSource();
       this.pipes = this.pipes.filter((pipe) => pipe.source !== source && pipe.sink !== sink)
     }
     source.peer.once('disconnected', closePipe);
     sink.peer.once('disconnected', closePipe);
-    return pipe;
+  }
+
+  destroyPipe = (source: AudioSource, sink: AudioSink) => {
+    if (!_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
+      return;
+    }
+    sink.unlinkSource();
+    this.pipes = this.pipes.filter((pipe) => pipe.source !== source && pipe.sink !== sink)
   }
 }
