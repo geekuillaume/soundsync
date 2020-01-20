@@ -6,7 +6,7 @@ import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
-import { initConfig } from './coordinator/config';
+import { initConfig, getConfigField } from './coordinator/config';
 
 const main = async () => {
   const argv = yargs
@@ -55,6 +55,9 @@ const main = async () => {
   const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager, !!argv.startCoordinator);
 
   audioSourcesSinksManager.addFromConfig();
+  if (getConfigField('autoDetectAudioDevices')) {
+    audioSourcesSinksManager.autodetectDevices();
+  }
 }
 
 main().catch(e => {

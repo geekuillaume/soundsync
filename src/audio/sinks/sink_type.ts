@@ -8,7 +8,7 @@ export interface BaseSinkDescriptor {
 
 export interface RtAudioSinkDescriptor extends BaseSinkDescriptor {
   type: 'rtaudio';
-  deviceName: string;
+  deviceName?: string; // Use default device if not set
 }
 
 export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
@@ -17,5 +17,6 @@ export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
   channels: number;
 }
 
+export type LocalSinkDescriptor = RtAudioSinkDescriptor;
 export type SinkDescriptor = RtAudioSinkDescriptor | RemoteSinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

@@ -3,7 +3,7 @@ import uuidv4 from 'uuid/v4';
 
 import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPLES_PER_SECONDS, OPUS_ENCODER_SAMPLES_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
-import { SinkDescriptor, SinkType } from './sink_type';
+import { SinkDescriptor, SinkType, BaseSinkDescriptor } from './sink_type';
 import { Peer } from '../../communication/peer';
 import { getLocalPeer } from '../../communication/local_peer';
 import { createAudioDecodedStream } from '../opus_streams';
@@ -76,5 +76,11 @@ export abstract class AudioSink {
     channels: this.channels,
     rate: this.rate,
     peerUuid: this.peer.uuid,
+  })
+
+  toDescriptor: () => BaseSinkDescriptor = () => ({
+    name: this.name,
+    uuid: this.uuid,
+    type: this.type,
   })
 }

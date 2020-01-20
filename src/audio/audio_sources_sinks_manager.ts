@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
-import { RtAudio } from 'audify';
 
 import { AudioSource } from './sources/audio_source';
 import { LibrespotSource } from './sources/librespot_source';
@@ -12,6 +11,7 @@ import { SinkDescriptor } from './sinks/sink_type';
 import { RtAudioSink } from './sinks/rtaudio_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
+import { getAudioDevices } from '../utils/rtaudio';
 
 const log = debug(`soundsync:sourcesManager`);
 
@@ -19,35 +19,33 @@ export class AudioSourcesSinksManager extends EventEmitter {
   autodetect: boolean;
   sources: AudioSource[] = [];
   sinks: AudioSink[] = [];
-  rtaudio: RtAudio;
 
   constructor() {
     super();
-    if (getConfigField('autoDetectAudioDevices')) {
-      this.autodetectDevices();
-    }
-    this.on('sourceUpdate', (source: AudioSource) => {
+    const updateConfigForSource = (source: AudioSource) => {
       if (source instanceof LibrespotSource) {
         updateConfigArrayItem('sources', source.toDescriptor());
       }
-    })
-    this.on('newLocalSource', (source: AudioSource) => {
-      if (source instanceof LibrespotSource) {
-        updateConfigArrayItem('sources', source.toDescriptor());
+    };
+    this.on('sourceUpdate', updateConfigForSource);
+    this.on('newLocalSource', updateConfigForSource);
+    this.on('newLocalSink', (sink: AudioSink) => {
+      if (sink instanceof RtAudioSink) {
+        updateConfigArrayItem('sinks', sink.toDescriptor());
       }
     })
   }
 
   autodetectDevices = () => {
     log(`Detecting local audio devices`);
-    this.rtaudio = new RtAudio();
-    const devices = this.rtaudio.getDevices();
-    devices.forEach((device) => {
-      this.addSink({
-        type: 'rtaudio',
-        deviceName: device.name,
-        name: device.name,
-      });
+    getAudioDevices().forEach((device) => {
+      if (device.outputChannels > 0) { // filter microphones, useful for windows / osx
+        this.addSink({
+          type: 'rtaudio',
+          deviceName: device.name,
+          name: device.name,
+        });
+      }
     });
   }
 
@@ -123,6 +121,10 @@ export class AudioSourcesSinksManager extends EventEmitter {
     const sources = getConfigField('sources');
     sources.forEach((source) => {
       this.addSource(source);
+    });
+    const sinks = getConfigField('sinks');
+    sinks.forEach((sink) => {
+      this.addSink(sink);
     });
   }
 }
