@@ -1,0 +1,157 @@
+.scene-grid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 70px 1fr;
+  grid-template-rows: 30px repeat(10, 100px);
+  row-gap: 30px;
+}
+
+.sources-title, .sinks-title {
+  grid-row: 1;
+  grid-column: 1;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.2);
+  padding: 0 5px;
+}
+
+.sinks-title {
+  grid-column: 3;
+}
+
+.source-container, .sink-container {
+  // filter: drop-shadow(16px 16px 20px rgba(10, 10, 10, 0.1));
+  filter: drop-shadow(0 0.5em 1em rgba(10, 10, 10, 0.2));
+  width: 100%;
+  position: relative;
+  transition: 0.3s all ease;
+  .handle {
+    cursor: pointer;
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    right: -20px;
+    top: calc(50% - 10px);
+    border-radius: 0 100% 100% 0;
+    background-color: white;
+    z-index: 1;
+    &::after {
+      content: '';
+      background: rgba(0, 209, 178, 0.8);
+      width: 7px;
+      height: 7px;
+      position: absolute;
+      border-radius: 100%;
+      top: calc(50% - 3px);
+      left: calc(50% - 3px);
+    }
+  }
+  &.not-selectable {
+    opacity: 0.3;
+  }
+}
+
+.source-container {
+  grid-column: 1;
+}
+
+.sink-container {
+  grid-column: 3;
+  .handle {
+    left: -20px;
+    right: auto;
+    border-radius: 100% 0 0 100%;
+  }
+}
+
+.source-box, .sink-box {
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 0 !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  .name {
+    font-weight: bold;
+  }
+  p {
+    z-index: 1;
+    position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .peer-name {
+    font-size: 0.8rem;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 2px 5px;
+    border-radius: 5px 0 0 0;
+    background-color: rgba(10, 10, 10, 0.2);
+  }
+}
+
+.unpipe-button {
+  opacity: 0;
+  position: absolute;
+  transform: scale(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  background-color: rgba(10, 10, 10, 0.5);
+  z-index: 2;
+  top: 34px;
+  left: -25px;
+  &.active {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.source-logo, .sink-logo {
+  position: absolute;
+  left: -10px;
+  top: -10px;
+  pointer-events: none;
+  opacity: 0.3;
+  height: 80px;
+  z-index: 0;
+}
+
+.sink-logo {
+  left: auto;
+  right: -13px;
+}
+
+.pipe {
+  pointer-events: none;
+  grid-column: 2;
+  svg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+  }
+  line {
+    stroke: rgba(0, 209, 178, 0.5);
+    stroke-width: 5px;
+    stroke-linecap: round;
+    stroke-dasharray: 5 10;
+    animation: dash 5s linear infinite;
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -150;
+  }
+}
+
+@media (max-width: 769px) {
+  html {
+    font-size: 14px;
+  }
+  .source-box, .sink-box {
+    border-radius: 0 6px 6px 0;
+  }
+  .sink-box {
+    border-radius: 6px 0 0 6px;
+  }
+}
