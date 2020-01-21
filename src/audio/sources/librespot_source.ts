@@ -8,6 +8,9 @@ import { createReadStream } from 'fs';
 
 
 export class LibrespotSource extends AudioSource {
+  local = true;
+  rate = 44100;
+
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
   testPcm: NodeJS.ReadableStream;
@@ -16,8 +19,6 @@ export class LibrespotSource extends AudioSource {
     super(descriptor, manager);
     this.options = descriptor.librespotOptions;
     this.options.name = this.options.name || hostname();
-    this.local = true;
-    this.rate = 44100;
 
     this.log(`Starting librespot process`);
     this.librespotProcess = spawn(`librespot`, [

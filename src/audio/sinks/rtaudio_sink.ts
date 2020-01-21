@@ -9,6 +9,7 @@ import { getAudioDevices } from '../../utils/rtaudio';
 
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';
+  local: true = true;
   deviceName: string;
 
   rtaudio: RtAudio;
@@ -18,7 +19,6 @@ export class RtAudioSink extends AudioSink {
 
   constructor(descriptor: RtAudioSinkDescriptor) {
     super(descriptor);
-    this.local = true;
     this.rtaudio = new RtAudio();
     this.deviceName = descriptor.deviceName;
   }

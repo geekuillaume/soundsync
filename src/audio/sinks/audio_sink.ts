@@ -94,8 +94,8 @@ export abstract class AudioSink {
   })
 
   toDescriptor: () => BaseSinkDescriptor = () => ({
+    type: this.type,
     name: this.name,
     uuid: this.uuid,
-    type: this.type,
   })
 }

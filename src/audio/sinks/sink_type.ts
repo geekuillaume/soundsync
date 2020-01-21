@@ -1,6 +1,7 @@
 import { Peer } from '../../communication/peer';
 
 export interface BaseSinkDescriptor {
+  type;
   name: string;
   uuid?: string;
   peer?: Peer;
@@ -17,6 +18,10 @@ export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
   channels: number;
 }
 
-export type LocalSinkDescriptor = RtAudioSinkDescriptor;
-export type SinkDescriptor = RtAudioSinkDescriptor | RemoteSinkDescriptor;
+export interface NullSinkDescriptor extends BaseSinkDescriptor {
+  type: 'null';
+}
+
+export type LocalSinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor;
+export type SinkDescriptor = LocalSinkDescriptor | RemoteSinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

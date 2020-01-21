@@ -1,6 +1,7 @@
 import { Peer } from '../../communication/peer';
 
 export interface BaseSourceDescriptor {
+  type;
   name: string;
   uuid?: string;
   peer?: Peer;
@@ -24,6 +25,10 @@ export interface RemoteSourceDescriptor extends BaseSourceDescriptor {
   channels: number;
 }
 
-export type LocalSourceDescriptor = LibresportSourceDescriptor;
-export type SourceDescriptor = LibresportSourceDescriptor | RemoteSourceDescriptor;
+export interface NullSourceDescriptor extends BaseSourceDescriptor {
+  type: 'null';
+}
+
+export type LocalSourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor;
+export type SourceDescriptor = LocalSourceDescriptor | RemoteSourceDescriptor;
 export type SourceType = SourceDescriptor['type'];

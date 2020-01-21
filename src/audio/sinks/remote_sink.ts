@@ -5,10 +5,10 @@ import { WebrtcPeer } from '../../communication/wrtc_peer';
 
 export class RemoteSink extends AudioSink {
   type: 'remote' = 'remote';
+  local: false = false;
 
   constructor(descriptor: RemoteSinkDescriptor) {
     super(descriptor);
-    this.local = false;
   }
 
   async linkSource(source: AudioSource) {
