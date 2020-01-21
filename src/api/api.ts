@@ -29,11 +29,14 @@ export class ApiController {
     this.webrtcServer = webrtcServer;
 
     const router = new Router();
-    router.use(cors());
+    this.httpServer.app.use(cors({
+      // TODO limit CORS access here
+    }));
     router.get('/state', this.handleStateRoute);
     router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
     router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
     this.httpServer.app.use(router.routes());
+    this.httpServer.app.use(router.allowedMethods());
     log(`Regitered API`);
   }
 
