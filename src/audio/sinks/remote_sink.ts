@@ -7,10 +7,6 @@ export class RemoteSink extends AudioSink {
   type: 'remote' = 'remote';
   local: false = false;
 
-  constructor(descriptor: RemoteSinkDescriptor) {
-    super(descriptor);
-  }
-
   async linkSource(source: AudioSource) {
     this.peer.sendControllerMessage({
       type: 'createPipe',

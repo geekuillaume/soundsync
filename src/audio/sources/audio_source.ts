@@ -36,12 +36,17 @@ export abstract class AudioSource {
     this.log(`Created new audio source`);
   }
 
-  updateInfo(descriptor: SourceDescriptor) {
+  updateInfo(descriptor: Partial<SourceDescriptor>) {
+    let hasChanged = false;
     ['name', 'startedAt', 'latency'].forEach(prop => {
-      if (descriptor[prop]) {
+      if (descriptor[prop] && this[prop] !== descriptor[prop]) {
+        hasChanged = true;
         this[prop] = descriptor[prop];
       }
     });
+    if (hasChanged) {
+      this.manager.emit('sourceUpdate', this);
+    }
   }
 
   async start(): Promise<PassThrough> {
@@ -65,6 +70,7 @@ export abstract class AudioSource {
     channels: this.channels,
     rate: this.rate,
     peerUuid: this.peer.uuid,
+    latency: this.latency,
   })
 
   toDescriptor: () => BaseSourceDescriptor = () => ({

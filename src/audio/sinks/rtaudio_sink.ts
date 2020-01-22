@@ -6,6 +6,7 @@ import { RtAudioSinkDescriptor } from './sink_type';
 import { RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters } from 'audify';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getAudioDevices } from '../../utils/rtaudio';
+import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';
@@ -14,11 +15,9 @@ export class RtAudioSink extends AudioSink {
 
   rtaudio: RtAudio;
   private cleanStream;
-  // @ts-ignore
-  // speaker: Speaker;
 
-  constructor(descriptor: RtAudioSinkDescriptor) {
-    super(descriptor);
+  constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
+    super(descriptor, manager);
     this.rtaudio = new RtAudio();
     this.deviceName = descriptor.deviceName;
   }
@@ -40,15 +39,27 @@ export class RtAudioSink extends AudioSink {
       OPUS_ENCODER_FRAME_SAMPLES_COUNT, // samples per frame
       `soundsync-${source.name}`, // name
       null, // input callback, not used
-      // RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
+      null,
+      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
     );
     const startTimeout = setTimeout(() => {
       this.log('Starting reading chunks');
       this.rtaudio.start();
     }, 2500);
+    const latencyInterval = setInterval(() => {
+      if (!this.rtaudio.isStreamOpen) {
+        return;
+      }
+      const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
+      if (newLatency !== this.latency) {
+        this.latency = newLatency;
+        this.manager.emit('sinkLatencyUpdate', this);
+      }
+    }, 2000)
     const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
     this.cleanStream = () => {
       clearInterval(writeInterval);
+      clearInterval(latencyInterval);
       clearTimeout(startTimeout);
       this.rtaudio.closeStream();
     }
@@ -62,7 +73,7 @@ export class RtAudioSink extends AudioSink {
   }
 
   writeNextAudioChunk = () => {
-    const chunk = this.getAudioChunkAtDelayFromNow(0);
+    const chunk = this.getAudioChunkAtDelayFromNow();
     if (chunk) {
       this.rtaudio.write(chunk);
     }

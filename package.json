@@ -14,7 +14,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "audify": "^1.3.1",
+    "audify": "1.5.1",
     "bonjour": "^3.5.0",
     "cross-env": "^6.0.3",
     "debug": "^4.1.1",

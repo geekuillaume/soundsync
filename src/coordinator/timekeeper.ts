@@ -8,10 +8,13 @@ import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 const log = debug(`soundsync:timekeeper`);
 
 let deltaWithCoordinator = 0;
+let networkLatency = 0;
 
 export const getCurrentSynchronizedTime = () => {
   return performance.now() + deltaWithCoordinator;
 }
+
+export const getNetworkLatency = () => networkLatency;
 
 export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
   server.on('peerControllerMessage:timekeepRequest', ({peer, message}: {peer: WebrtcPeer, message: TimekeepRequest}) => {
@@ -31,6 +34,7 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
     const receivedByCoordinatorAt = message.sentAt + (roundtripTime / 2);
     const delta = message.respondedAt - receivedByCoordinatorAt;
     deltaWithCoordinator = delta;
+    networkLatency = roundtripTime / 2;
     log(`Received response from coordinator, setting delta to ${delta}`);
   });
 

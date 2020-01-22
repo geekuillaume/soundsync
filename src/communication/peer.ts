@@ -9,6 +9,7 @@ export abstract class Peer extends EventEmitter {
 
   constructor({ uuid, name, coordinator = false }) {
     super();
+    this.setMaxListeners(1000);
     this.name = name;
     this.uuid = uuid;
     this.coordinator = coordinator;

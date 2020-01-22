@@ -2,15 +2,17 @@ import debug from 'debug';
 import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage } from '../communication/messages';
+import { AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage, SinkLatencyUpdateMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
+import { FORCED_STREAM_LATENCY } from '../utils/constants';
 
 interface Pipe {
   source: AudioSource;
   sink: AudioSink;
+  latency: number;
 }
 
 export class HostCoordinator {
@@ -38,6 +40,9 @@ export class HostCoordinator {
     });
     this.webrtcServer.on(`peerControllerMessage:peerConnectionInfo`, ({peer, message}: {peer: WebrtcPeer, message: PeerConnectionInfoMessage}) => {
       this.handlePeerConnectionInfo(peer, message);
+    });
+    this.webrtcServer.on(`peerControllerMessage:sinkLatencyUpdate`, ({peer, message}: {peer: WebrtcPeer, message: SinkLatencyUpdateMessage}) => {
+      this.handleSinkLatencyUpdate(peer, message);
     });
 
     attachTimekeeperCoordinator(webrtcServer);
@@ -107,6 +112,16 @@ export class HostCoordinator {
     });
   }
 
+  private handleSinkLatencyUpdate = (peer: WebrtcPeer, message: SinkLatencyUpdateMessage) => {
+    const pipes = this.pipes.filter((p) => p.sink.uuid === message.sinkUuid);
+    pipes.forEach((p) => {
+      p.latency = message.latency;
+      p.source.updateInfo({
+        latency: Math.max(...pipes.filter(({source}) => source === p.source).map(({latency}) => latency)) + FORCED_STREAM_LATENCY,
+      })
+    });
+  }
+
   createPipe = (source: AudioSource, sink: AudioSink) => {
     if (_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
       return;
@@ -114,6 +129,7 @@ export class HostCoordinator {
     const pipe: Pipe = {
       source,
       sink,
+      latency: 0,
     };
     this.pipes.push(pipe);
     sink.linkSource(source);

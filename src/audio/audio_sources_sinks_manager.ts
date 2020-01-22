@@ -105,11 +105,11 @@ export class AudioSourcesSinksManager extends EventEmitter {
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);
     let sink: AudioSink;
     if (sinkDescriptor.type === 'rtaudio') {
-      sink = new RtAudioSink(sinkDescriptor);
+      sink = new RtAudioSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'remote') {
-      sink = new RemoteSink(sinkDescriptor);
+      sink = new RemoteSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'null') {
-      sink = new NullSink(sinkDescriptor);
+      sink = new NullSink(sinkDescriptor, this);
     } else {
       // @ts-ignore
       throw new Error(`Unknown sink type ${sinkDescriptor.type}`);

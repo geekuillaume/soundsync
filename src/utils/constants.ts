@@ -13,3 +13,4 @@ export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
 export const ICE_GATHERING_TIMEOUT = 20000;
 
 export const TIMEKEEPER_REFRESH_INTERVAL = 10000;
+export const FORCED_STREAM_LATENCY = 200;

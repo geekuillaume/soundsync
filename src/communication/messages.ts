@@ -65,6 +65,12 @@ export interface TimekeepResponse {
   respondedAt: number;
 }
 
+export interface SinkLatencyUpdateMessage {
+  type: 'sinkLatencyUpdate';
+  sinkUuid: string;
+  latency: number;
+}
+
 export type ControllerMessage =
   LightMessage |
   AddRemoteSourceMessage |
@@ -73,4 +79,5 @@ export type ControllerMessage =
   AddSinkMessage |
   CreatePipeMessage |
   PeerConnectionInfoMessage |
-  TimekeepRequest | TimekeepResponse;
+  TimekeepRequest | TimekeepResponse |
+  SinkLatencyUpdateMessage;

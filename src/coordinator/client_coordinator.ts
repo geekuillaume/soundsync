@@ -28,6 +28,7 @@ export class ClientCoordinator {
     audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
     audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
     audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
+    audioSourcesSinksManager.on('sinkLatencyUpdate', this.announceNewSinkLatency);
 
     this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
 
@@ -81,6 +82,13 @@ export class ClientCoordinator {
     });
   }
 
+  private announceNewSinkLatency = (sink: AudioSink) => {
+    this.webrtcServer.coordinatorPeer.sendControllerMessage({
+      type: 'sinkLatencyUpdate',
+      sinkUuid: sink.uuid,
+      latency: sink.latency,
+    });
+  }
 
   private handleAddRemoteSource = (message: AddRemoteSourceMessage) => {
     this.audioSourcesSinksManager.addSource({

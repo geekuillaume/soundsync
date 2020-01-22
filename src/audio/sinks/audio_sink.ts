@@ -10,9 +10,11 @@ import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { PassThrough } from 'stream';
+import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {
+  manager: AudioSourcesSinksManager;
   name: string;
   type: SinkType;
   decoder: NodeJS.ReadWriteStream;
@@ -26,12 +28,14 @@ export abstract class AudioSink {
   peer: Peer;
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
+  latency: number = 50;
   pipedSource?: AudioSource;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
 
-  constructor(descriptor: SinkDescriptor) {
+  constructor(descriptor: SinkDescriptor, manager: AudioSourcesSinksManager) {
+    this.manager = manager;
     this.name = descriptor.name;
     this.type = descriptor.type;
     this.rate = OPUS_ENCODER_RATE;
@@ -70,11 +74,11 @@ export abstract class AudioSink {
     this.buffer[chunk.i] = chunk.chunk;
   }
 
-  getAudioChunkAtDelayFromNow(localDelay: number) {
+  getAudioChunkAtDelayFromNow() {
     if (!this.pipedSource) {
       return null;
     }
-    const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + localDelay;
+    const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + this.latency;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_SAMPLES_DURATION);
     const chunk = this.buffer[correspondingChunkIndex]
     this.buffer[correspondingChunkIndex] = undefined;
@@ -91,6 +95,7 @@ export abstract class AudioSink {
     channels: this.channels,
     rate: this.rate,
     peerUuid: this.peer.uuid,
+    latency: this.latency,
   })
 
   toDescriptor: () => BaseSinkDescriptor = () => ({

@@ -53,6 +53,7 @@ export class ApiController {
       pipes: this.coordinator.pipes.map((pipe) => ({
         sourceUuid: pipe.source.uuid,
         sinkUuid: pipe.sink.uuid,
+        latency: pipe.latency,
       })),
     }
   }

@@ -32,12 +32,12 @@ export class LibrespotSource extends AudioSource {
         '-p', this.options.password,
       ] : [])
     ]);
-    this.testPcm = createReadStream('./test.pcm');
+    // this.testPcm = createReadStream('./test.pcm');
   }
 
   async _getAudioEncodedStream() {
-    return createAudioEncodedStream(this.testPcm, this.rate, this.channels)
-    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
+    // return createAudioEncodedStream(this.testPcm, this.rate, this.channels)
+    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
 
   toDescriptor: (() => LibresportSourceDescriptor) = () => ({
