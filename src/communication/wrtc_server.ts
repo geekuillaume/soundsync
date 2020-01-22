@@ -88,7 +88,7 @@ export class WebrtcServer extends EventEmitter {
       coordinatorHost = `${service.addresses[0]}:${service.port}`;
     }
 
-    const name = 'test';  // TODO change with own name
+    const name = getLocalPeer().name;
     const peer = new WebrtcPeer({
       name,
       webrtcServer: this,
