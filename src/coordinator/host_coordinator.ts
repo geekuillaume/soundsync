@@ -126,10 +126,11 @@ export class HostCoordinator {
   }
 
   destroyPipe = (source: AudioSource, sink: AudioSink) => {
-    if (!_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
+    const pipe = _.find(this.pipes, (p) => p.source === source && p.sink === sink);
+    if (!pipe) {
       return;
     }
     sink.unlinkSource();
-    this.pipes = this.pipes.filter((pipe) => pipe.source !== source && pipe.sink !== sink)
+    this.pipes = this.pipes.filter((p) => pipe !== p)
   }
 }
