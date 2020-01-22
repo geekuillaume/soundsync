@@ -142,3 +142,6 @@ export class AudioSourcesSinksManager extends EventEmitter {
     });
   }
 }
+
+let audioSourcesSinksManager = new AudioSourcesSinksManager();
+export const getAudioSourcesSinksManager = () => audioSourcesSinksManager;

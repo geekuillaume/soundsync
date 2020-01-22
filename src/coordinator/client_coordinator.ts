@@ -25,10 +25,11 @@ export class ClientCoordinator {
       this.announceAllSourcesSinksToController();
     }
     this.webrtcServer.coordinatorPeer.on('connected', this.announceAllSourcesSinksToController);
-    audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
+
     audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
-    audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
     audioSourcesSinksManager.on('sinkLatencyUpdate', this.announceNewSinkLatency);
+
+    audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
 
     this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
 

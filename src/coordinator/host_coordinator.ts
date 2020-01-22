@@ -8,19 +8,15 @@ import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
 import { FORCED_STREAM_LATENCY } from '../utils/constants';
-
-interface Pipe {
-  source: AudioSource;
-  sink: AudioSink;
-  latency: number;
-}
+import { Pipe } from './pipe';
+import { updateConfigArrayItem, deleteConfigArrayItem, getConfigField } from './config';
 
 export class HostCoordinator {
   webrtcServer: WebrtcServer;
   audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
 
-  pipes: Pipe[] = [];
+  pipes: Pipe[] = getConfigField('pipes').map((p) => new Pipe(p.sourceUuid, p.sinkUuid));
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
@@ -68,6 +64,11 @@ export class HostCoordinator {
         uuid: message.uuid,
       }, [peer.uuid]);
     });
+
+    const relatedPipe = _.find(this.pipes, {sourceUuid: message.uuid});
+    if (relatedPipe) {
+      relatedPipe.activate();
+    }
   }
 
   private handleRequestSourceList = (peer: WebrtcPeer) => {
@@ -97,6 +98,11 @@ export class HostCoordinator {
     peer.once('disconnected', () => {
       this.audioSourcesSinksManager.removeSink(message.uuid);
     });
+
+    const relatedPipe = _.find(this.pipes, {sinkUuid: message.uuid});
+    if (relatedPipe) {
+      relatedPipe.activate();
+    }
   }
 
   private handlePeerConnectionInfo = (peer: WebrtcPeer, message: PeerConnectionInfoMessage) => {
@@ -126,19 +132,10 @@ export class HostCoordinator {
     if (_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
       return;
     }
-    const pipe: Pipe = {
-      source,
-      sink,
-      latency: 0,
-    };
+    const pipe = new Pipe(source.uuid, sink.uuid)
     this.pipes.push(pipe);
-    sink.linkSource(source);
-    const closePipe = () => {
-      sink.unlinkSource();
-      this.pipes = this.pipes.filter((pipe) => pipe.source !== source && pipe.sink !== sink)
-    }
-    source.peer.once('disconnected', closePipe);
-    sink.peer.once('disconnected', closePipe);
+    updateConfigArrayItem('pipes', pipe.toDescriptor());
+    pipe.activate();
   }
 
   destroyPipe = (source: AudioSource, sink: AudioSink) => {
@@ -148,5 +145,6 @@ export class HostCoordinator {
     }
     sink.unlinkSource();
     this.pipes = this.pipes.filter((p) => pipe !== p)
+    deleteConfigArrayItem('pipes', pipe.toDescriptor());
   }
 }

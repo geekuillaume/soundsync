@@ -47,6 +47,10 @@ export abstract class AudioSink {
   }
 
   async linkSource(source: AudioSource) {
+    // TODO: handle pipe two sources to same sink
+    if (this.pipedSource) {
+      return;
+    }
     this.log(`Linking audio source ${source.name} (uuid ${source.uuid}) to sink`);
     this.pipedSource = source;
     this.buffer = {};

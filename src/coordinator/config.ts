@@ -9,6 +9,7 @@ import debug from 'debug';
 import _ from 'lodash';
 import { SinkDescriptor, LocalSinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor, LocalSourceDescriptor } from '../audio/sources/source_type';
+import { Pipe, PipeDescriptor } from './pipe';
 
 const log = debug(`soundsync:config`);
 
@@ -19,6 +20,7 @@ interface ConfigData {
   uuid: string;
   sinks: SinkDescriptor[];
   sources: SourceDescriptor[];
+  pipes: Pipe[];
   autoDetectAudioDevices: boolean;
 }
 
@@ -27,6 +29,7 @@ const defaultConfig: ConfigData = {
   uuid: uuidv4(),
   sinks: [],
   sources: [],
+  pipes: [],
   autoDetectAudioDevices: true,
 };
 
@@ -80,14 +83,31 @@ export const getConfigField = <T extends keyof ConfigData>(field: T) => {
 
 export function updateConfigArrayItem(field: 'sources', item: LocalSourceDescriptor): void;
 export function updateConfigArrayItem(field: 'sinks', item: LocalSinkDescriptor): void;
-export function updateConfigArrayItem(field, item) {
+export function updateConfigArrayItem(field: 'pipes', item: PipeDescriptor): void;
+export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item) {
   setConfig((config) => {
-    const items = config[field];
-    const existingItem = _.find(items, (t) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
+    let existingItem;
+    if (field === 'pipes') {
+      existingItem = _.find(getConfigField(field), {sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid});
+    } else {
+      existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
+    }
     if (existingItem) {
       _.assign(existingItem, item);
     } else {
-      items.push(item);
+      getConfigField(field).push(item);
     }
+  });
+}
+
+export function deleteConfigArrayItem(field, item) {
+  setConfig((config) => {
+    let existingItem;
+    if (field === 'pipes') {
+      existingItem = _.find(getConfigField(field), {sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid});
+    } else {
+      existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
+    }
+    config[field] = getConfigField(field).filter((i) => i !== existingItem);
   });
 }

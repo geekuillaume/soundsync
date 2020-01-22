@@ -2,7 +2,7 @@ import yargs from 'yargs';
 import { createHttpServer } from './communication/http_server';
 import { WebrtcServer } from './communication/wrtc_server';
 import { assert } from './utils/assert';
-import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
+import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
@@ -34,7 +34,7 @@ const main = async () => {
 
   initConfig(argv.configDir);
   const webrtcServer = new WebrtcServer();
-  const audioSourcesSinksManager = new AudioSourcesSinksManager();
+  const audioSourcesSinksManager = getAudioSourcesSinksManager();
 
   if (argv.startCoordinator) {
     const httpServer = await createHttpServer(6512);
