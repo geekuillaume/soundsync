@@ -16,7 +16,7 @@ const unregisterForPipe = createAction('unregisterForPipe');
 export const SoundSyncProvider = ({children}) => {
   const { get } = useFetch({
     path: '/state'
-  }, []);
+  });
 
   const [state, dispatch] = useReducer(handleActions({
     [stateUpdate.toString()]: produce((state, {payload}) => {
@@ -37,6 +37,7 @@ export const SoundSyncProvider = ({children}) => {
   }, []);
 
   useEffect(() => {
+    refreshData();
     const id = setInterval(refreshData, 1000);
     return () => clearInterval(id);
   }, []);
