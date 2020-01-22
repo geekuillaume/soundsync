@@ -36,12 +36,16 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
 
   const sendTimekeepRequest = () => {
     log(`Sending request to coordinator`);
+    if (!server.coordinatorPeer) {
+      clearInterval(intervalId);
+      return;
+    }
     server.coordinatorPeer.sendControllerMessage({
       type: 'timekeepRequest',
       sentAt: performance.now(),
     });
   };
 
-  setInterval(sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
+  const intervalId = setInterval(sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
   sendTimekeepRequest();
 }
