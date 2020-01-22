@@ -21,8 +21,7 @@ export abstract class AudioSource {
   manager: AudioSourcesSinksManager;
   encodedAudioStream: NodeJS.ReadableStream;
   startedAt: number;
-  // TODO handle dynamic latency
-  latency = 2000;
+  latency = 500;
 
   abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
