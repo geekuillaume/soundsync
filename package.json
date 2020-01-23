@@ -22,6 +22,7 @@
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
     "speex-resampler": "1.0.5",

@@ -1,13 +1,15 @@
 import { Context } from 'koa';
 import _ from 'lodash';
 import debug from 'debug';
+import {resolve} from 'path';
+import Router from 'koa-router';
+import koaStatic from 'koa-static';
+import cors from '@koa/cors';
 
 import { SoundSyncHttpServer } from '../communication/http_server';
 import { HostCoordinator } from '../coordinator/host_coordinator';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import Router from 'koa-router';
-import cors from '@koa/cors';
 
 const log = debug(`soundsync:api`);
 
@@ -37,11 +39,11 @@ export class ApiController {
     router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
     this.httpServer.app.use(router.routes());
     this.httpServer.app.use(router.allowedMethods());
+    this.httpServer.app.use(koaStatic(resolve(__dirname, '../../webui/dist')))
     log(`Regitered API`);
   }
 
   handleStateRoute = async (ctx: Context) => {
-    log(`GET /state: Sending current state`);
     ctx.body = {
       sources: this.audioSourcesSinksManager.sources.map((source) => source.toObject()),
       sinks: this.audioSourcesSinksManager.sinks.map((sink) => sink.toObject()),
@@ -50,7 +52,7 @@ export class ApiController {
         uuid: peer.uuid,
         coordinator: peer.coordinator,
       })),
-      pipes: this.coordinator.pipes.map((pipe) => ({
+      pipes: this.coordinator.pipes.filter((pipe) => pipe.active).map((pipe) => ({
         sourceUuid: pipe.source.uuid,
         sinkUuid: pipe.sink.uuid,
         latency: pipe.latency,
