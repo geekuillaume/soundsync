@@ -7,6 +7,7 @@ import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
+import { createSystray } from './utils/systray';
 
 const main = async () => {
   const argv = yargs
@@ -58,6 +59,7 @@ const main = async () => {
   if (getConfigField('autoDetectAudioDevices')) {
     audioSourcesSinksManager.autodetectDevices();
   }
+  createSystray();
 }
 
 main().catch(e => {
