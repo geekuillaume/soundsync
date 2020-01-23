@@ -11,9 +11,6 @@
   - With controller
   - With another peer
 
-- Auto recreate pipes
-  - Cache sinks / source uuid on device
-
 - Handle track synchronization
   - Dynamic latency between sinks
   - Network latency
@@ -29,3 +26,10 @@
 
 - https://www.npmjs.com/package/waveform-data
 - libsoundio / rtaudio
+
+- Rewrite systray indicator app
+  - don't send message to stdout by default
+  - allow not sending menu items
+  - use callbacks in menu items instead of global click event
+  - use postinstall to download binary instead of preinstall
+  - update documentation
