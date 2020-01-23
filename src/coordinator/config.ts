@@ -55,13 +55,18 @@ export const initConfig = (dirOverride) => {
   if (!existsSync(configFilePath)) {
     writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
   }
-  let configData = JSON.parse(readFileSync(configFilePath).toString());
-
-  config = {
-    configDir,
-    configFilePath,
-    configData
-  };
+  try {
+    let configData = JSON.parse(readFileSync(configFilePath).toString() || '{}');
+    config = {
+      configDir,
+      configFilePath,
+      configData
+    };
+  } catch (e) {
+    console.error(`Error while parsing config file at ${configFilePath}`);
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 export const getConfig = () => config.configData;
