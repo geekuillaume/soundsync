@@ -94,6 +94,7 @@ export class ClientCoordinator {
   private handleAddRemoteSource = (message: AddRemoteSourceMessage) => {
     this.audioSourcesSinksManager.addSource({
       type: 'remote',
+      remoteType: message.sourceType,
       name: message.name,
       uuid: message.uuid,
       channels: message.channels,

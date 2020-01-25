@@ -90,6 +90,7 @@ export class HostCoordinator {
     this.log(`Registering new sink ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
     this.audioSourcesSinksManager.addSink({
       type: 'remote',
+      remoteType: message.sinkType,
       name: message.name,
       uuid: message.uuid,
       peer,

@@ -16,6 +16,7 @@ export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
   type: 'remote';
   uuid: string;
   channels: number;
+  remoteType: SinkType;
 }
 
 export interface NullSinkDescriptor extends BaseSinkDescriptor {

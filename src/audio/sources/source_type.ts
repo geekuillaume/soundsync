@@ -23,6 +23,7 @@ export interface RemoteSourceDescriptor extends BaseSourceDescriptor {
   type: 'remote';
   uuid: string;
   channels: number;
+  remoteType: SourceType;
 }
 
 export interface NullSourceDescriptor extends BaseSourceDescriptor {

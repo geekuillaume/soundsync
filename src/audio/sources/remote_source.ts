@@ -1,15 +1,18 @@
 // import {Encoder} from 'node-opus';
 import { AudioSource } from './audio_source';
 import { hostname } from 'os';
-import { RemoteSourceDescriptor } from './source_type';
+import { RemoteSourceDescriptor, SourceType } from './source_type';
 import { WebrtcPeer } from '../../communication/wrtc_peer';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 export class RemoteSource extends AudioSource {
+  remoteType: SourceType;
+
   constructor(descriptor: RemoteSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.local = false;
     this.channels = descriptor.channels;
+    this.remoteType = descriptor.remoteType;
   }
 
   async _getAudioEncodedStream() {
@@ -22,4 +25,14 @@ export class RemoteSource extends AudioSource {
     this.log(`Created audio channel with source peer`);
     return stream;
   }
+
+  toObject = () => ({
+    name: this.name,
+    uuid: this.uuid,
+    type: this.remoteType,
+    channels: this.channels,
+    rate: this.rate,
+    peerUuid: this.peer.uuid,
+    latency: this.latency,
+  })
 }
