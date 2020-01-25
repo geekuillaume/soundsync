@@ -6,7 +6,6 @@ import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
 import { createReadStream } from 'fs';
 
-
 export class LibrespotSource extends AudioSource {
   local = true;
   rate = 44100;
@@ -32,6 +31,7 @@ export class LibrespotSource extends AudioSource {
         '-p', this.options.password,
       ] : [])
     ]);
+    // this.librespotProcess.stderr.on('data', (d) => console.log(d.toString()))
     // this.testPcm = createReadStream('./test.pcm');
   }
 

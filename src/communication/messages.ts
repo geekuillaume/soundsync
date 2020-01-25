@@ -47,6 +47,11 @@ export interface CreatePipeMessage {
   sinkUuid: string;
 }
 
+export interface RemovePipeMessage {
+  type: 'removePipe';
+  sinkUuid: string;
+}
+
 export interface PeerConnectionInfoMessage {
   type: 'peerConnectionInfo';
   peerUuid: string;
@@ -77,7 +82,7 @@ export type ControllerMessage =
   AddLocalSourceMessage |
   RemoveSourceMessage |
   AddSinkMessage |
-  CreatePipeMessage |
+  CreatePipeMessage | RemovePipeMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
   SinkLatencyUpdateMessage;

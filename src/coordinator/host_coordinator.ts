@@ -44,10 +44,10 @@ export class HostCoordinator {
     attachTimekeeperCoordinator(webrtcServer);
   }
 
-  private handleNewSourceFromPeer = (peer: WebrtcPeer, message: AddLocalSourceMessage) => {
+  private handleNewSourceFromPeer = async (peer: WebrtcPeer, message: AddLocalSourceMessage) => {
     this.log(`Received source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
     // Sending new source info to all peers
-    this.webrtcServer.broadcast({
+    await this.webrtcServer.broadcast({
       type: 'addRemoteSource',
       name: message.name,
       uuid: message.uuid,
@@ -120,7 +120,7 @@ export class HostCoordinator {
   }
 
   private handleSinkLatencyUpdate = (peer: WebrtcPeer, message: SinkLatencyUpdateMessage) => {
-    const pipes = this.pipes.filter((p) => p.sink.uuid === message.sinkUuid);
+    const pipes = this.pipes.filter((p) => p.sink && p.sink.uuid === message.sinkUuid);
     pipes.forEach((p) => {
       p.latency = message.latency;
       p.source.updateInfo({

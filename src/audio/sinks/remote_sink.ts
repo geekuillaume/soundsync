@@ -20,6 +20,14 @@ export class RemoteSink extends AudioSink {
       sinkUuid: this.uuid,
     });
   }
+
+  async unlinkSource() {
+    this.peer.sendControllerMessage({
+      type: 'removePipe',
+      sinkUuid: this.uuid,
+    });
+  }
+
   _startSink(source: AudioSource) {
   }
   _stopSink() {

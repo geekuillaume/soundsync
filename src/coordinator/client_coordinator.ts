@@ -4,11 +4,12 @@ import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 // import { RTCIceCandidate } from 'wrtc';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { AudioSource } from '../audio/sources/audio_source';
-import { CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage, RemoveSourceMessage } from '../communication/messages';
+import { CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage, RemoveSourceMessage, RemovePipeMessage } from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { attachTimekeeperClient } from './timekeeper';
+import { once } from 'events';
 
 export class ClientCoordinator {
   webrtcServer: WebrtcServer;
@@ -18,18 +19,8 @@ export class ClientCoordinator {
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager, isCoordinator = false) {
     this.webrtcServer = webrtcServer;
     this.audioSourcesSinksManager = audioSourcesSinksManager;
-    this.log = debug(`soundsync:hostCoordinator`);
+    this.log = debug(`soundsync:clientCoordinator`);
     this.log(`Created client coordinator`);
-
-    if (this.webrtcServer.coordinatorPeer.state === 'connected') {
-      this.announceAllSourcesSinksToController();
-    }
-    this.webrtcServer.coordinatorPeer.on('connected', this.announceAllSourcesSinksToController);
-
-    audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
-    audioSourcesSinksManager.on('sinkLatencyUpdate', this.announceNewSinkLatency);
-
-    audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
 
     this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
 
@@ -42,14 +33,19 @@ export class ClientCoordinator {
     this.webrtcServer.coordinatorPeer.on('controllerMessage:createPipe', ({message}: {message: CreatePipeMessage}) => {
       this.handleCreatePipe(message);
     });
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:removePipe', this.handleRemovePipe);
     this.webrtcServer.coordinatorPeer.on('controllerMessage:peerConnectionInfo', ({message}: {message: PeerConnectionInfoMessage}) => {
       this.handlePeerConnectionInfo(message);
     });
 
-    this.webrtcServer.coordinatorPeer.waitForConnected().then(() => {
+    this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
       this.webrtcServer.coordinatorPeer.sendControllerMessage({
         type: 'requestSourcesList',
       })
+      this.announceAllSourcesSinksToController();
+      audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
+      audioSourcesSinksManager.on('sinkLatencyUpdate', this.announceNewSinkLatency);
+      audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
       if (!isCoordinator) {
         attachTimekeeperClient(webrtcServer);
       }
@@ -72,6 +68,9 @@ export class ClientCoordinator {
   }
 
   private announceSourceToController = (source: AudioSource) => {
+    if (source.type === 'remote') {
+      return;
+    }
     this.webrtcServer.coordinatorPeer.sendControllerMessage({
       type: 'addLocalSource',
       name: source.name,
@@ -117,6 +116,16 @@ export class ClientCoordinator {
     }
     this.log(`Creating pipe sink ${message.sinkUuid} and source ${message.sourceUuid}`);
     sink.linkSource(source);
+  }
+
+  private handleRemovePipe = ({message}: {message: RemovePipeMessage}) => {
+    console.log(message);
+    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: message.sinkUuid});
+    if (!sink) {
+      this.log(`Trying to remove pipe with unknown sink (uuid ${message.sinkUuid})`);
+      return;
+    }
+    sink.unlinkSource();
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {

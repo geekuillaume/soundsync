@@ -8,6 +8,10 @@ import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
+// used to prevent stream cut if trying to send chunk just in time
+// this adds a latency but is necessary as the nodejs thread is not running in real time
+const AUDIO_PADDER_DURATION = 100;
+
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';
   local: true = true;
@@ -15,6 +19,7 @@ export class RtAudioSink extends AudioSink {
 
   rtaudio: RtAudio;
   private cleanStream;
+  private wroteLastTick = false;
 
   constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -42,16 +47,13 @@ export class RtAudioSink extends AudioSink {
       null,
       RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
     );
-    const startTimeout = setTimeout(() => {
-      this.log('Starting reading chunks');
-      this.rtaudio.start();
-    }, 2500);
+    this.rtaudio.start();
     const latencyInterval = setInterval(() => {
       if (!this.rtaudio.isStreamOpen) {
         return;
       }
       const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
-      if (newLatency !== this.latency) {
+      if (Math.abs(newLatency - this.latency) > 5) {
         // TODO: use network latency here too
         this.latency = newLatency;
         this.manager.emit('sinkLatencyUpdate', this);
@@ -61,7 +63,6 @@ export class RtAudioSink extends AudioSink {
     this.cleanStream = () => {
       clearInterval(writeInterval);
       clearInterval(latencyInterval);
-      clearTimeout(startTimeout);
       this.rtaudio.closeStream();
     }
   }
@@ -76,7 +77,13 @@ export class RtAudioSink extends AudioSink {
   writeNextAudioChunk = () => {
     const chunk = this.getAudioChunkAtDelayFromNow();
     if (chunk) {
+      if (!this.wroteLastTick) {
+        console.log('WROTE PADDER', (1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2)
+        const audioPadder = Buffer.alloc((1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2);
+        this.rtaudio.write(audioPadder)
+      }
       this.rtaudio.write(chunk);
+      this.wroteLastTick = true;
     }
   }
 

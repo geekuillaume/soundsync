@@ -25,7 +25,9 @@ export class Pipe {
     }
     this.sink.linkSource(this.source);
     const closePipe = () => {
-      this.sink.unlinkSource();
+      if (this.sink) {
+        this.sink.unlinkSource();
+      }
       this.active = false;
     }
     this.source.peer.once('disconnected', closePipe);
