@@ -8,6 +8,8 @@ import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
 import { createSystray } from './utils/systray';
+// import { startBluetoothDaemon } from './features/bluetooth/bluetooth';
+import { getLocalPeer } from './communication/local_peer';
 
 const main = async () => {
   const argv = yargs
@@ -59,6 +61,11 @@ const main = async () => {
   if (getConfigField('autoDetectAudioDevices')) {
     audioSourcesSinksManager.autodetectDevices();
   }
+  // if (getConfigField('bluetooth')) {
+  //   startBluetoothDaemon({
+  //     name: getLocalPeer().name,
+  //   });
+  // }
   createSystray();
 }
 

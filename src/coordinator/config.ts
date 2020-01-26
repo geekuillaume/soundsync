@@ -22,6 +22,7 @@ interface ConfigData {
   sources: SourceDescriptor[];
   pipes: Pipe[];
   autoDetectAudioDevices: boolean;
+  bluetooth: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -31,6 +32,7 @@ const defaultConfig: ConfigData = {
   sources: [],
   pipes: [],
   autoDetectAudioDevices: true,
+  bluetooth: false,
 };
 
 const defaultPaths = envPaths('soundsync', {
