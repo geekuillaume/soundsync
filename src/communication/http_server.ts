@@ -3,6 +3,8 @@ import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import debug from 'debug';
 import { createServer } from 'http';
+import cors from '@koa/cors';
+
 const l = debug(`soundsync:httpserver`);
 
 export interface SoundSyncHttpServer {
@@ -16,6 +18,9 @@ export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer
   const app = new Koa();
   const router = new Router();
 
+  app.use(cors({
+    // TODO limit CORS access here
+  }));
   app.use(bodyParser());
   app.use(router.routes());
 

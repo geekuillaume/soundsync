@@ -46,6 +46,26 @@ export abstract class AudioSink {
     this.log(`Created new audio sink`);
   }
 
+  updateInfo(descriptor: Partial<SinkDescriptor>) {
+    let hasChanged = false;
+    ['name'].forEach(prop => {
+      if (descriptor[prop] && this[prop] !== descriptor[prop]) {
+        hasChanged = true;
+        this[prop] = descriptor[prop];
+      }
+    });
+    if (hasChanged) {
+      this.manager.emit('sinkUpdate', this);
+      if (!this.local) {
+        this.peer.sendControllerMessage({
+          type: 'updateLocalSink',
+          sinkUuid: this.uuid,
+          body: descriptor,
+        });
+      }
+    }
+  }
+
   async linkSource(source: AudioSource) {
     // TODO: handle pipe two sources to same sink
     if (this.pipedSource) {

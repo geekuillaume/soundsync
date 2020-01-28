@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { usePeer, useSinks, useRegisterForPipe, useIsSinkPiped, useUnpipeAction } from '../utils/useSoundSyncState';
+import { useEditAudioStreamModal } from './editModal';
 
 import speaker from '../res/speaker.svg';
 import nullSinkLogo from '../res/null.svg';
@@ -15,6 +16,7 @@ export const Sink = ({sink}) => {
   const isPiped = useIsSinkPiped(sink.uuid);
   const handleUnpipe = useUnpipeAction(sink.uuid);
   const peer = usePeer(sink.peerUuid);
+  const {handleOpen, anchor, modal} = useEditAudioStreamModal('sink', sink);
   const sinks = useSinks();
   const sinkIndex = sinks.indexOf(sink);
   const sinkLogo = logos[sink.type];
@@ -23,6 +25,7 @@ export const Sink = ({sink}) => {
     <div
       className={classnames("sink-container", !shouldShow && 'not-selectable')}
       style={{gridRow: sinkIndex + 2}}
+      ref={anchor}
     >
       <div
         className="handle"
@@ -32,11 +35,12 @@ export const Sink = ({sink}) => {
         className={classnames("unpipe-button delete is-large", {active: isPiped && isSelectedElement})}
         onClick={handleUnpipe}
       ></a>
-      <div className="box sink-box">
+      <div className="box sink-box" onClick={handleOpen}>
         <img src={sinkLogo} className="sink-logo" />
         <p className="name">{sink.name}</p>
         <p className="peer-name">{peer.name}</p>
       </div>
+      {modal}
     </div>
   );
 }

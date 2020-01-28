@@ -4,50 +4,39 @@ import debug from 'debug';
 import {resolve} from 'path';
 import Router from 'koa-router';
 import koaStatic from 'koa-static';
-import cors from '@koa/cors';
 
 import { SoundSyncHttpServer } from '../communication/http_server';
 import { HostCoordinator } from '../coordinator/host_coordinator';
-import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-import { WebrtcServer } from '../communication/wrtc_server';
+import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
+import { getWebrtcServer } from '../communication/wrtc_server';
 
 const log = debug(`soundsync:api`);
 
 export class ApiController {
   httpServer: SoundSyncHttpServer;
   coordinator: HostCoordinator;
-  audioSourcesSinksManager: AudioSourcesSinksManager;
-  webrtcServer: WebrtcServer;
 
   constructor(
     httpServer: SoundSyncHttpServer,
     coordinator: HostCoordinator,
-    audioSourcesSinksManager: AudioSourcesSinksManager,
-    webrtcServer: WebrtcServer,
   ) {
     this.httpServer = httpServer;
     this.coordinator = coordinator;
-    this.audioSourcesSinksManager = audioSourcesSinksManager;
-    this.webrtcServer = webrtcServer;
 
-    const router = new Router();
-    this.httpServer.app.use(cors({
-      // TODO limit CORS access here
-    }));
-    router.get('/state', this.handleStateRoute);
-    router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
-    router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
-    this.httpServer.app.use(router.routes());
-    this.httpServer.app.use(router.allowedMethods());
+    this.httpServer.router.get('/state', this.handleStateRoute);
+    this.httpServer.router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
+    this.httpServer.router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
+    this.httpServer.router.put('/source/:sourceUuid', this.handleSourceUpdate);
+    this.httpServer.router.put('/sink/:sinkUuid', this.handleSinkUpdate);
     this.httpServer.app.use(koaStatic(resolve(__dirname, '../../webui/dist')))
     log(`Regitered API`);
   }
 
   handleStateRoute = async (ctx: Context) => {
     ctx.body = {
-      sources: this.audioSourcesSinksManager.sources.map((source) => source.toObject()),
-      sinks: this.audioSourcesSinksManager.sinks.map((sink) => sink.toObject()),
-      peers: _.map(this.webrtcServer.peers, (peer) => ({
+      sources: getAudioSourcesSinksManager().sources.map((source) => source.toObject()),
+      sinks: getAudioSourcesSinksManager().sinks.map((sink) => sink.toObject()),
+      peers: _.map(getWebrtcServer().peers, (peer) => ({
         name: peer.name,
         uuid: peer.uuid,
         coordinator: peer.coordinator,
@@ -62,8 +51,8 @@ export class ApiController {
 
   handleCreatePipe = async (ctx: Context) => {
     const {sourceUuid, sinkUuid} = ctx.params;
-    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: sourceUuid});
-    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: sinkUuid});
+    const source = _.find(getAudioSourcesSinksManager().sources, {uuid: sourceUuid});
+    const sink = _.find(getAudioSourcesSinksManager().sinks, {uuid: sinkUuid});
 
     if (!source || !sink) {
       ctx.body = {
@@ -82,8 +71,8 @@ export class ApiController {
 
   handleDeletePipe = async (ctx: Context) => {
     const {sourceUuid, sinkUuid} = ctx.params;
-    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: sourceUuid});
-    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: sinkUuid});
+    const source = _.find(getAudioSourcesSinksManager().sources, {uuid: sourceUuid});
+    const sink = _.find(getAudioSourcesSinksManager().sinks, {uuid: sinkUuid});
 
     if (!source || !sink) {
       ctx.body = {
@@ -100,4 +89,27 @@ export class ApiController {
     }
   }
 
+  handleSourceUpdate = async (ctx: Context) => {
+    const source = _.find(getAudioSourcesSinksManager().sources, {uuid: ctx.params.sourceUuid});
+    ctx.assert(source, 404, { status: 'error', error: 'Source unknown' });
+    ctx.assert(typeof ctx.request.body === 'object', 400, {status: 'error', error: 'Body should be an object'});
+
+    source.updateInfo(ctx.request.body);
+    ctx.body = {
+      status: 'ok',
+      source: source.toObject(),
+    };
+  }
+
+  handleSinkUpdate = async (ctx: Context) => {
+    const sink = _.find(getAudioSourcesSinksManager().sinks, {uuid: ctx.params.sinkUuid});
+    ctx.assert(sink, 404, { status: 'error', error: 'Sink unknown' });
+    ctx.assert(typeof ctx.request.body === 'object', 400, {status: 'error', error: 'Body should be an object'});
+
+    sink.updateInfo(ctx.request.body);
+    ctx.body = {
+      status: 'ok',
+      sink: sink.toObject(),
+    };
+  }
 }

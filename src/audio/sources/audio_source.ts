@@ -30,7 +30,9 @@ export abstract class AudioSource {
     this.type = descriptor.type;
     this.uuid = descriptor.uuid || uuidv4();
     this.peer = descriptor.peer || getLocalPeer();
-    this.updateInfo(descriptor);
+    this.name = descriptor.name;
+    this.startedAt = descriptor.startedAt;
+    this.latency = descriptor.latency;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -45,6 +47,13 @@ export abstract class AudioSource {
     });
     if (hasChanged) {
       this.manager.emit('sourceUpdate', this);
+      if (!this.local) {
+        this.peer.sendControllerMessage({
+          type: 'updateLocalSource',
+          sourceUuid: this.uuid,
+          body: descriptor,
+        });
+      }
     }
   }
 

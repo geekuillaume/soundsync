@@ -1,6 +1,6 @@
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
-import { RemoteSinkDescriptor, SinkType } from './sink_type';
+import { RemoteSinkDescriptor, SinkType, SinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 export class RemoteSink extends AudioSink {

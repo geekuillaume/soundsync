@@ -1,5 +1,5 @@
-import { SourceType } from '../audio/sources/source_type';
-import { SinkType } from '../audio/sinks/sink_type';
+import { SourceType, SourceDescriptor } from '../audio/sources/source_type';
+import { SinkType, SinkDescriptor } from '../audio/sinks/sink_type';
 
 export interface LightMessage {
   type: 'ping' | 'pong' | 'requestSourcesList';
@@ -76,6 +76,18 @@ export interface SinkLatencyUpdateMessage {
   latency: number;
 }
 
+export interface UpdateLocalSinkMessage {
+  type: 'updateLocalSink';
+  sinkUuid: string;
+  body: Partial<SinkDescriptor>;
+}
+
+export interface UpdateLocalSourceMessage {
+  type: 'updateLocalSource';
+  sourceUuid: string;
+  body: Partial<SourceDescriptor>;
+}
+
 export type ControllerMessage =
   LightMessage |
   AddRemoteSourceMessage |
@@ -85,4 +97,5 @@ export type ControllerMessage =
   CreatePipeMessage | RemovePipeMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
-  SinkLatencyUpdateMessage;
+  SinkLatencyUpdateMessage |
+  UpdateLocalSinkMessage | UpdateLocalSourceMessage;

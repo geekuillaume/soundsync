@@ -1,10 +1,17 @@
 import debug from 'debug';
 import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-// import { RTCIceCandidate } from 'wrtc';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { AudioSource } from '../audio/sources/audio_source';
-import { CreatePipeMessage, AddRemoteSourceMessage, PeerConnectionInfoMessage, RemoveSourceMessage, RemovePipeMessage } from '../communication/messages';
+import {
+  CreatePipeMessage,
+  AddRemoteSourceMessage,
+  PeerConnectionInfoMessage,
+  RemoveSourceMessage,
+  RemovePipeMessage,
+  UpdateLocalSourceMessage,
+  UpdateLocalSinkMessage,
+} from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
@@ -37,6 +44,8 @@ export class ClientCoordinator {
     this.webrtcServer.coordinatorPeer.on('controllerMessage:peerConnectionInfo', ({message}: {message: PeerConnectionInfoMessage}) => {
       this.handlePeerConnectionInfo(message);
     });
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:updateLocalSource', this.handleUpdateLocalSource);
+    this.webrtcServer.coordinatorPeer.on('controllerMessage:updateLocalSink', this.handleUpdateLocalSink);
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
       this.webrtcServer.coordinatorPeer.sendControllerMessage({
@@ -161,5 +170,23 @@ export class ClientCoordinator {
     }
     const sourceStream = await source.start();
     sourceStream.pipe(stream);
+  }
+
+  private handleUpdateLocalSource = async ({message}: {message: UpdateLocalSourceMessage}) => {
+    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: message.sourceUuid});
+    if (!source) {
+      this.log(`Trying to update unknown source (uuid ${message.sourceUuid})`);
+      return;
+    }
+    source.updateInfo(message.body);
+  }
+
+  private handleUpdateLocalSink = async ({message}: {message: UpdateLocalSinkMessage}) => {
+    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: message.sinkUuid});
+    if (!sink) {
+      this.log(`Trying to update unknown sink (uuid ${message.sinkUuid})`);
+      return;
+    }
+    sink.updateInfo(message.body);
   }
 }

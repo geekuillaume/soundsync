@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist/**",
     "start": "parcel src/index.html",
-    "build-prod": "parcel build src/index.html"
+    "build": "parcel build src/index.html"
   },
   "devDependencies": {
     "@babel/core": "^7.8.3",
@@ -16,6 +16,8 @@
     "sass": "^1.25.0"
   },
   "dependencies": {
+    "@material-ui/core": "^4.9.0",
+    "@material-ui/icons": "^4.5.1",
     "bulma": "^0.8.0",
     "classnames": "^2.2.6",
     "immer": "^5.3.2",
@@ -24,6 +26,7 @@
     "react-dom": "^16.12.0",
     "redux-actions": "^2.6.5",
     "res": "^0.4.0",
+    "typeface-roboto": "^0.0.75",
     "use-http": "^0.2.4"
   },
   "browserslist": [

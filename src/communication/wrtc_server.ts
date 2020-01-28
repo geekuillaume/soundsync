@@ -160,3 +160,11 @@ export class WebrtcServer extends EventEmitter {
     }
   }
 }
+
+let webrtcServer: WebrtcServer;
+export const getWebrtcServer = () => {
+  if (!webrtcServer) {
+    webrtcServer = new WebrtcServer();
+  }
+  return webrtcServer;
+}

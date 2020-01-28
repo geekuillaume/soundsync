@@ -1,7 +1,7 @@
 // import {Encoder} from 'node-opus';
 import { AudioSource } from './audio_source';
 import { hostname } from 'os';
-import { RemoteSourceDescriptor, SourceType } from './source_type';
+import { RemoteSourceDescriptor, SourceType, SourceDescriptor } from './source_type';
 import { WebrtcPeer } from '../../communication/wrtc_peer';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 

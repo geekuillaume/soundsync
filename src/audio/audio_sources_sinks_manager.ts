@@ -29,13 +29,16 @@ export class AudioSourcesSinksManager extends EventEmitter {
         updateConfigArrayItem('sources', source.toDescriptor());
       }
     };
-    this.on('sourceUpdate', updateConfigForSource);
-    this.on('newLocalSource', updateConfigForSource);
-    this.on('newLocalSink', (sink: AudioSink) => {
+    const updateConfigForSink = (sink: AudioSink) => {
       if (sink.local) {
         updateConfigArrayItem('sinks', sink.toDescriptor());
       }
-    })
+    }
+    this.on('sourceUpdate', updateConfigForSource);
+    this.on('newLocalSource', updateConfigForSource);
+
+    this.on('sinkUpdate', updateConfigForSink);
+    this.on('newLocalSink', updateConfigForSink);
   }
 
   autodetectDevices = () => {

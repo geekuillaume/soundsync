@@ -60,7 +60,7 @@ export const initConfig = (dirOverride) => {
     config = {
       configDir,
       configFilePath,
-      configData
+      configData: configData || {},
     };
   } catch (e) {
     console.error(`Error while parsing config file at ${configFilePath}`);
@@ -78,7 +78,7 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
 }
 
 export const getConfigField = <T extends keyof ConfigData>(field: T) => {
-  if (!config.configData[field]) {
+  if (config.configData[field] === undefined) {
     setConfig((configData) => {
       configData[field] = defaultConfig[field];
     });

@@ -16,7 +16,7 @@ export class LibrespotSource extends AudioSource {
 
   constructor(descriptor: LibresportSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.options = descriptor.librespotOptions;
+    this.options = descriptor.librespotOptions || {};
     this.options.name = this.options.name || hostname();
 
     this.log(`Starting librespot process`);

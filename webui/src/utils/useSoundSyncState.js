@@ -107,3 +107,14 @@ export const useUnpipeAction = (sinkUuid) => {
     refreshData();
   }, [pipe]);
 }
+
+export const useAudioStreamEditAction = () => {
+  const {refreshData} = useContext(soundSyncContext)
+
+  const {put} = useFetch();
+
+  return useCallback(async (type, id, body) => {
+    await put(`/${type}/${id}`, body);
+    refreshData();
+  }, []);
+}

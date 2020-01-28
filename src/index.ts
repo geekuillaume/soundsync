@@ -1,6 +1,6 @@
 import yargs from 'yargs';
 import { createHttpServer } from './communication/http_server';
-import { WebrtcServer } from './communication/wrtc_server';
+import { WebrtcServer, getWebrtcServer } from './communication/wrtc_server';
 import { assert } from './utils/assert';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
@@ -34,7 +34,7 @@ const main = async () => {
   assert(!argv.startCoordinator || !argv.coordinatorHost, 'Cannot be coordinator and connect to another coordinator at the same time, use only one option');
 
   initConfig(argv.configDir);
-  const webrtcServer = new WebrtcServer();
+  const webrtcServer = getWebrtcServer();
   const audioSourcesSinksManager = getAudioSourcesSinksManager();
 
   if (argv.startCoordinator) {
@@ -46,8 +46,6 @@ const main = async () => {
       const apiController = new ApiController(
         httpServer,
         hostCoordinator,
-        audioSourcesSinksManager,
-        webrtcServer,
       )
     }
   } else {
@@ -59,7 +57,7 @@ const main = async () => {
   if (getConfigField('autoDetectAudioDevices')) {
     audioSourcesSinksManager.autodetectDevices();
   }
-  createSystray();
+  // createSystray();
 }
 
 main().catch(e => {
