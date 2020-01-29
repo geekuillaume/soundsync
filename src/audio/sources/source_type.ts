@@ -1,12 +1,11 @@
-import { Peer } from '../../communication/peer';
-
 export interface BaseSourceDescriptor {
   type;
   name: string;
   uuid?: string;
-  peer?: Peer;
+  peerUuid?: string;
   startedAt?: number;
   latency?: number;
+  channels?: number;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
@@ -19,17 +18,9 @@ export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
   }
 }
 
-export interface RemoteSourceDescriptor extends BaseSourceDescriptor {
-  type: 'remote';
-  uuid: string;
-  channels: number;
-  remoteType: SourceType;
-}
-
 export interface NullSourceDescriptor extends BaseSourceDescriptor {
   type: 'null';
 }
 
-export type LocalSourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor;
-export type SourceDescriptor = LocalSourceDescriptor | RemoteSourceDescriptor;
+export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor;
 export type SourceType = SourceDescriptor['type'];

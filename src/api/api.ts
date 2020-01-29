@@ -41,11 +41,7 @@ export class ApiController {
         uuid: peer.uuid,
         coordinator: peer.coordinator,
       })),
-      pipes: this.coordinator.pipes.filter((pipe) => pipe.active).map((pipe) => ({
-        sourceUuid: pipe.source.uuid,
-        sinkUuid: pipe.sink.uuid,
-        latency: pipe.latency,
-      })),
+      pipes: this.coordinator.pipes,
     }
   }
 
@@ -94,7 +90,7 @@ export class ApiController {
     ctx.assert(source, 404, { status: 'error', error: 'Source unknown' });
     ctx.assert(typeof ctx.request.body === 'object', 400, {status: 'error', error: 'Body should be an object'});
 
-    source.updateInfo(ctx.request.body);
+    source.patch(ctx.request.body);
     ctx.body = {
       status: 'ok',
       source: source.toObject(),
@@ -106,7 +102,7 @@ export class ApiController {
     ctx.assert(sink, 404, { status: 'error', error: 'Sink unknown' });
     ctx.assert(typeof ctx.request.body === 'object', 400, {status: 'error', error: 'Body should be an object'});
 
-    sink.updateInfo(ctx.request.body);
+    sink.patch(ctx.request.body);
     ctx.body = {
       status: 'ok',
       sink: sink.toObject(),

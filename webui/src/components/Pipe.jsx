@@ -7,6 +7,9 @@ export const Pipe = ({pipe}) => {
   const sinks = useSinks();
   const sink = find(sinks, {uuid: pipe.sinkUuid});
   const source = find(sources, {uuid: pipe.sourceUuid});
+  if (!sink) {
+    return false;
+  }
   const sinkIndex = sinks.indexOf(sink);
   const sourceIndex = sources.indexOf(source);
 
@@ -17,8 +20,8 @@ export const Pipe = ({pipe}) => {
     <div
       className="pipe"
       style={{
-        gridRowStart: Math.min(sourceIndex, sinkIndex) + 2,
-        gridRowEnd: Math.max(sourceIndex, sinkIndex) + 3,
+        gridRowStart: rowStart + 2,
+        gridRowEnd: rowEnd + 3,
       }}
     >
       <svg>

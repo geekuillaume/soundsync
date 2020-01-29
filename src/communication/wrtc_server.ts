@@ -7,7 +7,7 @@ import debug from 'debug';
 import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
-import { ControllerMessage } from './messages';
+import { ControllerMessage, SourceInfoMessage } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 

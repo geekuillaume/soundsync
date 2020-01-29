@@ -14,8 +14,9 @@ import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
 import { getAudioDevices } from '../utils/rtaudio';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
+import { getLocalPeer } from '../communication/local_peer';
 
-const log = debug(`soundsync:sourcesManager`);
+const log = debug(`soundsync:sourcesSinksManager`);
 
 export class AudioSourcesSinksManager extends EventEmitter {
   autodetect: boolean;
@@ -54,28 +55,34 @@ export class AudioSourcesSinksManager extends EventEmitter {
     });
   }
 
+  getSourceByUuid = (uuid: string) => _.find(this.sources, {uuid: uuid});
+  getSinkByUuid = (uuid: string) => _.find(this.sinks, {uuid: uuid});
+
   addSource(sourceDescriptor: SourceDescriptor) {
     if (sourceDescriptor.uuid) {
       const existingSource = _.find(this.sources, {uuid: sourceDescriptor.uuid});
       if (existingSource) {
-        log(`Trying to add source which already exists, updating existing`);
         existingSource.updateInfo(sourceDescriptor);
         return;
       }
     }
 
+    const isLocal = !sourceDescriptor.peerUuid || sourceDescriptor.peerUuid === getLocalPeer().uuid;
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
     let source;
-    if (sourceDescriptor.type === 'librespot') {
-      source = new LibrespotSource(sourceDescriptor, this);
-    } else if (sourceDescriptor.type === 'null') {
-      source = new NullSource(sourceDescriptor, this);
-    } else if (sourceDescriptor.type === 'remote') {
+    if (!isLocal) {
       source = new RemoteSource(sourceDescriptor, this);
     } else {
-      // @ts-ignore
-      throw new Error(`Unknown source type ${sourceDescriptor.type}`);
+      if (sourceDescriptor.type === 'librespot') {
+        source = new LibrespotSource(sourceDescriptor, this);
+      } else if (sourceDescriptor.type === 'null') {
+        source = new NullSource(sourceDescriptor, this);
+      } else {
+        // @ts-ignore
+        throw new Error(`Unknown source type ${sourceDescriptor.type}`);
+      }
     }
+
     this.sources.push(source);
     if (source.local) {
       this.emit('newLocalSource', source);
@@ -101,22 +108,25 @@ export class AudioSourcesSinksManager extends EventEmitter {
         sink.deviceName === sinkDescriptor.deviceName
       )
     )) {
-      log(`Trying to add sink which already exists, ignoring`);
       return;
     }
 
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);
     let sink: AudioSink;
-    if (sinkDescriptor.type === 'rtaudio') {
-      sink = new RtAudioSink(sinkDescriptor, this);
-    } else if (sinkDescriptor.type === 'remote') {
+    const isLocal = !sinkDescriptor.peerUuid || sinkDescriptor.peerUuid === getLocalPeer().uuid;
+    if (!isLocal) {
       sink = new RemoteSink(sinkDescriptor, this);
-    } else if (sinkDescriptor.type === 'null') {
-      sink = new NullSink(sinkDescriptor, this);
     } else {
-      // @ts-ignore
-      throw new Error(`Unknown sink type ${sinkDescriptor.type}`);
+      if (sinkDescriptor.type === 'rtaudio') {
+        sink = new RtAudioSink(sinkDescriptor, this);
+      } else if (sinkDescriptor.type === 'null') {
+        sink = new NullSink(sinkDescriptor, this);
+      } else {
+        // @ts-ignore
+        throw new Error(`Unknown sink type ${sinkDescriptor.type}`);
+      }
     }
+
     this.sinks.push(sink);
     if (sink.local) {
       this.emit('newLocalSink', sink);

@@ -13,11 +13,11 @@ export abstract class AudioSource {
   name: string;
   type: SourceType;
   rate: number = 0;
-  channels: number = 2;
+  channels: number;
   log: debug.Debugger;
   local: boolean;
   uuid: string;
-  peer: Peer;
+  peerUuid: string;
   manager: AudioSourcesSinksManager;
   encodedAudioStream: NodeJS.ReadableStream;
   startedAt: number;
@@ -29,17 +29,24 @@ export abstract class AudioSource {
     this.manager = manager;
     this.type = descriptor.type;
     this.uuid = descriptor.uuid || uuidv4();
-    this.peer = descriptor.peer || getLocalPeer();
+    this.peerUuid = descriptor.peerUuid || getLocalPeer().uuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
     this.latency = descriptor.latency;
+    this.channels = descriptor.channels;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
 
+  // Change info about a source in response to a user event
+  patch(descriptor: Partial<SourceDescriptor>) {
+    return this.updateInfo(descriptor);
+  }
+
+  // Update source info in response to a controllerMessage
   updateInfo(descriptor: Partial<SourceDescriptor>) {
     let hasChanged = false;
-    ['name', 'startedAt', 'latency'].forEach(prop => {
+    Object.keys(descriptor).forEach(prop => {
       if (descriptor[prop] && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
@@ -47,13 +54,6 @@ export abstract class AudioSource {
     });
     if (hasChanged) {
       this.manager.emit('sourceUpdate', this);
-      if (!this.local) {
-        this.peer.sendControllerMessage({
-          type: 'updateLocalSource',
-          sourceUuid: this.uuid,
-          body: descriptor,
-        });
-      }
     }
   }
 
@@ -77,13 +77,15 @@ export abstract class AudioSource {
     type: this.type,
     channels: this.channels,
     rate: this.rate,
-    peerUuid: this.peer.uuid,
+    peerUuid: this.peerUuid,
     latency: this.latency,
   })
 
-  toDescriptor: () => BaseSourceDescriptor = () => ({
+  toDescriptor = (): BaseSourceDescriptor => ({
     name: this.name,
     uuid: this.uuid,
     type: this.type,
+    latency: this.latency,
+    startedAt: this.startedAt
   })
 }

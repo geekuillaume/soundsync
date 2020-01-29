@@ -11,7 +11,6 @@ export interface PipeDescriptor {
 export class Pipe {
   sourceUuid: string;
   sinkUuid: string;
-  latency: number = 0;
   active: boolean = false;
 
   constructor(sourceUuid: string, sinkUuid: string) {
@@ -24,15 +23,20 @@ export class Pipe {
       return;
     }
     this.sink.linkSource(this.source);
-    const closePipe = () => {
-      if (this.sink) {
-        this.sink.unlinkSource();
-      }
-      this.active = false;
-    }
-    this.source.peer.once('disconnected', closePipe);
-    this.sink.peer.once('disconnected', closePipe);
+    // TODO: handle disponect
+    // this.source.peer.once('disconnected', closePipe);
+    // this.sink.peer.once('disconnected', closePipe);
     this.active = true;
+  }
+
+  close = () => {
+    if (!this.active) {
+      return;
+    }
+    if (this.sink) {
+      this.sink.unlinkSource();
+    }
+    this.active = false;
   }
 
   get source(): AudioSource {

@@ -4,24 +4,21 @@ import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { AudioSource } from '../audio/sources/audio_source';
 import {
-  CreatePipeMessage,
-  AddRemoteSourceMessage,
   PeerConnectionInfoMessage,
-  RemoveSourceMessage,
-  RemovePipeMessage,
-  UpdateLocalSourceMessage,
-  UpdateLocalSinkMessage,
+  SoundStateMessage,
 } from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { attachTimekeeperClient } from './timekeeper';
-import { once } from 'events';
+import { getLocalPeer } from '../communication/local_peer';
+import { Pipe } from '../coordinator/pipe';
 
 export class ClientCoordinator {
   webrtcServer: WebrtcServer;
   audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
+  private pipes: Pipe[] = [];
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager, isCoordinator = false) {
     this.webrtcServer = webrtcServer;
@@ -31,29 +28,18 @@ export class ClientCoordinator {
 
     this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
 
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:addRemoteSource', ({message}: {message: AddRemoteSourceMessage}) => {
-      this.handleAddRemoteSource(message);
-    });
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:removeRemoteSource', ({message}: {message: RemoveSourceMessage}) => {
-      this.audioSourcesSinksManager.removeSource(message.uuid);
-    });
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:createPipe', ({message}: {message: CreatePipeMessage}) => {
-      this.handleCreatePipe(message);
-    });
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:removePipe', this.handleRemovePipe);
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:peerConnectionInfo', ({message}: {message: PeerConnectionInfoMessage}) => {
-      this.handlePeerConnectionInfo(message);
-    });
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:updateLocalSource', this.handleUpdateLocalSource);
-    this.webrtcServer.coordinatorPeer.on('controllerMessage:updateLocalSink', this.handleUpdateLocalSink);
+    this.webrtcServer.coordinatorPeer
+      .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
+      .onControllerMessage('soundState', this.handleSoundStateUpdate)
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
-      this.webrtcServer.coordinatorPeer.sendControllerMessage({
-        type: 'requestSourcesList',
-      })
+      // this.webrtcServer.coordinatorPeer.sendControllerMessage({
+      //   type: 'requestSoundState',
+      // })
       this.announceAllSourcesSinksToController();
       audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
-      audioSourcesSinksManager.on('sinkLatencyUpdate', this.announceNewSinkLatency);
+      audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
+      audioSourcesSinksManager.on('sinkUpdate', this.announceSinkToController);
       audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
       if (!isCoordinator) {
         attachTimekeeperClient(webrtcServer);
@@ -68,73 +54,71 @@ export class ClientCoordinator {
 
   private announceSinkToController = (sink: AudioSink) => {
     this.webrtcServer.coordinatorPeer.sendControllerMessage({
-      type: 'addLocalSink',
+      type: 'sinkInfo',
       name: sink.name,
       sinkType: sink.type,
       uuid: sink.uuid,
       channels: sink.channels,
+      latency: sink.latency,
     });
   }
 
   private announceSourceToController = (source: AudioSource) => {
-    if (source.type === 'remote') {
+    if (!source.local) {
       return;
     }
     this.webrtcServer.coordinatorPeer.sendControllerMessage({
-      type: 'addLocalSource',
+      type: 'sourceInfo',
       name: source.name,
       sourceType: source.type,
       uuid: source.uuid,
       channels: source.channels,
       latency: source.latency,
       startedAt: source.startedAt,
+      peerUuid: getLocalPeer().uuid,
     });
   }
 
-  private announceNewSinkLatency = (sink: AudioSink) => {
-    this.webrtcServer.coordinatorPeer.sendControllerMessage({
-      type: 'sinkLatencyUpdate',
-      sinkUuid: sink.uuid,
-      latency: sink.latency,
+  private handleSoundStateUpdate = (message: SoundStateMessage) => {
+    Object.keys(message.sources).forEach((sourceUuid) => {
+      const source = message.sources[sourceUuid];
+      this.audioSourcesSinksManager.addSource(source);
     });
-  }
-
-  private handleAddRemoteSource = (message: AddRemoteSourceMessage) => {
-    this.audioSourcesSinksManager.addSource({
-      type: 'remote',
-      remoteType: message.sourceType,
-      name: message.name,
-      uuid: message.uuid,
-      channels: message.channels,
-      peer: this.webrtcServer.getPeerByUuid(message.peerUuid),
-      latency: message.latency,
-      startedAt: message.startedAt,
+    Object.keys(message.sinks).forEach((sinkUuid) => {
+      const sink = message.sinks[sinkUuid];
+      this.audioSourcesSinksManager.addSink(sink);
     });
-  }
+    this.audioSourcesSinksManager.sources.forEach((source) => {
+      if (!message.sources[source.uuid] && !source.local) {
+        this.audioSourcesSinksManager.removeSource(source.uuid);
+      }
+    });
+    this.audioSourcesSinksManager.sinks.forEach((sink) => {
+      if (!message.sinks[sink.uuid] && !sink.local) {
+        this.audioSourcesSinksManager.removeSink(sink.uuid);
+      }
+    });
 
-  private handleCreatePipe = (message: CreatePipeMessage) => {
-    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: message.sinkUuid});
-    if (!sink) {
-      this.log(`Trying to create pipe with unknown sink (uuid ${message.sinkUuid})`);
-      return;
-    }
-    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: message.sourceUuid});
-    if (!source) {
-      this.log(`Trying to create pipe with unknown source (uuid ${message.sourceUuid})`);
-      return;
-    }
-    this.log(`Creating pipe sink ${message.sinkUuid} and source ${message.sourceUuid}`);
-    sink.linkSource(source);
-  }
+    message.pipes.forEach((pipeDescriptor) => {
+      const sink = this.audioSourcesSinksManager.getSinkByUuid(pipeDescriptor.sinkUuid);
+      if (!sink || !sink.local) {
+        return;
+      }
+      const existingPipe = _.find(this.pipes, {sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid});
+      if (existingPipe) {
+        existingPipe.activate();
+        return;
+      }
+      const pipe = new Pipe(pipeDescriptor.sourceUuid, pipeDescriptor.sinkUuid);
+      this.pipes.push(pipe);
+      pipe.activate();
+    });
 
-  private handleRemovePipe = ({message}: {message: RemovePipeMessage}) => {
-    console.log(message);
-    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: message.sinkUuid});
-    if (!sink) {
-      this.log(`Trying to remove pipe with unknown sink (uuid ${message.sinkUuid})`);
-      return;
-    }
-    sink.unlinkSource();
+    this.pipes.forEach((pipe) => {
+      if (!_.some(message.pipes, {sourceUuid: pipe.sourceUuid, sinkUuid: pipe.sinkUuid})) {
+        pipe.close();
+      }
+    });
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
@@ -170,23 +154,5 @@ export class ClientCoordinator {
     }
     const sourceStream = await source.start();
     sourceStream.pipe(stream);
-  }
-
-  private handleUpdateLocalSource = async ({message}: {message: UpdateLocalSourceMessage}) => {
-    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: message.sourceUuid});
-    if (!source) {
-      this.log(`Trying to update unknown source (uuid ${message.sourceUuid})`);
-      return;
-    }
-    source.updateInfo(message.body);
-  }
-
-  private handleUpdateLocalSink = async ({message}: {message: UpdateLocalSinkMessage}) => {
-    const sink = _.find(this.audioSourcesSinksManager.sinks, {uuid: message.sinkUuid});
-    if (!sink) {
-      this.log(`Trying to update unknown sink (uuid ${message.sinkUuid})`);
-      return;
-    }
-    sink.updateInfo(message.body);
   }
 }

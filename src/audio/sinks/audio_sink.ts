@@ -25,7 +25,7 @@ export abstract class AudioSink {
   uuid: string;
   sourceStream: PassThrough;
   decodedStream: NodeJS.ReadableStream;
-  peer: Peer;
+  peerUuid: string;
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
   latency: number = 50;
@@ -40,15 +40,19 @@ export abstract class AudioSink {
     this.type = descriptor.type;
     this.rate = OPUS_ENCODER_RATE;
     this.uuid = descriptor.uuid || uuidv4();
-    this.peer = descriptor.peer || getLocalPeer();
+    this.peerUuid = descriptor.peerUuid || getLocalPeer().uuid;
     this.channels = 2;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink`);
   }
 
+  patch(descriptor: Partial<SinkDescriptor>) {
+    return this.updateInfo(descriptor);
+  }
+
   updateInfo(descriptor: Partial<SinkDescriptor>) {
     let hasChanged = false;
-    ['name'].forEach(prop => {
+    Object.keys(descriptor).forEach(prop => {
       if (descriptor[prop] && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
@@ -56,13 +60,6 @@ export abstract class AudioSink {
     });
     if (hasChanged) {
       this.manager.emit('sinkUpdate', this);
-      if (!this.local) {
-        this.peer.sendControllerMessage({
-          type: 'updateLocalSink',
-          sinkUuid: this.uuid,
-          body: descriptor,
-        });
-      }
     }
   }
 
@@ -118,7 +115,7 @@ export abstract class AudioSink {
     type: this.type,
     channels: this.channels,
     rate: this.rate,
-    peerUuid: this.peer.uuid,
+    peerUuid: this.peerUuid,
     latency: this.latency,
   })
 
@@ -126,5 +123,6 @@ export abstract class AudioSink {
     type: this.type,
     name: this.name,
     uuid: this.uuid,
+    latency: this.latency,
   })
 }

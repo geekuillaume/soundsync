@@ -1,10 +1,9 @@
-import { Peer } from '../../communication/peer';
-
 export interface BaseSinkDescriptor {
   type;
   name: string;
   uuid?: string;
-  peer?: Peer;
+  peerUuid?: string;
+  latency?: number;
 }
 
 export interface RtAudioSinkDescriptor extends BaseSinkDescriptor {
@@ -12,17 +11,9 @@ export interface RtAudioSinkDescriptor extends BaseSinkDescriptor {
   deviceName?: string; // Use default device if not set
 }
 
-export interface RemoteSinkDescriptor extends BaseSinkDescriptor {
-  type: 'remote';
-  uuid: string;
-  channels: number;
-  remoteType: SinkType;
-}
-
 export interface NullSinkDescriptor extends BaseSinkDescriptor {
   type: 'null';
 }
 
-export type LocalSinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor;
-export type SinkDescriptor = LocalSinkDescriptor | RemoteSinkDescriptor;
+export type SinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

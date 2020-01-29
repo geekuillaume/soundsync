@@ -55,8 +55,7 @@ export class RtAudioSink extends AudioSink {
       const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
       if (Math.abs(newLatency - this.latency) > 5) {
         // TODO: use network latency here too
-        this.latency = newLatency;
-        this.manager.emit('sinkLatencyUpdate', this);
+        this.updateInfo({latency: newLatency});
       }
     }, 2000)
     const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);

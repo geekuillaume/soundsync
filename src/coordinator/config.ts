@@ -7,8 +7,8 @@ import mkdirp from 'mkdirp';
 import uuidv4 from 'uuid/v4';
 import debug from 'debug';
 import _ from 'lodash';
-import { SinkDescriptor, LocalSinkDescriptor } from '../audio/sinks/sink_type';
-import { SourceDescriptor, LocalSourceDescriptor } from '../audio/sources/source_type';
+import { SinkDescriptor } from '../audio/sinks/sink_type';
+import { SourceDescriptor } from '../audio/sources/source_type';
 import { Pipe, PipeDescriptor } from './pipe';
 
 const log = debug(`soundsync:config`);
@@ -86,8 +86,8 @@ export const getConfigField = <T extends keyof ConfigData>(field: T) => {
   return config.configData[field];
 }
 
-export function updateConfigArrayItem(field: 'sources', item: LocalSourceDescriptor): void;
-export function updateConfigArrayItem(field: 'sinks', item: LocalSinkDescriptor): void;
+export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
+export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
 export function updateConfigArrayItem(field: 'pipes', item: PipeDescriptor): void;
 export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item) {
   setConfig((config) => {

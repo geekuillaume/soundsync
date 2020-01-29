@@ -2,21 +2,25 @@ import debug from 'debug';
 import _ from 'lodash';
 import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
-import { AddLocalSourceMessage, AddSinkMessage, PeerConnectionInfoMessage, SinkLatencyUpdateMessage } from '../communication/messages';
+import { SourceInfoMessage, SinkInfoMessage, PeerConnectionInfoMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
 import { FORCED_STREAM_LATENCY } from '../utils/constants';
-import { Pipe } from './pipe';
+import { Pipe, PipeDescriptor } from './pipe';
 import { updateConfigArrayItem, deleteConfigArrayItem, getConfigField } from './config';
+import { SourceDescriptor, BaseSourceDescriptor } from '../audio/sources/source_type';
+import { SinkDescriptor, BaseSinkDescriptor } from '../audio/sinks/sink_type';
 
 export class HostCoordinator {
   webrtcServer: WebrtcServer;
   audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
 
-  pipes: Pipe[] = getConfigField('pipes').map((p) => new Pipe(p.sourceUuid, p.sinkUuid));
+  pipes: PipeDescriptor[] = getConfigField('pipes');
+  sources: {[key: string] : SourceDescriptor} = {};
+  sinks: {[key: string] : SinkDescriptor} = {};
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
@@ -24,92 +28,79 @@ export class HostCoordinator {
     this.log = debug(`soundsync:hostCoordinator`);
     this.log(`Created host coordinator`);
 
-    this.webrtcServer.on(`peerControllerMessage:addLocalSource`, ({peer, message}: {peer: WebrtcPeer, message: AddLocalSourceMessage}) => {
-      // A peer has a new source, we need to register it and send it to everyone else
-      this.handleNewSourceFromPeer(peer, message);
+    this.webrtcServer.on(`peerControllerMessage:sourceInfo`, ({peer, message}: {peer: WebrtcPeer, message: SourceInfoMessage}) => {
+      this.handleSourceInfo(peer, message);
     });
-    this.webrtcServer.on(`peerControllerMessage:requestSourcesList`, ({peer}: {peer: WebrtcPeer}) => {
+    this.webrtcServer.on(`peerControllerMessage:sinkInfo`, ({peer, message}: {peer: WebrtcPeer, message: SinkInfoMessage}) => {
+      this.handleSinkInfo(peer, message);
+    });
+    this.webrtcServer.on(`peerControllerMessage:requestSoundState`, ({peer}: {peer: WebrtcPeer}) => {
       this.handleRequestSourceList(peer);
-    });
-    this.webrtcServer.on(`peerControllerMessage:addLocalSink`, ({peer, message}: {peer: WebrtcPeer, message: AddSinkMessage}) => {
-      this.handleNewSinkFromPeer(peer, message);
     });
     this.webrtcServer.on(`peerControllerMessage:peerConnectionInfo`, ({peer, message}: {peer: WebrtcPeer, message: PeerConnectionInfoMessage}) => {
       this.handlePeerConnectionInfo(peer, message);
-    });
-    this.webrtcServer.on(`peerControllerMessage:sinkLatencyUpdate`, ({peer, message}: {peer: WebrtcPeer, message: SinkLatencyUpdateMessage}) => {
-      this.handleSinkLatencyUpdate(peer, message);
     });
 
     attachTimekeeperCoordinator(webrtcServer);
   }
 
-  private handleNewSourceFromPeer = async (peer: WebrtcPeer, message: AddLocalSourceMessage) => {
-    this.log(`Received source ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
-    // Sending new source info to all peers
+  private broadcastState = async () => {
     await this.webrtcServer.broadcast({
-      type: 'addRemoteSource',
-      name: message.name,
-      uuid: message.uuid,
-      sourceType: message.sourceType,
-      channels: message.channels,
-      peerUuid: peer.uuid,
-      latency: message.latency,
-      startedAt: message.startedAt,
-    }, [peer.uuid]);
-
-    peer.once('disconnected', () => {
-      this.webrtcServer.broadcast({
-        type: 'removeRemoteSource',
-        uuid: message.uuid,
-      }, [peer.uuid]);
+      type: 'soundState',
+      sinks: this.sinks,
+      sources: this.sources,
+      pipes: this.pipes,
     });
+  }
 
-    const relatedPipe = _.find(this.pipes, {sourceUuid: message.uuid});
-    if (relatedPipe) {
-      relatedPipe.activate();
-    }
+  private handleSourceInfo = async (peer: WebrtcPeer, message: SourceInfoMessage) => {
+    const descriptor:BaseSourceDescriptor = {
+      uuid: message.uuid,
+      type: message.sourceType,
+      peerUuid: peer.uuid,
+      name: message.name,
+      channels: message.channels,
+      startedAt: message.startedAt,
+      latency: message.latency,
+    };
+    this.sources[descriptor.uuid] = descriptor;
+    this.broadcastState();
+    // TODO: handle disconnect of peer
+    // peer.once('disconnected', () => {
+    //   this.webrtcServer.broadcast({
+    //     type: 'removeRemoteSource',
+    //     uuid: message.uuid,
+    //   }, [peer.uuid]);
+    // });
   }
 
   private handleRequestSourceList = (peer: WebrtcPeer) => {
-    this.audioSourcesSinksManager.sources.map((source) => {
-      peer.sendControllerMessage({
-        type: 'addRemoteSource',
-        name: source.name,
-        uuid: source.uuid,
-        sourceType: source.type,
-        channels: source.channels,
-        peerUuid: source.peer.uuid,
-        latency: source.latency,
-        startedAt: source.startedAt,
-      });
-    })
+    peer.sendControllerMessage({
+      type: 'soundState',
+      sinks: this.sinks,
+      sources: this.sources,
+      pipes: this.pipes,
+    });
   }
 
-  private handleNewSinkFromPeer = (peer: WebrtcPeer, message: AddSinkMessage) => {
-    this.log(`Registering new sink ${message.name} (uuid: ${message.uuid}) from peer ${peer.uuid}`);
-    this.audioSourcesSinksManager.addSink({
-      type: 'remote',
-      remoteType: message.sinkType,
-      name: message.name,
+  private handleSinkInfo = (peer: WebrtcPeer, message: SinkInfoMessage) => {
+    const descriptor: BaseSinkDescriptor = {
       uuid: message.uuid,
-      peer,
-      channels: message.channels,
-    });
-    peer.once('disconnected', () => {
-      this.audioSourcesSinksManager.removeSink(message.uuid);
-    });
-
-    const relatedPipe = _.find(this.pipes, {sinkUuid: message.uuid});
-    if (relatedPipe) {
-      relatedPipe.activate();
-    }
+      type: message.sinkType,
+      peerUuid: peer.uuid,
+      name: message.name,
+      latency: message.latency,
+    };
+    this.sinks[descriptor.uuid] = descriptor;
+    this.broadcastState();
+    // TODO: handle disconnect of peer
   }
 
   private handlePeerConnectionInfo = (peer: WebrtcPeer, message: PeerConnectionInfoMessage) => {
     const targetPeer = this.webrtcServer.peers[message.peerUuid];
     if (!targetPeer) {
       this.log(`Tried to pass PeerConnectionInfo message to unknown peer ${message.peerUuid}`);
+      return;
     }
     targetPeer.sendControllerMessage({
       type: 'peerConnectionInfo',
@@ -119,33 +110,36 @@ export class HostCoordinator {
     });
   }
 
-  private handleSinkLatencyUpdate = (peer: WebrtcPeer, message: SinkLatencyUpdateMessage) => {
-    const pipes = this.pipes.filter((p) => p.sink && p.sink.uuid === message.sinkUuid);
-    pipes.forEach((p) => {
-      p.latency = message.latency;
-      p.source.updateInfo({
-        latency: Math.max(...pipes.filter(({source}) => source === p.source).map(({latency}) => latency)) + FORCED_STREAM_LATENCY,
-      })
-    });
-  }
+  // private handleSinkLatencyUpdate = (peer: WebrtcPeer, message: SinkLatencyUpdateMessage) => {
+  //   const pipes = this.pipes.filter((p) => p.sink && p.sink.uuid === message.sinkUuid);
+  //   pipes.forEach((p) => {
+  //     p.latency = message.latency;
+  //     p.source.updateInfo({
+  //       latency: Math.max(...pipes.filter(({source}) => source === p.source).map(({latency}) => latency)) + FORCED_STREAM_LATENCY,
+  //     })
+  //   });
+  // }
 
   createPipe = (source: AudioSource, sink: AudioSink) => {
-    if (_.some(this.pipes, (p) => p.source === source && p.sink === sink)) {
+    if (_.some(this.pipes, (p) => p.sourceUuid === source.uuid && p.sinkUuid === sink.uuid)) {
       return;
     }
-    const pipe = new Pipe(source.uuid, sink.uuid)
+    const pipe: PipeDescriptor = {
+      sourceUuid: source.uuid,
+      sinkUuid: sink.uuid,
+    }
     this.pipes.push(pipe);
-    updateConfigArrayItem('pipes', pipe.toDescriptor());
-    pipe.activate();
+    updateConfigArrayItem('pipes', pipe);
+    this.broadcastState();
   }
 
   destroyPipe = (source: AudioSource, sink: AudioSink) => {
-    const pipe = _.find(this.pipes, (p) => p.source === source && p.sink === sink);
+    const pipe = _.find(this.pipes, (p) => p.sourceUuid === source.uuid && p.sinkUuid === sink.uuid);
     if (!pipe) {
       return;
     }
-    sink.unlinkSource();
     this.pipes = this.pipes.filter((p) => pipe !== p)
-    deleteConfigArrayItem('pipes', pipe.toDescriptor());
+    deleteConfigArrayItem('pipes', pipe);
+    this.broadcastState();
   }
 }

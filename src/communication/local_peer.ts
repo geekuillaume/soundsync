@@ -16,7 +16,7 @@ class LocalPeer extends Peer {
   }
 }
 
-let localPeer;
+let localPeer: LocalPeer;
 export const getLocalPeer = () => {
   if (!localPeer) {
     localPeer = new LocalPeer({

@@ -1,22 +1,18 @@
 import { SourceType, SourceDescriptor } from '../audio/sources/source_type';
 import { SinkType, SinkDescriptor } from '../audio/sinks/sink_type';
+import { WebrtcPeer } from './wrtc_peer';
+import { PipeDescriptor } from '../coordinator/pipe';
 
-export interface LightMessage {
-  type: 'ping' | 'pong' | 'requestSourcesList';
+export interface BaseMessage {
+  type;
+};
+
+export interface LightMessage extends BaseMessage {
+  type: 'ping' | 'pong' | 'requestSoundState';
 }
 
-export interface AddLocalSourceMessage {
-  type: 'addLocalSource'; // send from client to host coordinator when a client source changes
-  sourceType: SourceType;
-  name: string;
-  uuid: string;
-  channels: number;
-  latency: number;
-  startedAt: number;
-}
-
-export interface AddRemoteSourceMessage {
-  type: 'addRemoteSource'; // send from coordinator host to clients when a remote source changes
+export interface SourceInfoMessage extends BaseMessage {
+  type: 'sourceInfo'; // send from client to host coordinator when a client source changes
   sourceType: SourceType;
   name: string;
   uuid: string;
@@ -26,76 +22,54 @@ export interface AddRemoteSourceMessage {
   peerUuid: string;
 }
 
-export interface AddSinkMessage {
-  type: 'addLocalSink';
+export interface SinkInfoMessage extends BaseMessage {
+  type: 'sinkInfo';
   sinkType: SinkType;
   name: string;
   uuid: string;
   channels: number;
+  latency: number;
 }
 
 // TODO: implement sink removal messages and handling
 
-export interface RemoveSourceMessage {
-  type: 'removeRemoteSource' | 'removeLocalSource';
+export interface RemoveSourceMessage extends BaseMessage {
+  type: 'removeSource';
   uuid: string;
 }
 
-export interface CreatePipeMessage {
-  type: 'createPipe';
-  sourceUuid: string;
-  sinkUuid: string;
-}
-
-export interface RemovePipeMessage {
-  type: 'removePipe';
-  sinkUuid: string;
-}
-
-export interface PeerConnectionInfoMessage {
+export interface PeerConnectionInfoMessage extends BaseMessage {
   type: 'peerConnectionInfo';
   peerUuid: string;
   offer?: string;
   iceCandidates?: string[];
 }
 
-export interface TimekeepRequest {
+export interface TimekeepRequest extends BaseMessage {
   type: 'timekeepRequest';
   sentAt: number;
 }
 
-export interface TimekeepResponse {
+export interface TimekeepResponse extends BaseMessage {
   type: 'timekeepResponse';
   sentAt: number;
   respondedAt: number;
 }
 
-export interface SinkLatencyUpdateMessage {
-  type: 'sinkLatencyUpdate';
-  sinkUuid: string;
-  latency: number;
-}
-
-export interface UpdateLocalSinkMessage {
-  type: 'updateLocalSink';
-  sinkUuid: string;
-  body: Partial<SinkDescriptor>;
-}
-
-export interface UpdateLocalSourceMessage {
-  type: 'updateLocalSource';
-  sourceUuid: string;
-  body: Partial<SourceDescriptor>;
+export interface SoundStateMessage extends BaseMessage {
+  type: 'soundState';
+  sources: {[key: string] : SourceDescriptor};
+  sinks: {[key: string] : SinkDescriptor};
+  pipes: PipeDescriptor[];
 }
 
 export type ControllerMessage =
   LightMessage |
-  AddRemoteSourceMessage |
-  AddLocalSourceMessage |
+  SourceInfoMessage |
   RemoveSourceMessage |
-  AddSinkMessage |
-  CreatePipeMessage | RemovePipeMessage |
+  SinkInfoMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
-  SinkLatencyUpdateMessage |
-  UpdateLocalSinkMessage | UpdateLocalSourceMessage;
+  SoundStateMessage;
+
+export type Handler<T extends BaseMessage> = ({message, peer} : {message: T, peer: WebrtcPeer}) => any;

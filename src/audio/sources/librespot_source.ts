@@ -9,6 +9,7 @@ import { createReadStream } from 'fs';
 export class LibrespotSource extends AudioSource {
   local = true;
   rate = 44100;
+  channels = 2;
 
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
