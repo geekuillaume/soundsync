@@ -6,6 +6,8 @@ import { AudioSource } from '../audio/sources/audio_source';
 import {
   PeerConnectionInfoMessage,
   SoundStateMessage,
+  SinkInfoMessage,
+  SourceInfoMessage,
 } from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
@@ -31,6 +33,8 @@ export class ClientCoordinator {
     this.webrtcServer.coordinatorPeer
       .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
       .onControllerMessage('soundState', this.handleSoundStateUpdate)
+      .onControllerMessage('sinkInfo', this.handleSinkUpdate)
+      .onControllerMessage('sourceInfo', this.handleSourceUpdate)
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
       // this.webrtcServer.coordinatorPeer.sendControllerMessage({
@@ -154,5 +158,20 @@ export class ClientCoordinator {
     }
     const sourceStream = await source.start();
     sourceStream.pipe(stream);
+  }
+
+  private handleSinkUpdate = (message: SinkInfoMessage) => {
+    const sink = this.audioSourcesSinksManager.getSinkByUuid(message.uuid);
+    sink.updateInfo({
+      name: message.name,
+    });
+  }
+
+  private handleSourceUpdate = (message: SourceInfoMessage) => {
+    const source = this.audioSourcesSinksManager.getSourceByUuid(message.uuid);
+    source.updateInfo({
+      name: message.name,
+      latency: message.latency,
+    });
   }
 }

@@ -46,5 +46,6 @@ export class LibrespotSource extends AudioSource {
     name: this.name,
     uuid: this.uuid,
     librespotOptions: this.options,
+    peerUuid: this.peerUuid,
   })
 }

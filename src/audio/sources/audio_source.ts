@@ -29,7 +29,7 @@ export abstract class AudioSource {
     this.manager = manager;
     this.type = descriptor.type;
     this.uuid = descriptor.uuid || uuidv4();
-    this.peerUuid = descriptor.peerUuid || getLocalPeer().uuid;
+    this.peerUuid = descriptor.peerUuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
     this.latency = descriptor.latency;
@@ -86,6 +86,7 @@ export abstract class AudioSource {
     uuid: this.uuid,
     type: this.type,
     latency: this.latency,
-    startedAt: this.startedAt
+    startedAt: this.startedAt,
+    peerUuid: this.peerUuid,
   })
 }

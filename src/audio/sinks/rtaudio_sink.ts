@@ -90,7 +90,8 @@ export class RtAudioSink extends AudioSink {
     type: 'rtaudio',
     name: this.name,
     uuid: this.uuid,
-    deviceName: this.deviceName
+    deviceName: this.deviceName,
+    peerUuid: this.peerUuid,
   })
 
 }

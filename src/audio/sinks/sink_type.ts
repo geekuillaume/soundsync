@@ -2,7 +2,7 @@ export interface BaseSinkDescriptor {
   type;
   name: string;
   uuid?: string;
-  peerUuid?: string;
+  peerUuid: string;
   latency?: number;
 }
 

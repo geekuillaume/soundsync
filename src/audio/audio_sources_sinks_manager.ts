@@ -50,6 +50,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
           type: 'rtaudio',
           deviceName: device.name,
           name: device.name,
+          peerUuid: getLocalPeer().uuid,
         });
       }
     });
@@ -59,12 +60,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
   getSinkByUuid = (uuid: string) => _.find(this.sinks, {uuid: uuid});
 
   addSource(sourceDescriptor: SourceDescriptor) {
-    if (sourceDescriptor.uuid) {
-      const existingSource = _.find(this.sources, {uuid: sourceDescriptor.uuid});
-      if (existingSource) {
-        existingSource.updateInfo(sourceDescriptor);
-        return;
-      }
+    if (sourceDescriptor.uuid && this.getSourceByUuid(sourceDescriptor.uuid)) {
+      this.getSourceByUuid(sourceDescriptor.uuid).updateInfo(sourceDescriptor);
+      return;
     }
 
     const isLocal = !sourceDescriptor.peerUuid || sourceDescriptor.peerUuid === getLocalPeer().uuid;
@@ -101,14 +99,19 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
-    if (_.find(this.sinks, {uuid: sinkDescriptor.uuid}) || (
-      sinkDescriptor.type === 'rtaudio' && _.find(this.sinks, (sink) =>
-        sink.type === 'rtaudio' &&
-        // @ts-ignore
-        sink.deviceName === sinkDescriptor.deviceName
-      )
-    )) {
+    if (sinkDescriptor.uuid && this.getSinkByUuid(sinkDescriptor.uuid)) {
+      this.getSinkByUuid(sinkDescriptor.uuid).updateInfo(sinkDescriptor);
       return;
+    }
+    if (sinkDescriptor.type === 'rtaudio' && sinkDescriptor.peerUuid === getLocalPeer().uuid) {
+      // when auto detecting rtaudio devices on local host, we cannot compare with the uuid
+      // so we need to compare with the device name to see if we need to update the existing
+      // or add a new Sink
+      const existingSink = _.find(this.sinks, (sink) => sink instanceof RtAudioSink && sink.deviceName === sinkDescriptor.deviceName);
+      if (existingSink) {
+        existingSink.updateInfo(sinkDescriptor);
+        return;
+      }
     }
 
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);

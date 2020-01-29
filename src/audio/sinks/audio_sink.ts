@@ -40,7 +40,7 @@ export abstract class AudioSink {
     this.type = descriptor.type;
     this.rate = OPUS_ENCODER_RATE;
     this.uuid = descriptor.uuid || uuidv4();
-    this.peerUuid = descriptor.peerUuid || getLocalPeer().uuid;
+    this.peerUuid = descriptor.peerUuid;
     this.channels = 2;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink`);
@@ -124,5 +124,6 @@ export abstract class AudioSink {
     name: this.name,
     uuid: this.uuid,
     latency: this.latency,
+    peerUuid: this.peerUuid,
   })
 }

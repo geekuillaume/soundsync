@@ -2,7 +2,7 @@ export interface BaseSourceDescriptor {
   type;
   name: string;
   uuid?: string;
-  peerUuid?: string;
+  peerUuid: string;
   startedAt?: number;
   latency?: number;
   channels?: number;
