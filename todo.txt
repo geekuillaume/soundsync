@@ -1,9 +1,6 @@
-- Handle pipe deduplication
-
 - Handle pipe deletion
   - Handle sink / source stoping
     - Reference counting
-- Add webapp
 - Package it in executable
   - Maybe electron
 
@@ -23,6 +20,8 @@
 - UPnP: gmrender-resurrect
 
 - Sink volume with hardware control
+- Implement group of sinks
+- Hide / Unhide sources and sinks in the webui
 
 - https://www.npmjs.com/package/waveform-data
 - libsoundio / rtaudio
