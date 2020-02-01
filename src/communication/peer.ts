@@ -14,15 +14,17 @@ import {
 export abstract class Peer extends EventEmitter {
   uuid: string;
   name: string;
+  host: string;
   coordinator: boolean;
   state: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
 
-  constructor({ uuid, name, coordinator = false }) {
+  constructor({ uuid, name, coordinator = false, host }) {
     super();
     this.setMaxListeners(1000);
     this.name = name;
     this.uuid = uuid;
     this.coordinator = coordinator;
+    this.host = host;
   }
 
   onControllerMessage(type: LightMessage['type'], handler: (message: LightMessage, peer: Peer) => any): this;

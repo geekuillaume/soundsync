@@ -5,7 +5,7 @@ import { getConfigField } from '../coordinator/config';
 
 class LocalPeer extends Peer {
   constructor({ uuid, name }) {
-    super({uuid, name});
+    super({uuid, name, host: '127.0.0.1'});
     this.state = "connected";
     this.emit('connected');
   }

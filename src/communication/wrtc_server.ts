@@ -1,5 +1,4 @@
 import { EventEmitter, once } from 'events';
-import bonjour from 'bonjour';
 import _ from 'lodash';
 import superagent from 'superagent';
 import debug from 'debug';
@@ -10,6 +9,7 @@ import { getLocalPeer } from './local_peer';
 import { ControllerMessage, SourceInfoMessage } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
+import { publishService } from './coordinatorDetector';
 
 const log = debug('soundsync:wrtc');
 
@@ -37,6 +37,7 @@ export class WebrtcServer extends EventEmitter {
         webrtcServer: this,
         uuid,
         name,
+        host: ctx.request.ip,
         connectHandler: async (peer: WebrtcPeer) => {
           // Todo: handle reconnection here
         }
@@ -51,15 +52,12 @@ export class WebrtcServer extends EventEmitter {
         status: 'ok',
         sdp: peer.connection.localDescription,
         uuid: getLocalPeer().uuid,
+        coordinatorName: getLocalPeer().name,
       }
       this.peers[uuid] = peer;
     });
 
-    bonjour().publish({
-      name: 'soundsync',
-      port: httpServer.port,
-      type: 'soundsync'
-    });
+    publishService(httpServer.port);
 
     // httpServer.router.post('/ice_candidate', async (ctx) => {
     //   const { uuid, iceCandidates } = ctx.request.body;
@@ -78,28 +76,20 @@ export class WebrtcServer extends EventEmitter {
 
   async connectToCoordinatorHost(host: string) {
     let coordinatorHost = host;
-    if (!coordinatorHost) {
-      log('Looking for a coordinator with Bonjour...');
-      const service: any = await new Promise((resolve) => {
-        bonjour().findOne({
-          type: 'soundsync',
-        }, resolve);
-      });
-      coordinatorHost = `${service.addresses[0]}:${service.port}`;
-    }
 
     const name = getLocalPeer().name;
     const peer = new WebrtcPeer({
-      name,
+      name: '',
       webrtcServer: this,
       uuid: 'placeholderForCoordinatorUuid',
       coordinator: true,
+      host,
       connectHandler: async (peer: WebrtcPeer) => {
         const offer = await peer.connection.createOffer();
         await peer.connection.setLocalDescription(offer);
         await waitUntilIceGatheringStateComplete(peer.connection);
 
-        const {body: {sdp, uuid}} = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
+        const {body: {sdp, uuid, coordinatorName}} = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
           .send({
             name,
             uuid: getLocalPeer().uuid,
@@ -107,6 +97,7 @@ export class WebrtcServer extends EventEmitter {
           });
 
           peer.setUuid(uuid);
+          peer.name = coordinatorName;
           peer.log(`Got response from other peer http server`);
           await peer.connection.setRemoteDescription(sdp);
           await once(peer, 'connected');
@@ -137,6 +128,7 @@ export class WebrtcServer extends EventEmitter {
         uuid,
         webrtcServer: this,
         name: 'remote',
+        host: 'unknown',
         connectHandler: async (peer: WebrtcPeer) => {
           const offer = await peer.connection.createOffer();
           await peer.connection.setLocalDescription(offer);
@@ -168,3 +160,5 @@ export const getWebrtcServer = () => {
   }
   return webrtcServer;
 }
+
+export const isCoordinator = () => getWebrtcServer().coordinatorPeer === getLocalPeer();

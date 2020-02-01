@@ -22,6 +22,7 @@ interface ConfigData {
   sources: SourceDescriptor[];
   pipes: Pipe[];
   autoDetectAudioDevices: boolean;
+  coordinatorHost?: string;
 }
 
 const defaultConfig: ConfigData = {
@@ -31,6 +32,7 @@ const defaultConfig: ConfigData = {
   sources: [],
   pipes: [],
   autoDetectAudioDevices: true,
+  coordinatorHost: null,
 };
 
 const defaultPaths = envPaths('soundsync', {

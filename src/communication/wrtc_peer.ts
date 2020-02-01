@@ -17,8 +17,8 @@ export class WebrtcPeer extends Peer {
   private webrtcServer: WebrtcServer;
   connectHandler: (peer: WebrtcPeer) => Promise<void>;
 
-  constructor({uuid, name, connectHandler, coordinator = false, webrtcServer}) {
-    super({ uuid, name, coordinator });
+  constructor({uuid, name, connectHandler, coordinator = false, webrtcServer, host}) {
+    super({ uuid, name, coordinator, host });
     this.connectHandler = connectHandler;
     this.webrtcServer = webrtcServer;
     this.connection = new RTCPeerConnection();
