@@ -1,16 +1,19 @@
 {
   "name": "soundsync",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Plug virtual cables between any audio source and any speakers in your home",
+  "author": "Guillaume Besson <guillaume@besson.co>",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && cp src/package.json app/package.json",
     "build:watch": "tsc -w",
     "start:dev": "ts-node src/index.ts",
-    "start": "node dist/index.js",
-    "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api node dist/index.js"
+    "start": "electron app/index.js",
+    "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api electron dist/index.js",
+    "pack": "electron-builder --dir",
+    "pack:bin": "electron-builder -l AppImage",
+    "postinstall": "electron-builder install-app-deps"
   },
-  "author": "Guillaume Besson",
   "license": "UNLICENSED",
   "dependencies": {
     "@koa/cors": "^3.0.0",
@@ -19,7 +22,6 @@
     "cross-env": "^6.0.3",
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
-    "forked-systray": "https://github.com/geekuillaume/forked-systray.git",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
@@ -41,11 +43,24 @@
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.0.42",
     "@types/lodash": "^4.14.149",
-    "@types/node": "^13.1.0",
+    "@types/node": "^12.0.0",
     "@types/superagent": "^4.1.4",
     "@types/webrtc": "^0.0.25",
     "@types/yargs": "^13.0.4",
+    "electron": "^7.1.11",
+    "electron-builder": "^22.3.2",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
+  },
+  "build": {
+    "appId": "geekuillaume.soundsync",
+    "productName": "Soundsync",
+    "directories": {
+      "output": "bin"
+    },
+    "extraResources": [
+      "webui/dist",
+      "res/**/*"
+    ]
   }
 }

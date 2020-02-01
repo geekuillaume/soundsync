@@ -29,7 +29,7 @@ const main = async () => {
       type: 'string',
       description: 'Directory where the config and cache files can be found, if it doesn\'t exists it will be created',
     })
-    .completion().argv;
+    .completion().parse(process.argv.slice(1));
 
   assert(!argv.startCoordinator || !argv.coordinatorHost, 'Cannot be coordinator and connect to another coordinator at the same time, use only one option');
 
@@ -57,7 +57,7 @@ const main = async () => {
   if (getConfigField('autoDetectAudioDevices')) {
     audioSourcesSinksManager.autodetectDevices();
   }
-  // createSystray();
+  createSystray();
 }
 
 main().catch(e => {
