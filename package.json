@@ -7,9 +7,8 @@
   "scripts": {
     "build": "tsc -b && cp src/package.json app/package.json",
     "build:watch": "tsc -w",
-    "start:dev": "ts-node src/index.ts",
     "start": "electron app/index.js",
-    "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api electron dist/index.js",
+    "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api electron app/index.js",
     "pack": "electron-builder --dir",
     "pack:bin": "electron-builder -l AppImage",
     "postinstall": "electron-builder install-app-deps"

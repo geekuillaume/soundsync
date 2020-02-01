@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 export const createSystray = () => {
   app.on('ready', () => {
-    const tray = new Tray(resolve(__dirname, '../../res/speaker.png'));
+    const tray = new Tray(resolve(__dirname, '../../res/logo_only.png'));
     const contextMenu = Menu.buildFromTemplate([
       { label: 'Open controller', type: 'normal', click: () => {
         open('http://127.0.0.1:6512');
