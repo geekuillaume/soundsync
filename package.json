@@ -14,7 +14,7 @@
     "pack:bin": "electron-builder -l AppImage",
     "postinstall": "electron-builder install-app-deps"
   },
-  "license": "UNLICENSED",
+  "license": "BSL 1.1",
   "dependencies": {
     "@koa/cors": "^3.0.0",
     "audify": "1.5.1",
