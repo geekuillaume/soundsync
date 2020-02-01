@@ -14,9 +14,28 @@ Soundsync is a set of applications that connect every speaker in you home to a s
 
 ## Project status
 
-Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do.
+Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-[Insert toto.txt here]
+- Handle pipe deletion and sink / source stoping by reference counting of sinks being piped to
+- Handle reconnection
+  - With controller
+  - With another peer
+- Handle precise track synchronization
+  - Network latency
+  - Received time vs playing time
+  - Handle Unordered chunks (JitterBuffer / Circular Buffer)
+- Windows output loopback
+- Bluetooth on linux
+- Airplay: Shairport-sync
+- UPnP: gmrender-resurrect
+- Sink volume with hardware control
+- Group of sinks
+- Hide / Unhide sources and sinks in the webui
+- Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
+- Integration media info on webui
+- Synchronize sound with Philips Hue light bulbs
+- Create a ready to use RaspberryPi image
+- Investigate libsoundio as alternative to rtaudio for better Pulseaudio support
 
 ## FAQ
 
