@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import _ from 'lodash';
 import debug from 'debug';
-import {resolve} from 'path';
+import path from 'path';
 import Router from 'koa-router';
 import koaStatic from 'koa-static';
 
@@ -28,7 +28,7 @@ export class ApiController {
     this.httpServer.router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
     this.httpServer.router.put('/source/:sourceUuid', this.handleSourceUpdate);
     this.httpServer.router.put('/sink/:sinkUuid', this.handleSinkUpdate);
-    this.httpServer.app.use(koaStatic(resolve(__dirname, '../../webui/dist')))
+    this.httpServer.app.use(koaStatic(path.join(__dirname, '../../webui/dist')))
     log(`Regitered API`);
   }
 
