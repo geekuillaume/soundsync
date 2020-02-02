@@ -5,7 +5,7 @@
   "author": "Guillaume Besson <guillaume@besson.co>",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -b && cp src/package.json app/package.json",
+    "build": "tsc -b",
     "build:watch": "tsc -w",
     "start": "electron app/index.js",
     "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api electron app/index.js",
