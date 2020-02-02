@@ -42,19 +42,19 @@ jobs:
         if: "runner.os == 'Linux'"
         uses: actions/upload-artifact@v1
         with:
-          name: my-app-linux
+          name: soundsync-linux
           path: dist-linux
 
       - name: Upload Mac Artifacts
         if: "runner.os == 'macOS'"
         uses: actions/upload-artifact@v1
         with:
-          name: my-app-mac
+          name: soundsync-mac
           path: dist-mac
 
       - name: Upload Win Artifacts
         if: "runner.os == 'Windows'"
         uses: actions/upload-artifact@v1
         with:
-          name: my-app-win
+          name: soundsync-win
           path: dist-win
