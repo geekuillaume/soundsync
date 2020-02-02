@@ -20,7 +20,7 @@
     "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
     "open": "^7.0.0",
-    "speex-resampler": "1.0.5",
+    "speex-resampler": "1.0.7",
     "superagent": "^5.1.3",
     "supports-color": "^7.1.0",
     "uuid": "^3.3.3",
