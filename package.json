@@ -39,6 +39,9 @@
     "extraResources": [
       "webui/dist",
       "res/**/*"
-    ]
+    ],
+    "win": {
+      "asar": false
+    }
   }
 }
