@@ -12,6 +12,7 @@
       "paths": {
           "*": [
               "node_modules/*",
+              "../app/node_modules/*",
               "src/types/*"
           ]
       }
