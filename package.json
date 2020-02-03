@@ -8,7 +8,6 @@
     "build": "tsc -b",
     "build:watch": "tsc -w",
     "start": "electron app/index.js",
-    "start:debug": "cross-env DEBUG=soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api electron app/index.js",
     "pack": "electron-builder --dir",
     "pack:bin": "electron-builder -l AppImage",
     "postinstall": "electron-builder install-app-deps"
@@ -40,8 +39,6 @@
       "webui/dist",
       "res/**/*"
     ],
-    "win": {
-      "asar": false
-    }
+    "asarUnpack": ["**/*.node", "**/*.so*"]
   }
 }
