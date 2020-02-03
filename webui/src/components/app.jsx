@@ -5,7 +5,7 @@ import { SoundSyncProvider } from '../utils/useSoundSyncState';
 
 export const App = () => {
   return (
-    <Provider url="http://localhost:6512">
+    <Provider>
       <SoundSyncProvider>
         <section className="hero is-dark is-bold">
           <div className="hero-head">
