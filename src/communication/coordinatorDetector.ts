@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import bonjour from 'bonjour';
 import { destructuredPromise } from '../utils/promise';
+import { setConfig, getConfigField } from '../coordinator/config';
 
 const detectorEvents = new EventEmitter();
 let detector: bonjour.Browser;
@@ -28,10 +29,29 @@ export const onDetectionChange = (handler: (services: bonjour.Service[]) => any)
 
 export const getDetectedCoordinators = () => detector.services;
 
-
 let [waitForCoordinatorSelectionPromise, selectCoordinator] = destructuredPromise();
 export const waitForCoordinatorSelection = () => waitForCoordinatorSelectionPromise;
 
-export const actAsCoordinator = () => selectCoordinator({isCoordinator: true});
-export const actAsClientOfCoordinator = (coordinatorHost) => selectCoordinator({isCoordinator: false, coordinatorHost});
+export const getCoordinatorFromConfig = () => {
+  if (getConfigField('isCoordinator')) {
+    return {isCoordinator: true};
+  }
+  if (getConfigField('coordinatorHost')) {
+    return {isCoordinator: false, coordinatorHost: getConfigField('coordinatorHost')};
+  }
+  return undefined;
+}
+
+export const actAsCoordinator = () => {
+  setConfig((config) => config.isCoordinator = true);
+  selectCoordinator({isCoordinator: true});
+}
+
+export const actAsClientOfCoordinator = (coordinatorHost) => {
+  setConfig((config) => {
+    config.isCoordinator = false;
+    config.coordinatorHost = coordinatorHost;
+  });
+  selectCoordinator({isCoordinator: false, coordinatorHost});
+}
 

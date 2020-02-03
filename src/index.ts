@@ -1,16 +1,22 @@
 import yargs from 'yargs';
+import debug from 'debug';
 import { createHttpServer } from './communication/http_server';
-import { WebrtcServer, getWebrtcServer } from './communication/wrtc_server';
-import { assert } from './utils/assert';
+import { getWebrtcServer } from './communication/wrtc_server';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
-import { startDetection, waitForCoordinatorSelection } from './communication/coordinatorDetector';
+import { startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig } from './communication/coordinatorDetector';
+
+if (!process.env.DEBUG) {
+  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api');
+}
+const l = debug('soundsync');
 
 const main = async () => {
+  l('Starting soundsync');
   const argv = yargs
     .help('h')
     .option('configDir', {
@@ -30,8 +36,8 @@ const main = async () => {
 
   createSystray();
   startDetection();
-
-  const coordinatorChoice = await waitForCoordinatorSelection();
+  l('Getting coordinator info from config file or from Tray interaction');
+  const coordinatorChoice = await getCoordinatorFromConfig() || await waitForCoordinatorSelection();
   refreshMenu();
 
   if (coordinatorChoice.isCoordinator) {

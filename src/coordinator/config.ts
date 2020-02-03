@@ -23,6 +23,7 @@ interface ConfigData {
   pipes: Pipe[];
   autoDetectAudioDevices: boolean;
   coordinatorHost?: string;
+  isCoordinator?: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -33,6 +34,7 @@ const defaultConfig: ConfigData = {
   pipes: [],
   autoDetectAudioDevices: true,
   coordinatorHost: null,
+  isCoordinator: false,
 };
 
 const defaultPaths = envPaths('soundsync', {
