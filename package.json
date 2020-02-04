@@ -24,7 +24,7 @@
     "@types/superagent": "^4.1.4",
     "@types/webrtc": "^0.0.25",
     "@types/yargs": "^13.0.4",
-    "electron": "^7.1.11",
+    "electron": "8",
     "electron-builder": "^22.3.2",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
@@ -39,6 +39,9 @@
       "webui/dist",
       "res/**/*"
     ],
-    "asarUnpack": ["**/*.node", "**/*.so*"]
+    "asarUnpack": [
+      "**/*.node",
+      "**/*.so*"
+    ]
   }
 }
