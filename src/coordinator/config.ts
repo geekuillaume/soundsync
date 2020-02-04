@@ -7,6 +7,7 @@ import mkdirp from 'mkdirp';
 import uuidv4 from 'uuid/v4';
 import debug from 'debug';
 import _ from 'lodash';
+import produce from 'immer';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
 import { Pipe, PipeDescriptor } from './pipe';
@@ -76,9 +77,12 @@ export const initConfig = (dirOverride) => {
 export const getConfig = () => config.configData;
 
 export const setConfig = (setter: (config: ConfigData) => any) => {
-  setter(config.configData);
-  // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
-  writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
+  const newConfig = produce(config.configData, setter);
+  if (newConfig !== config.configData) {
+    config.configData = newConfig;
+    // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
+    writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
+  }
 }
 
 export const getConfigField = <T extends keyof ConfigData>(field: T) => {
