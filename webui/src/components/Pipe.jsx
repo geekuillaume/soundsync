@@ -7,7 +7,7 @@ export const Pipe = ({pipe}) => {
   const sinks = useSinks();
   const sink = find(sinks, {uuid: pipe.sinkUuid});
   const source = find(sources, {uuid: pipe.sourceUuid});
-  if (!sink) {
+  if (!sink || !source) {
     return false;
   }
   const sinkIndex = sinks.indexOf(sink);
