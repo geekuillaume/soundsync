@@ -11,7 +11,7 @@ import { createSystray, refreshMenu } from './utils/systray';
 import { startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig } from './communication/coordinatorDetector';
 
 if (!process.env.DEBUG) {
-  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api');
+  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState');
 }
 const l = debug('soundsync');
 
