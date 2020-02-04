@@ -19,7 +19,10 @@ export abstract class AudioSource {
   uuid: string;
   peerUuid: string;
   manager: AudioSourcesSinksManager;
-  encodedAudioStream: NodeJS.ReadableStream;
+  // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
+  // real source initialize, this simplify the code needed to handle the source being started twice at the same time
+  encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
+  private directSourceStream: NodeJS.ReadableStream; // internal stream from the source
   startedAt: number;
   latency = 500;
 
@@ -60,15 +63,18 @@ export abstract class AudioSource {
   async start(): Promise<PassThrough> {
     this.log(`Starting audio source`);
     if (!this.encodedAudioStream) {
-      this.encodedAudioStream = await this._getAudioEncodedStream();
+      this.encodedAudioStream = new PassThrough();
       if (this.local) {
-        this.startedAt = getCurrentSynchronizedTime();
-        this.manager.emit('sourceUpdate', this);
+        this.updateInfo({startedAt: getCurrentSynchronizedTime()});
       }
+      this.directSourceStream = await this._getAudioEncodedStream();
+      this.directSourceStream.pipe(this.encodedAudioStream);
     }
+    // we use a PassThrough here instead of sending this.encodedAudioStream to simplify the detection of a stream close event
     const sourceStream = new PassThrough();
     // TODO count stream references to close encodedStream if no usage
-    return this.encodedAudioStream.pipe(sourceStream);
+    this.encodedAudioStream.pipe(sourceStream);
+    return sourceStream;
   }
 
   toObject = () => ({
