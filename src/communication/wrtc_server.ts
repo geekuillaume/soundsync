@@ -144,13 +144,6 @@ export class WebrtcServer extends EventEmitter {
     }
     return this.peers[uuid];
   }
-
-  unregisterPeer = (peer: WebrtcPeer) => {
-    delete this.peers[peer.uuid];
-    if (this.coordinatorPeer === peer) {
-      this.coordinatorPeer = undefined;
-    }
-  }
 }
 
 let webrtcServer: WebrtcServer;

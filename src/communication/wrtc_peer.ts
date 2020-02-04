@@ -72,8 +72,6 @@ export class WebrtcPeer extends Peer {
     // TODO: this makes nodejs segfault, should investigate why
     // this.connection.close();
 
-    this.webrtcServer.unregisterPeer(this);
-
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout)
       this.missingPeerResponseTimeout = null;
