@@ -33,6 +33,7 @@ export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer
     } else {
       l(`Unknown Http server error`, e);
     }
+    process.exit(1);
   })
   server.listen(port);
 
