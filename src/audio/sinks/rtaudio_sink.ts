@@ -1,10 +1,11 @@
 // import Speaker from 'speaker';
+import {
+  RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
+} from 'audify';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_PER_SECONDS } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
-import { RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters } from 'audify';
-import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
@@ -23,19 +24,19 @@ export class RtAudioSink extends AudioSink {
 
   constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.rtaudio = new RtAudio();
     this.deviceName = descriptor.deviceName;
   }
 
   _startSink(source: AudioSource) {
-    const outputConfig:RtAudioStreamParameters = {nChannels: source.channels};
+    const outputConfig: RtAudioStreamParameters = { nChannels: source.channels };
     if (this.deviceName) {
-      outputConfig.deviceId = getAudioDevices().map(({name}) => name).indexOf(this.deviceName);
+      outputConfig.deviceId = getAudioDevices().map(({ name }) => name).indexOf(this.deviceName);
       if (outputConfig.deviceId === -1) {
         delete outputConfig.deviceId;
       }
     }
     this.log(`Creating speaker`);
+    this.rtaudio = new RtAudio();
     this.rtaudio.openStream(
       outputConfig, // output stream
       null, // input stream
@@ -45,7 +46,7 @@ export class RtAudioSink extends AudioSink {
       `soundsync-${source.name}`, // name
       null, // input callback, not used
       null,
-      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY // stream flags
+      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
     );
     this.rtaudio.start();
     const latencyInterval = setInterval(() => {
@@ -55,15 +56,15 @@ export class RtAudioSink extends AudioSink {
       const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
       if (Math.abs(newLatency - this.latency) > 5) {
         // TODO: use network latency here too
-        this.updateInfo({latency: newLatency});
+        this.updateInfo({ latency: newLatency });
       }
-    }, 2000)
+    }, 2000);
     const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
     this.cleanStream = () => {
       clearInterval(writeInterval);
       clearInterval(latencyInterval);
       this.rtaudio.closeStream();
-    }
+    };
   }
 
   _stopSink() {
@@ -77,21 +78,19 @@ export class RtAudioSink extends AudioSink {
     const chunk = this.getAudioChunkAtDelayFromNow();
     if (chunk) {
       if (!this.wroteLastTick) {
-        console.log('WROTE PADDER', (1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2)
         const audioPadder = Buffer.alloc((1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2);
-        this.rtaudio.write(audioPadder)
+        this.rtaudio.write(audioPadder);
       }
       this.rtaudio.write(chunk);
       this.wroteLastTick = true;
     }
   }
 
-  toDescriptor: (() => RtAudioSinkDescriptor)  = () => ({
+  toDescriptor: (() => RtAudioSinkDescriptor) = () => ({
     type: 'rtaudio',
     name: this.name,
     uuid: this.uuid,
     deviceName: this.deviceName,
     peerUuid: this.peerUuid,
   })
-
 }

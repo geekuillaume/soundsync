@@ -1,18 +1,16 @@
 import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
+import { PassThrough } from 'stream';
 import { SourceDescriptor, SourceType, BaseSourceDescriptor } from './source_type';
-import { Peer } from '../../communication/peer';
-import { getLocalPeer } from '../../communication/local_peer';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { PassThrough } from 'stream';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
   name: string;
   type: SourceType;
-  rate: number = 0;
+  rate = 0;
   channels: number;
   log: debug.Debugger;
   local: boolean;
@@ -49,7 +47,7 @@ export abstract class AudioSource {
   // Update source info in response to a controllerMessage
   updateInfo(descriptor: Partial<SourceDescriptor>) {
     let hasChanged = false;
-    Object.keys(descriptor).forEach(prop => {
+    Object.keys(descriptor).forEach((prop) => {
       if (descriptor[prop] && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
@@ -65,7 +63,7 @@ export abstract class AudioSource {
     if (!this.encodedAudioStream) {
       this.encodedAudioStream = new PassThrough();
       if (this.local) {
-        this.updateInfo({startedAt: getCurrentSynchronizedTime()});
+        this.updateInfo({ startedAt: getCurrentSynchronizedTime() });
       }
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.pipe(this.encodedAudioStream);

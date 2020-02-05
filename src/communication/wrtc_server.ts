@@ -6,7 +6,7 @@ import debug from 'debug';
 import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
-import { ControllerMessage, SourceInfoMessage } from './messages';
+import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { publishService } from './coordinatorDetector';
@@ -26,8 +26,8 @@ export class WebrtcServer extends EventEmitter {
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
     this.coordinatorPeer = getLocalPeer();
     this.coordinatorPeer.coordinator = true;
-    this.coordinatorPeer.on('controllerMessage:all', ({message}: {message: ControllerMessage}) => {
-      this.emit(`peerControllerMessage:${message.type}`, {peer: getLocalPeer(), message});
+    this.coordinatorPeer.on('controllerMessage:all', ({ message }: {message: ControllerMessage}) => {
+      this.emit(`peerControllerMessage:${message.type}`, { peer: getLocalPeer(), message });
     });
 
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
@@ -38,13 +38,13 @@ export class WebrtcServer extends EventEmitter {
         uuid,
         name,
         host: ctx.request.ip,
-        connectHandler: async (peer: WebrtcPeer) => {
+        connectHandler: async () => {
           // Todo: handle reconnection here
-        }
+        },
       });
 
       await peer.connection.setRemoteDescription(sdp);
-      const answer = await peer.connection.createAnswer()
+      const answer = await peer.connection.createAnswer();
 
       peer.connection.setLocalDescription(answer);
       peer.log(`Responding with offer`);
@@ -53,7 +53,7 @@ export class WebrtcServer extends EventEmitter {
         sdp: peer.connection.localDescription,
         uuid: getLocalPeer().uuid,
         coordinatorName: getLocalPeer().name,
-      }
+      };
       this.peers[uuid] = peer;
     });
 
@@ -75,33 +75,33 @@ export class WebrtcServer extends EventEmitter {
   }
 
   async connectToCoordinatorHost(host: string) {
-    let coordinatorHost = host;
+    const coordinatorHost = host;
 
-    const name = getLocalPeer().name;
+    const { name } = getLocalPeer();
     const peer = new WebrtcPeer({
       name: '',
       webrtcServer: this,
       uuid: 'placeholderForCoordinatorUuid',
       coordinator: true,
       host,
-      connectHandler: async (peer: WebrtcPeer) => {
-        const offer = await peer.connection.createOffer();
-        await peer.connection.setLocalDescription(offer);
-        await waitUntilIceGatheringStateComplete(peer.connection);
+      connectHandler: async (p: WebrtcPeer) => {
+        const offer = await p.connection.createOffer();
+        await p.connection.setLocalDescription(offer);
+        await waitUntilIceGatheringStateComplete(p.connection);
 
-        const {body: {sdp, uuid, coordinatorName}} = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
+        const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
           .send({
             name,
             uuid: getLocalPeer().uuid,
-            sdp: peer.connection.localDescription,
+            sdp: p.connection.localDescription,
           });
 
-          peer.setUuid(uuid);
-          peer.name = coordinatorName;
-          peer.log(`Got response from other peer http server`);
-          await peer.connection.setRemoteDescription(sdp);
-          await once(peer, 'connected');
-        }
+        p.setUuid(uuid);
+        p.name = coordinatorName;
+        p.log(`Got response from other peer http server`);
+        await p.connection.setRemoteDescription(sdp);
+        await once(p, 'connected');
+      },
     });
 
     this.coordinatorPeer = peer;
@@ -112,10 +112,10 @@ export class WebrtcServer extends EventEmitter {
   async broadcast(message: ControllerMessage, ignorePeerByUuid: string[] = []) {
     const sendToPeer = (peer) => {
       if (ignorePeerByUuid.includes(peer.uuid)) {
-        return;
+        return Promise.resolve(false);
       }
       return peer.sendControllerMessage(message);
-    }
+    };
     await Promise.all([
       ..._.map(this.peers, sendToPeer),
       sendToPeer(this.coordinatorPeer),
@@ -139,7 +139,7 @@ export class WebrtcServer extends EventEmitter {
             offer: peer.connection.localDescription,
           });
           await once(peer, 'connected');
-        }
+        },
       });
     }
     return this.peers[uuid];
@@ -152,6 +152,6 @@ export const getWebrtcServer = () => {
     webrtcServer = new WebrtcServer();
   }
   return webrtcServer;
-}
+};
 
 export const isCoordinator = () => getWebrtcServer().coordinatorPeer === getLocalPeer();

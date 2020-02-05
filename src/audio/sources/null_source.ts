@@ -1,12 +1,12 @@
+import { Readable } from 'stream';
 import { AudioSource } from './audio_source';
 import { createAudioEncodedStream } from '../opus_streams';
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
-import { Readable } from 'stream';
 
 export class NullSource extends AudioSource {
   local = true;
 
-  async _getAudioEncodedStream() {
+  _getAudioEncodedStream() {
     const nullStream = new Readable({
       read() {
         while (true) {
@@ -15,8 +15,8 @@ export class NullSource extends AudioSource {
             return;
           }
         }
-      }
-    })
+      },
+    });
     const stream = createAudioEncodedStream(nullStream, OPUS_ENCODER_RATE, 2);
     return stream;
   }

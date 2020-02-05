@@ -34,7 +34,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
       if (sink.local) {
         updateConfigArrayItem('sinks', sink.toDescriptor());
       }
-    }
+    };
     this.on('sourceUpdate', updateConfigForSource);
     this.on('newLocalSource', updateConfigForSource);
 
@@ -56,8 +56,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
     });
   }
 
-  getSourceByUuid = (uuid: string) => _.find(this.sources, {uuid: uuid});
-  getSinkByUuid = (uuid: string) => _.find(this.sinks, {uuid: uuid});
+  getSourceByUuid = (uuid: string) => _.find(this.sources, { uuid });
+  getSinkByUuid = (uuid: string) => _.find(this.sinks, { uuid });
 
   addSource(sourceDescriptor: SourceDescriptor) {
     if (sourceDescriptor.uuid && this.getSourceByUuid(sourceDescriptor.uuid)) {
@@ -70,15 +70,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
     let source;
     if (!isLocal) {
       source = new RemoteSource(sourceDescriptor, this);
+    } else if (sourceDescriptor.type === 'librespot') {
+      source = new LibrespotSource(sourceDescriptor, this);
+    } else if (sourceDescriptor.type === 'null') {
+      source = new NullSource(sourceDescriptor, this);
     } else {
-      if (sourceDescriptor.type === 'librespot') {
-        source = new LibrespotSource(sourceDescriptor, this);
-      } else if (sourceDescriptor.type === 'null') {
-        source = new NullSource(sourceDescriptor, this);
-      } else {
-        // @ts-ignore
-        throw new Error(`Unknown source type ${sourceDescriptor.type}`);
-      }
+      // @ts-ignore
+      throw new Error(`Unknown source type ${sourceDescriptor.type}`);
     }
 
     this.sources.push(source);
@@ -88,14 +86,14 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   removeSource(uuid: string) {
-    const source = _.find(this.sources, {uuid});
+    const source = _.find(this.sources, { uuid });
     if (!source) {
       log(`Tried to remove unknown source ${uuid}, ignoring`);
       return;
     }
     // TODO: stop source
     log(`Removing source ${source.name} (type: ${source.type} uuid: ${uuid})`);
-    this.sources = _.filter(this.sources, (source) => source.uuid !== uuid);
+    this.sources = _.filter(this.sources, (s) => s.uuid !== uuid);
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
@@ -119,15 +117,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
     const isLocal = !sinkDescriptor.peerUuid || sinkDescriptor.peerUuid === getLocalPeer().uuid;
     if (!isLocal) {
       sink = new RemoteSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'rtaudio') {
+      sink = new RtAudioSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'null') {
+      sink = new NullSink(sinkDescriptor, this);
     } else {
-      if (sinkDescriptor.type === 'rtaudio') {
-        sink = new RtAudioSink(sinkDescriptor, this);
-      } else if (sinkDescriptor.type === 'null') {
-        sink = new NullSink(sinkDescriptor, this);
-      } else {
-        // @ts-ignore
-        throw new Error(`Unknown sink type ${sinkDescriptor.type}`);
-      }
+      // @ts-ignore
+      throw new Error(`Unknown sink type ${sinkDescriptor.type}`);
     }
 
     this.sinks.push(sink);
@@ -137,14 +133,14 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 
   removeSink(uuid: string) {
-    const sink = _.find(this.sinks, {uuid});
+    const sink = _.find(this.sinks, { uuid });
     if (!sink) {
       log(`Tried to remove unknown sink ${uuid}, ignoring`);
       return;
     }
     // TODO: stop sink
     log(`Removing sink ${sink.name} (type: ${sink.type} uuid: ${uuid})`);
-    this.sinks = _.filter(this.sinks, (sink) => sink.uuid !== uuid);
+    this.sinks = _.filter(this.sinks, (s) => s.uuid !== uuid);
   }
 
   addFromConfig() {
@@ -159,5 +155,5 @@ export class AudioSourcesSinksManager extends EventEmitter {
   }
 }
 
-let audioSourcesSinksManager = new AudioSourcesSinksManager();
+const audioSourcesSinksManager = new AudioSourcesSinksManager();
 export const getAudioSourcesSinksManager = () => audioSourcesSinksManager;

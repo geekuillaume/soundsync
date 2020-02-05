@@ -1,7 +1,10 @@
-import { readFileSync, existsSync, writeFileSync, writeFile } from 'fs';
+/* eslint-disable no-console */
+import {
+  readFileSync, existsSync, writeFileSync, writeFile,
+} from 'fs';
 import { resolve } from 'path';
 import { hostname } from 'os';
-import {promisify} from 'util';
+import { promisify } from 'util';
 import envPaths from 'env-paths';
 import mkdirp from 'mkdirp';
 import uuidv4 from 'uuid/v4';
@@ -48,7 +51,7 @@ let config: {
 };
 
 export const initConfig = (dirOverride) => {
-  const configDir = dirOverride ? dirOverride : defaultPaths.config;
+  const configDir = dirOverride || defaultPaths.config;
   try {
     mkdirp.sync(configDir);
   } catch (e) {
@@ -61,7 +64,7 @@ export const initConfig = (dirOverride) => {
     writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
   }
   try {
-    let configData = JSON.parse(readFileSync(configFilePath).toString() || '{}');
+    const configData = JSON.parse(readFileSync(configFilePath).toString() || '{}');
     config = {
       configDir,
       configFilePath,
@@ -72,7 +75,7 @@ export const initConfig = (dirOverride) => {
     console.error(e);
     process.exit(1);
   }
-}
+};
 
 export const getConfig = () => config.configData;
 
@@ -83,7 +86,7 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
     // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
     writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
   }
-}
+};
 
 export const getConfigField = <T extends keyof ConfigData>(field: T) => {
   if (config.configData[field] === undefined) {
@@ -92,35 +95,35 @@ export const getConfigField = <T extends keyof ConfigData>(field: T) => {
     });
   }
   return config.configData[field];
-}
+};
 
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
 export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
 export function updateConfigArrayItem(field: 'pipes', item: PipeDescriptor): void;
 export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item) {
-  setConfig((config) => {
+  setConfig((c) => {
     let existingItem;
     if (field === 'pipes') {
-      existingItem = _.find(getConfigField(field), {sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid});
+      existingItem = _.find(getConfigField(field), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
     } else {
       existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
     }
     if (existingItem) {
       _.assign(existingItem, item);
     } else {
-      getConfigField(field).push(item);
+      c[field] = [...getConfigField(field), item];
     }
   });
 }
 
 export function deleteConfigArrayItem(field, item) {
-  setConfig((config) => {
+  setConfig((c) => {
     let existingItem;
     if (field === 'pipes') {
-      existingItem = _.find(getConfigField(field), {sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid});
+      existingItem = _.find(getConfigField(field), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
     } else {
       existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
     }
-    config[field] = getConfigField(field).filter((i) => i !== existingItem);
+    c[field] = getConfigField(field).filter((i) => i !== existingItem);
   });
 }

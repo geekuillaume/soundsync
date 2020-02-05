@@ -1,10 +1,10 @@
-import { AudioSource } from './audio_source';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { hostname } from 'os';
+import { createReadStream } from 'fs';
+import { AudioSource } from './audio_source';
 import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
-import { createReadStream } from 'fs';
 
 export class LibrespotSource extends AudioSource {
   local = true;
@@ -30,15 +30,15 @@ export class LibrespotSource extends AudioSource {
       ...(this.options.username ? [
         '-u', this.options.username,
         '-p', this.options.password,
-      ] : [])
+      ] : []),
     ]);
     // this.librespotProcess.stderr.on('data', (d) => console.log(d.toString()))
-    // this.testPcm = createReadStream('./test.pcm');
+    this.testPcm = createReadStream('./test.pcm');
   }
 
-  async _getAudioEncodedStream() {
-    // return createAudioEncodedStream(this.testPcm, this.rate, this.channels)
-    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
+  _getAudioEncodedStream() {
+    return createAudioEncodedStream(this.testPcm, this.rate, this.channels);
+    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
   }
 
   toDescriptor: (() => LibresportSourceDescriptor) = () => ({

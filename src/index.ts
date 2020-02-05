@@ -45,18 +45,21 @@ const main = async () => {
     webrtcServer.attachToSignalingServer(httpServer);
 
     const hostCoordinator = new HostCoordinator(webrtcServer, audioSourcesSinksManager);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const apiController = new ApiController(
       httpServer,
       hostCoordinator,
-    )
+    );
   } else {
     await webrtcServer.connectToCoordinatorHost(coordinatorChoice.coordinatorHost);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager, !!argv.startCoordinator);
   refreshMenu();
-}
+};
 
-main().catch(e => {
+main().catch((e) => {
+  // eslint-disable-next-line no-console
   console.error(e);
   process.exit(1);
-})
+});

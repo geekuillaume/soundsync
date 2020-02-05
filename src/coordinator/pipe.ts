@@ -11,7 +11,7 @@ export interface PipeDescriptor {
 export class Pipe {
   sourceUuid: string;
   sinkUuid: string;
-  active: boolean = false;
+  active = false;
 
   constructor(sourceUuid: string, sinkUuid: string) {
     this.sourceUuid = sourceUuid;
@@ -40,11 +40,11 @@ export class Pipe {
   }
 
   get source(): AudioSource {
-    return _.find(getAudioSourcesSinksManager().sources, {uuid: this.sourceUuid})
+    return _.find(getAudioSourcesSinksManager().sources, { uuid: this.sourceUuid });
   }
 
   get sink(): AudioSink {
-    return _.find(getAudioSourcesSinksManager().sinks, {uuid: this.sinkUuid});
+    return _.find(getAudioSourcesSinksManager().sinks, { uuid: this.sinkUuid });
   }
 
   get activable() {
@@ -55,6 +55,6 @@ export class Pipe {
     return {
       sourceUuid: this.sourceUuid,
       sinkUuid: this.sinkUuid,
-    }
+    };
   }
 }

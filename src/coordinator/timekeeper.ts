@@ -1,4 +1,4 @@
-import {performance} from 'perf_hooks';
+import { performance } from 'perf_hooks';
 import debug from 'debug';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { WebrtcPeer } from '../communication/wrtc_peer';
@@ -10,14 +10,12 @@ const log = debug(`soundsync:timekeeper`);
 let deltaWithCoordinator = 0;
 let networkLatency = 0;
 
-export const getCurrentSynchronizedTime = () => {
-  return performance.now() + deltaWithCoordinator;
-}
+export const getCurrentSynchronizedTime = () => performance.now() + deltaWithCoordinator;
 
 export const getNetworkLatency = () => networkLatency;
 
 export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
-  server.on('peerControllerMessage:timekeepRequest', ({peer, message}: {peer: WebrtcPeer, message: TimekeepRequest}) => {
+  server.on('peerControllerMessage:timekeepRequest', ({ peer, message }: {peer: WebrtcPeer; message: TimekeepRequest}) => {
     log(`Received request from ${peer.uuid}`);
     peer.sendControllerMessage({
       type: 'timekeepResponse',
@@ -25,10 +23,10 @@ export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
       respondedAt: performance.now(),
     });
   });
-}
+};
 
 export const attachTimekeeperClient = (server: WebrtcServer) => {
-  server.coordinatorPeer.on('controllerMessage:timekeepResponse', ({message}: {message: TimekeepResponse}) => {
+  server.coordinatorPeer.on('controllerMessage:timekeepResponse', ({ message }: {message: TimekeepResponse}) => {
     const receivedAt = performance.now();
     const roundtripTime = receivedAt - message.sentAt;
     const receivedByCoordinatorAt = message.sentAt + (roundtripTime / 2);
@@ -38,6 +36,7 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
     log(`Received response from coordinator, setting delta to ${delta}`);
   });
 
+  let intervalId;
   const sendTimekeepRequest = () => {
     log(`Sending request to coordinator`);
     if (!server.coordinatorPeer) {
@@ -50,6 +49,6 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
     });
   };
 
-  const intervalId = setInterval(sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
+  intervalId = setInterval(sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
   sendTimekeepRequest();
-}
+};

@@ -7,8 +7,6 @@ export const getRtAudio = () => {
     rtAudio = new RtAudio();
   }
   return rtAudio;
-}
+};
 
-export const getAudioDevices = () => {
-  return getRtAudio().getDevices();
-}
+export const getAudioDevices = () => getRtAudio().getDevices();

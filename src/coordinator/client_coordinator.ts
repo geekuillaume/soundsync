@@ -14,7 +14,7 @@ import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { attachTimekeeperClient } from './timekeeper';
 import { getLocalPeer } from '../communication/local_peer';
-import { Pipe } from '../coordinator/pipe';
+import { Pipe } from './pipe';
 
 export class ClientCoordinator {
   webrtcServer: WebrtcServer;
@@ -34,7 +34,7 @@ export class ClientCoordinator {
       .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
       .onControllerMessage('soundState', this.handleSoundStateUpdate)
       .onControllerMessage('sinkInfo', this.handleSinkUpdate)
-      .onControllerMessage('sourceInfo', this.handleSourceUpdate)
+      .onControllerMessage('sourceInfo', this.handleSourceUpdate);
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
       // this.webrtcServer.coordinatorPeer.sendControllerMessage({
@@ -108,7 +108,7 @@ export class ClientCoordinator {
       if (!sink || !sink.local) {
         return;
       }
-      const existingPipe = _.find(this.pipes, {sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid});
+      const existingPipe = _.find(this.pipes, { sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid });
       if (existingPipe) {
         existingPipe.activate();
         return;
@@ -119,7 +119,7 @@ export class ClientCoordinator {
     });
 
     this.pipes.forEach((pipe) => {
-      if (!_.some(message.pipes, {sourceUuid: pipe.sourceUuid, sinkUuid: pipe.sinkUuid})) {
+      if (!_.some(message.pipes, { sourceUuid: pipe.sourceUuid, sinkUuid: pipe.sinkUuid })) {
         pipe.close();
       }
     });
@@ -133,7 +133,7 @@ export class ClientCoordinator {
     if (message.offer) {
       // @ts-ignore
       await peer.connection.setRemoteDescription(message.offer);
-      const answer = await peer.connection.createAnswer()
+      const answer = await peer.connection.createAnswer();
       peer.connection.setLocalDescription(answer);
 
       this.webrtcServer.coordinatorPeer.sendControllerMessage({
@@ -150,8 +150,8 @@ export class ClientCoordinator {
     // }
   }
 
-  private handleNewSourceChannel = async ({sourceUuid, stream}: {sourceUuid: string, stream: NodeJS.WritableStream}) => {
-    const source = _.find(this.audioSourcesSinksManager.sources, {uuid: sourceUuid});
+  private handleNewSourceChannel = async ({ sourceUuid, stream }: {sourceUuid: string; stream: NodeJS.WritableStream}) => {
+    const source = _.find(this.audioSourcesSinksManager.sources, { uuid: sourceUuid });
     if (!source) {
       this.log(`Trying to request channel to unknown source (uuid ${sourceUuid})`);
       return;

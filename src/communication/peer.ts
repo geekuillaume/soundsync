@@ -9,7 +9,7 @@ import {
   TimekeepRequest,
   TimekeepResponse,
   SoundStateMessage,
-} from '../communication/messages';
+} from './messages';
 
 export abstract class Peer extends EventEmitter {
   uuid: string;
@@ -18,7 +18,9 @@ export abstract class Peer extends EventEmitter {
   coordinator: boolean;
   state: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
 
-  constructor({ uuid, name, coordinator = false, host }) {
+  constructor({
+    uuid, name, coordinator = false, host,
+  }) {
     super();
     this.setMaxListeners(1000);
     this.name = name;
@@ -36,7 +38,7 @@ export abstract class Peer extends EventEmitter {
   onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;
   onControllerMessage(type: SoundStateMessage['type'], handler: (message: SoundStateMessage, peer: Peer) => any): this;
   onControllerMessage(type, handler) {
-    return this.on(`controllerMessage:${type}`, ({message, peer}) => handler(message, peer));
+    return this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer));
   }
 
   setUuid = (uuid: string) => {

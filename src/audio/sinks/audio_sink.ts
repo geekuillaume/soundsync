@@ -1,15 +1,13 @@
 import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
-import { OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPLES_PER_SECONDS, OPUS_ENCODER_SAMPLES_DURATION } from '../../utils/constants';
+import { PassThrough } from 'stream';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPLES_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import { SinkDescriptor, SinkType, BaseSinkDescriptor } from './sink_type';
-import { Peer } from '../../communication/peer';
-import { getLocalPeer } from '../../communication/local_peer';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
-import { PassThrough } from 'stream';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
@@ -24,11 +22,11 @@ export abstract class AudioSink {
   local: boolean;
   uuid: string;
   sourceStream: PassThrough;
-  decodedStream: NodeJS.ReadableStream;
+  decodedStream: ReturnType<typeof createAudioDecodedStream>;
   peerUuid: string;
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
-  latency: number = 50;
+  latency = 50;
   pipedSource?: AudioSource;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
@@ -52,7 +50,7 @@ export abstract class AudioSink {
 
   updateInfo(descriptor: Partial<SinkDescriptor>) {
     let hasChanged = false;
-    Object.keys(descriptor).forEach(prop => {
+    Object.keys(descriptor).forEach((prop) => {
       if (descriptor[prop] && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
@@ -73,7 +71,12 @@ export abstract class AudioSink {
     this.buffer = {};
     this.sourceStream = await this.pipedSource.start();
     this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
-    await this._startSink(this.pipedSource);
+    try {
+      await this._startSink(this.pipedSource);
+    } catch (e) {
+      this.decodedStream.end();
+      this.log(`Error while starting sink`, e);
+    }
     this.decodedStream.on('data', this.handleAudioChunk);
   }
 
@@ -101,7 +104,7 @@ export abstract class AudioSink {
     }
     const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + this.latency;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_SAMPLES_DURATION);
-    const chunk = this.buffer[correspondingChunkIndex]
+    const chunk = this.buffer[correspondingChunkIndex];
     this.buffer[correspondingChunkIndex] = undefined;
     if (!chunk) {
       return null;

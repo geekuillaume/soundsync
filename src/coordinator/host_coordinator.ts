@@ -7,8 +7,7 @@ import { WebrtcPeer } from '../communication/wrtc_peer';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
-import { FORCED_STREAM_LATENCY } from '../utils/constants';
-import { Pipe, PipeDescriptor } from './pipe';
+import { PipeDescriptor } from './pipe';
 import { updateConfigArrayItem, deleteConfigArrayItem, getConfigField } from './config';
 import { SourceDescriptor, BaseSourceDescriptor } from '../audio/sources/source_type';
 import { SinkDescriptor, BaseSinkDescriptor } from '../audio/sinks/sink_type';
@@ -19,8 +18,8 @@ export class HostCoordinator {
   log: debug.Debugger;
 
   pipes: PipeDescriptor[] = getConfigField('pipes');
-  sources: {[key: string] : SourceDescriptor} = {};
-  sinks: {[key: string] : SinkDescriptor} = {};
+  sources: {[key: string]: SourceDescriptor} = {};
+  sinks: {[key: string]: SinkDescriptor} = {};
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
@@ -28,16 +27,16 @@ export class HostCoordinator {
     this.log = debug(`soundsync:hostCoordinator`);
     this.log(`Created host coordinator`);
 
-    this.webrtcServer.on(`peerControllerMessage:sourceInfo`, ({peer, message}: {peer: WebrtcPeer, message: SourceInfoMessage}) => {
+    this.webrtcServer.on(`peerControllerMessage:sourceInfo`, ({ peer, message }: {peer: WebrtcPeer; message: SourceInfoMessage}) => {
       this.handleSourceInfo(peer, message);
     });
-    this.webrtcServer.on(`peerControllerMessage:sinkInfo`, ({peer, message}: {peer: WebrtcPeer, message: SinkInfoMessage}) => {
+    this.webrtcServer.on(`peerControllerMessage:sinkInfo`, ({ peer, message }: {peer: WebrtcPeer; message: SinkInfoMessage}) => {
       this.handleSinkInfo(peer, message);
     });
-    this.webrtcServer.on(`peerControllerMessage:requestSoundState`, ({peer}: {peer: WebrtcPeer}) => {
+    this.webrtcServer.on(`peerControllerMessage:requestSoundState`, ({ peer }: {peer: WebrtcPeer}) => {
       this.handleRequestSourceList(peer);
     });
-    this.webrtcServer.on(`peerControllerMessage:peerConnectionInfo`, ({peer, message}: {peer: WebrtcPeer, message: PeerConnectionInfoMessage}) => {
+    this.webrtcServer.on(`peerControllerMessage:peerConnectionInfo`, ({ peer, message }: {peer: WebrtcPeer; message: PeerConnectionInfoMessage}) => {
       this.handlePeerConnectionInfo(peer, message);
     });
 
@@ -54,7 +53,7 @@ export class HostCoordinator {
   }
 
   private handleSourceInfo = async (peer: WebrtcPeer, message: SourceInfoMessage) => {
-    const descriptor:BaseSourceDescriptor = {
+    const descriptor: BaseSourceDescriptor = {
       uuid: message.uuid,
       type: message.sourceType,
       peerUuid: peer.uuid,
@@ -127,7 +126,7 @@ export class HostCoordinator {
     const pipe: PipeDescriptor = {
       sourceUuid: source.uuid,
       sinkUuid: sink.uuid,
-    }
+    };
     updateConfigArrayItem('pipes', pipe);
     this.pipes = getConfigField('pipes');
 
@@ -139,7 +138,7 @@ export class HostCoordinator {
     if (!pipe) {
       return;
     }
-    this.pipes = this.pipes.filter((p) => pipe !== p)
+    this.pipes = this.pipes.filter((p) => pipe !== p);
     deleteConfigArrayItem('pipes', pipe);
     this.broadcastState();
   }

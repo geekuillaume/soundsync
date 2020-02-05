@@ -15,7 +15,7 @@ export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
     bitrate?: 96 | 16 | 320;
     username?: string;
     password?: string;
-  }
+  };
 }
 
 export interface NullSourceDescriptor extends BaseSourceDescriptor {

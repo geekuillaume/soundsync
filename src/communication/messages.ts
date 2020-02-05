@@ -5,7 +5,7 @@ import { PipeDescriptor } from '../coordinator/pipe';
 
 export interface BaseMessage {
   type;
-};
+}
 
 export interface LightMessage extends BaseMessage {
   type: 'ping' | 'pong' | 'requestSoundState';
@@ -58,8 +58,8 @@ export interface TimekeepResponse extends BaseMessage {
 
 export interface SoundStateMessage extends BaseMessage {
   type: 'soundState';
-  sources: {[key: string] : SourceDescriptor};
-  sinks: {[key: string] : SinkDescriptor};
+  sources: {[key: string]: SourceDescriptor};
+  sinks: {[key: string]: SinkDescriptor};
   pipes: PipeDescriptor[];
 }
 
@@ -72,4 +72,4 @@ export type ControllerMessage =
   TimekeepRequest | TimekeepResponse |
   SoundStateMessage;
 
-export type Handler<T extends BaseMessage> = ({message, peer} : {message: T, peer: WebrtcPeer}) => any;
+export type Handler<T extends BaseMessage> = ({ message, peer }: {message: T; peer: WebrtcPeer}) => any;

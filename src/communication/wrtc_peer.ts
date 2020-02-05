@@ -1,8 +1,9 @@
-import {performance} from 'perf_hooks';
-import {RTCPeerConnection} from 'wrtc';
+import { performance } from 'perf_hooks';
+import { RTCPeerConnection } from 'wrtc';
 import debug, { Debugger } from 'debug';
-import _ from 'lodash';
-import { CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS } from '../utils/constants';
+import {
+  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
+} from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { WebrtcServer } from './wrtc_server';
@@ -17,8 +18,12 @@ export class WebrtcPeer extends Peer {
   private webrtcServer: WebrtcServer;
   connectHandler: (peer: WebrtcPeer) => Promise<void>;
 
-  constructor({uuid, name, connectHandler, coordinator = false, webrtcServer, host}) {
-    super({ uuid, name, coordinator, host });
+  constructor({
+    uuid, name, connectHandler, coordinator = false, webrtcServer, host,
+  }) {
+    super({
+      uuid, name, coordinator, host,
+    });
     this.connectHandler = connectHandler;
     this.webrtcServer = webrtcServer;
     this.connection = new RTCPeerConnection();
@@ -50,11 +55,10 @@ export class WebrtcPeer extends Peer {
     this.controllerChannel.addEventListener('close', this.handleDisconnect);
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
-    })
+    });
 
     this.log = debug(`soundsync:wrtcPeer:${uuid}`);
     this.log(`Created new peer`);
-
   }
 
   setUuid = (uuid: string) => {
@@ -73,7 +77,7 @@ export class WebrtcPeer extends Peer {
     // this.connection.close();
 
     if (this.missingPeerResponseTimeout) {
-      clearTimeout(this.missingPeerResponseTimeout)
+      clearTimeout(this.missingPeerResponseTimeout);
       this.missingPeerResponseTimeout = null;
     }
     if (this.heartbeatInterval) {
@@ -88,15 +92,15 @@ export class WebrtcPeer extends Peer {
       return;
     }
     this.log.extend(message.type)('Received controller message', message);
-    this.emit(`controllerMessage:all`, {peer: this, message});
-    this.emit(`controllerMessage:${message.type}`, {peer: this, message});
-    this.webrtcServer.emit(`peerControllerMessage:${message.type}`, {peer: this, message});
+    this.emit(`controllerMessage:all`, { peer: this, message });
+    this.emit(`controllerMessage:${message.type}`, { peer: this, message });
+    this.webrtcServer.emit(`peerControllerMessage:${message.type}`, { peer: this, message });
   }
 
   sendControllerMessage(message: ControllerMessage) {
     if (this.controllerChannel.readyState !== 'open') {
       this.log('WARNING: Tried to send a controller message when channel was not open');
-      return;
+      return Promise.resolve(false);
     }
     if (message.type !== 'ping' && message.type !== 'pong') {
       this.log.extend(message.type)('Sending controller message', message);
@@ -109,11 +113,11 @@ export class WebrtcPeer extends Peer {
   private handleReceivedHeartbeat(receivedPing = false) {
     this.lastHeartbeatReceivedTime = performance.now();
     if (this.missingPeerResponseTimeout) {
-      clearTimeout(this.missingPeerResponseTimeout)
+      clearTimeout(this.missingPeerResponseTimeout);
       this.missingPeerResponseTimeout = null;
     }
     if (receivedPing) {
-      this.sendControllerMessage({type: 'pong'});
+      this.sendControllerMessage({ type: 'pong' });
     }
     this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
   }
@@ -125,7 +129,7 @@ export class WebrtcPeer extends Peer {
     if (!this.missingPeerResponseTimeout) {
       this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
     }
-    this.sendControllerMessage({type: 'ping'});
+    this.sendControllerMessage({ type: 'ping' });
   }
 
   connect = async () => {
@@ -149,7 +153,7 @@ export class WebrtcPeer extends Peer {
   }
 
   private handleRequestedAudioSourceChannel = async (e: RTCDataChannelEvent) => {
-    const channel = e.channel;
+    const { channel } = e;
     const sourceUuid = channel.label.match(/^audioSource:(.*)$/)[1];
     this.log(`Received request for source ${sourceUuid}`);
     this.datachannels.push(channel);
@@ -162,5 +166,3 @@ export class WebrtcPeer extends Peer {
     this.webrtcServer.emit('newSourceChannel', message);
   }
 }
-
-

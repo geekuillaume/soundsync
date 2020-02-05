@@ -10,7 +10,9 @@
     "start": "electron app/index.js",
     "pack": "electron-builder --dir",
     "pack:bin": "electron-builder -l AppImage",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint --ext .ts src",
+    "lint:fix": "eslint --fix --ext .ts src"
   },
   "license": "BSL 1.1",
   "devDependencies": {

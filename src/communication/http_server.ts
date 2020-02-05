@@ -13,7 +13,7 @@ export interface SoundSyncHttpServer {
   port: number;
 }
 
-export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer> => {
+export const createHttpServer = async (port: number): Promise<SoundSyncHttpServer> => {
   l(`Creating new http server`);
   const app = new Koa();
   const router = new Router();
@@ -34,12 +34,12 @@ export const createHttpServer = async (port: number):Promise<SoundSyncHttpServer
       l(`Unknown Http server error`, e);
     }
     process.exit(1);
-  })
+  });
   server.listen(port);
 
   return {
     app,
     router,
-    port
+    port,
   };
-}
+};

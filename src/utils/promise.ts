@@ -6,4 +6,4 @@ export const destructuredPromise = () => {
     reject = rej;
   });
   return [promise, resolve, reject];
-}
+};
