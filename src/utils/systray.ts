@@ -1,19 +1,10 @@
 // import open from 'open';
-import {
-  app,
-  Menu,
-  Tray,
-} from 'electron';
 import { resolve } from 'path';
 import AutoLaunch from 'auto-launch';
 import {
   getDetectedCoordinators, onDetectionChange, actAsCoordinator, actAsClientOfCoordinator,
 } from '../communication/coordinatorDetector';
 import { isCoordinator, getWebrtcServer } from '../communication/wrtc_server';
-
-const autoLauncher = new AutoLaunch({
-  name: 'Soundsync',
-});
 
 let updateMenu;
 
@@ -24,64 +15,73 @@ export const refreshMenu = async () => {
 };
 
 export const createSystray = () => {
-  app.on('ready', () => {
-    try {
-      const tray = new Tray(resolve(__dirname, '../../res/logo_only.png'));
+  try {
+    const autoLauncher = new AutoLaunch({
+      name: 'Soundsync',
+    });
 
-      const onAutostartClick = async () => {
-        if (await autoLauncher.isEnabled()) {
-          await autoLauncher.disable();
-        } else {
-          await autoLauncher.enable();
-        }
-        await refreshMenu();
-      };
+    // eslint-disable-next-line
+    const { app, Menu, Tray } = require('electron');
+    app.on('ready', () => {
+      try {
+        const tray = new Tray(resolve(__dirname, '../../res/logo_only.png'));
 
-      updateMenu = async () => {
-        const template: any = [
-          { type: 'separator' },
-          {
-            id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await autoLauncher.isEnabled(),
-          },
-          {
-            id: 'exit', label: 'Exit', type: 'normal', click: () => process.exit(0),
-          },
-        ];
+        const onAutostartClick = async () => {
+          if (await autoLauncher.isEnabled()) {
+            await autoLauncher.disable();
+          } else {
+            await autoLauncher.enable();
+          }
+          await refreshMenu();
+        };
 
-        if (isCoordinator()) {
-          template.unshift({ label: 'Started as coordinator', enabled: false });
-        } else if (!getWebrtcServer().coordinatorPeer) {
-          const detectedCoordinators = getDetectedCoordinators();
-          template.unshift(...(detectedCoordinators.length
-            ? detectedCoordinators.map((coordinator) => ({
-              label: `  ${coordinator.host}`,
-              type: 'normal',
-              // @ts-ignore
-              click: () => actAsClientOfCoordinator(`${coordinator.addresses[0]}:${coordinator.port}`),
-            }))
-            : [{ label: '  Scanning...', type: 'normal', enabled: false }]));
-          template.unshift({ label: 'Select a coordinator:', enabled: false });
-          template.unshift({ label: 'Start a new coordinator', click: actAsCoordinator });
-        } else {
-          template.unshift({
-            label: `Connected to ${getWebrtcServer().coordinatorPeer.name}`,
-            enabled: false,
-          });
-        }
+        updateMenu = async () => {
+          const template: any = [
+            { type: 'separator' },
+            {
+              id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await autoLauncher.isEnabled(),
+            },
+            {
+              id: 'exit', label: 'Exit', type: 'normal', click: () => process.exit(0),
+            },
+          ];
 
-        // @ts-ignore
-        const contextMenu = Menu.buildFromTemplate(template);
+          if (isCoordinator()) {
+            template.unshift({ label: 'Started as coordinator', enabled: false });
+          } else if (!getWebrtcServer().coordinatorPeer) {
+            const detectedCoordinators = getDetectedCoordinators();
+            template.unshift(...(detectedCoordinators.length
+              ? detectedCoordinators.map((coordinator) => ({
+                label: `  ${coordinator.host}`,
+                type: 'normal',
+                // @ts-ignore
+                click: () => actAsClientOfCoordinator(`${coordinator.addresses[0]}:${coordinator.port}`),
+              }))
+              : [{ label: '  Scanning...', type: 'normal', enabled: false }]));
+            template.unshift({ label: 'Select a coordinator:', enabled: false });
+            template.unshift({ label: 'Start a new coordinator', click: actAsCoordinator });
+          } else {
+            template.unshift({
+              label: `Connected to ${getWebrtcServer().coordinatorPeer.name}`,
+              enabled: false,
+            });
+          }
 
-        // { label: 'Open controller', type: 'normal', click: () => {
-        //   open('http://127.0.0.1:6512');
-        // } },
+          // @ts-ignore
+          const contextMenu = Menu.buildFromTemplate(template);
 
-        tray.setContextMenu(contextMenu);
-      };
+          // { label: 'Open controller', type: 'normal', click: () => {
+          //   open('http://127.0.0.1:6512');
+          // } },
+          tray.setContextMenu(contextMenu);
+        };
 
-      tray.setTitle('Soundsync');
-      onDetectionChange(refreshMenu);
-      refreshMenu();
-    } catch (e) {}
-  });
+        tray.setTitle('Soundsync');
+        onDetectionChange(refreshMenu);
+        refreshMenu();
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  } catch (e) {}
 };
