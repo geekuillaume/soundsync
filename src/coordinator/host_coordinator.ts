@@ -128,8 +128,9 @@ export class HostCoordinator {
       sourceUuid: source.uuid,
       sinkUuid: sink.uuid,
     }
-    this.pipes.push(pipe);
     updateConfigArrayItem('pipes', pipe);
+    this.pipes = getConfigField('pipes');
+
     this.broadcastState();
   }
 
