@@ -63,3 +63,13 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+
+process.on('uncaughtException', (e) => {
+  console.error(e);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (e) => {
+  console.error(e);
+  process.exit(1);
+});
