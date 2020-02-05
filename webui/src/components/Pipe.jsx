@@ -1,12 +1,12 @@
 import React from 'react';
-import {find} from 'lodash-es';
+import { find } from 'lodash-es';
 import { useSinks, useSources } from '../utils/useSoundSyncState';
 
-export const Pipe = ({pipe}) => {
+export const Pipe = ({ pipe }) => {
   const sources = useSources();
   const sinks = useSinks();
-  const sink = find(sinks, {uuid: pipe.sinkUuid});
-  const source = find(sources, {uuid: pipe.sourceUuid});
+  const sink = find(sinks, { uuid: pipe.sinkUuid });
+  const source = find(sources, { uuid: pipe.sourceUuid });
   if (!sink || !source) {
     return false;
   }
@@ -34,5 +34,4 @@ export const Pipe = ({pipe}) => {
       </svg>
     </div>
   );
-}
-
+};

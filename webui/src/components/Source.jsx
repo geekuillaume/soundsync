@@ -5,24 +5,25 @@ import { useEditAudioStreamModal } from './editModal';
 
 import SpotifyLogo from '../res/spotify.svg';
 import nullSinkLogo from '../res/null.svg';
+import { nameWithoutHiddenMeta } from '../utils/hiddenUtils';
 
 const logos = {
   librespot: SpotifyLogo,
   null: nullSinkLogo,
 };
 
-export const Source = ({source}) => {
+export const Source = ({ source }) => {
   const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('source', source.uuid);
   const peer = usePeer(source.peerUuid);
   const sourceLogo = logos[source.type];
   const sources = useSources();
   const sourceIndex = sources.indexOf(source);
-  const {handleOpen, anchor, modal} = useEditAudioStreamModal('source', source);
+  const { handleOpen, anchor, modal } = useEditAudioStreamModal('source', source);
 
   return (
     <div
-      className={classnames("source-container", !shouldShow && 'not-selectable')}
-      style={{gridRow: sourceIndex + 2}}
+      className={classnames('source-container', !shouldShow && 'not-selectable')}
+      style={{ gridRow: sourceIndex + 2 }}
       ref={anchor}
     >
       <div
@@ -31,11 +32,10 @@ export const Source = ({source}) => {
       />
       <div className="box source-box" onClick={handleOpen}>
         <img src={sourceLogo} className="source-logo" />
-        <p className="name">{source.name}</p>
+        <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
         <p className="peer-name">{peer.name}</p>
       </div>
       {modal}
     </div>
   );
-}
-
+};

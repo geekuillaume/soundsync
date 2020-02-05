@@ -1,34 +1,37 @@
-import React, { useCallback } from 'react';
-import { useEffect, createContext, useReducer, useContext, useState } from 'react';
+import React, {
+  useCallback, useEffect, createContext, useReducer, useContext,
+} from 'react';
+
 import useFetch from 'use-http';
-import {find, some} from 'lodash-es';
+import { find, some, sortBy } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
+import { isHidden } from './hiddenUtils';
 
-const initialState = {soundsyncState: {}, registeringForPipe: {type: null, uuid: null}};
+const initialState = { soundsyncState: {}, registeringForPipe: { type: null, uuid: null } };
 
-const soundSyncContext = createContext({state: initialState, dispatch: (...args) => {}, refreshData: () => {}});
+const soundSyncContext = createContext({ state: initialState, dispatch: (...args) => {}, refreshData: () => {} });
 
 const stateUpdate = createAction('stateUpdate');
 const registerForPipe = createAction('registerForPipe');
 const unregisterForPipe = createAction('unregisterForPipe');
 
-export const SoundSyncProvider = ({children}) => {
+export const SoundSyncProvider = ({ children }) => {
   const { get } = useFetch({
-    path: '/state'
+    path: '/state',
   });
 
   const [state, dispatch] = useReducer(handleActions({
-    [stateUpdate.toString()]: produce((state, {payload}) => {
-      state.soundsyncState = payload;
+    [stateUpdate.toString()]: produce((s, { payload }) => {
+      s.soundsyncState = payload;
     }),
-    [registerForPipe.toString()]: produce((state, {payload}) => {
-      state.registeringForPipe.type = payload.type;
-      state.registeringForPipe.uuid = payload.uuid;
+    [registerForPipe.toString()]: produce((s, { payload }) => {
+      s.registeringForPipe.type = payload.type;
+      s.registeringForPipe.uuid = payload.uuid;
     }),
-    [unregisterForPipe.toString()]: produce((state) => {
-      state.registeringForPipe = {};
-    })
+    [unregisterForPipe.toString()]: produce((s) => {
+      s.registeringForPipe = {};
+    }),
   }, initialState), initialState);
 
   const refreshData = useCallback(async () => {
@@ -43,25 +46,33 @@ export const SoundSyncProvider = ({children}) => {
   }, []);
 
   return (
-    <soundSyncContext.Provider value={{state, dispatch, refreshData}}>
+    <soundSyncContext.Provider value={{ state, dispatch, refreshData }}>
       {children}
     </soundSyncContext.Provider>
   );
-}
+};
 
 export const useSoundSyncState = () => useContext(soundSyncContext).state.soundsyncState;
 
-export const useSinks = () => useSoundSyncState().sinks;
-export const useSources = () => useSoundSyncState().sources;
-export const usePipes = () => useSoundSyncState().pipes;
-export const useIsSinkPiped = (uuid) => some(usePipes(), {sinkUuid: uuid})
+const audioSourceSinkGetter = (collection, withHidden) => {
+  const orderedCollection = sortBy(collection, ({ name }) => (isHidden(name) ? 10 : 0));
+  if (!withHidden) {
+    return orderedCollection.filter(({ name }) => !isHidden(name));
+  }
+  return orderedCollection;
+};
 
-export const usePeer = (uuid) => find(useSoundSyncState().peers, {uuid});
+export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sinks, withHidden);
+export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sources, withHidden);
+export const usePipes = () => useSoundSyncState().pipes || [];
+export const useIsSinkPiped = (uuid) => some(usePipes(), { sinkUuid: uuid });
+
+export const usePeer = (uuid) => find(useSoundSyncState().peers, { uuid });
 
 export const useRegisterForPipe = (type, uuid) => {
-  const {post} = useFetch();
+  const { post } = useFetch();
 
-  const {state, dispatch, refreshData} = useContext(soundSyncContext)
+  const { state, dispatch, refreshData } = useContext(soundSyncContext);
   const isSelectedElement = state.registeringForPipe.uuid === uuid;
   const shouldShow = state.registeringForPipe.type !== type || isSelectedElement;
 
@@ -70,14 +81,14 @@ export const useRegisterForPipe = (type, uuid) => {
       if (!e.target.closest('.source-container,.sink-container')) {
         dispatch(unregisterForPipe());
       }
-    }
+    };
     if (state.registeringForPipe.uuid === uuid) {
       document.addEventListener('click', clickListener);
     }
     return () => {
       document.removeEventListener('click', clickListener);
-    }
-  }, [state.registeringForPipe.uuid === uuid])
+    };
+  }, [state.registeringForPipe.uuid === uuid]);
 
   return [shouldShow, isSelectedElement, async () => {
     if (state.registeringForPipe.type && state.registeringForPipe.type !== type) {
@@ -87,16 +98,16 @@ export const useRegisterForPipe = (type, uuid) => {
       await post(`/source/${sourceUuid}/pipe_to_sink/${sinkUuid}`);
       refreshData();
     } else {
-      dispatch(registerForPipe({type, uuid}));
+      dispatch(registerForPipe({ type, uuid }));
     }
   }];
-}
+};
 
 export const useUnpipeAction = (sinkUuid) => {
-  const {dispatch, refreshData} = useContext(soundSyncContext)
+  const { dispatch, refreshData } = useContext(soundSyncContext);
 
-  const {del} = useFetch();
-  const pipe = find(usePipes(), {sinkUuid});
+  const { del } = useFetch();
+  const pipe = find(usePipes(), { sinkUuid });
 
   return useCallback(async () => {
     if (!pipe) {
@@ -106,15 +117,15 @@ export const useUnpipeAction = (sinkUuid) => {
     await del(`/source/${pipe.sourceUuid}/pipe_to_sink/${pipe.sinkUuid}`);
     refreshData();
   }, [pipe]);
-}
+};
 
 export const useAudioStreamEditAction = () => {
-  const {refreshData} = useContext(soundSyncContext)
+  const { refreshData } = useContext(soundSyncContext);
 
-  const {put} = useFetch();
+  const { put } = useFetch();
 
   return useCallback(async (type, id, body) => {
     await put(`/${type}/${id}`, body);
     refreshData();
   }, []);
-}
+};
