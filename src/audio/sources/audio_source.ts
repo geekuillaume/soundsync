@@ -33,7 +33,7 @@ export abstract class AudioSource {
     this.peerUuid = descriptor.peerUuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
-    this.latency = descriptor.latency;
+    this.latency = descriptor.latency || 500;
     this.channels = descriptor.channels;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
