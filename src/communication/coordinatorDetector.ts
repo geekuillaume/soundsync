@@ -29,7 +29,12 @@ export const onDetectionChange = (handler: (services: bonjour.Service[]) => any)
 
 export const getDetectedCoordinators = () => detector.services;
 
-const [waitForCoordinatorSelectionPromise, selectCoordinator] = destructuredPromise();
+interface CoordinatorSelection {
+  isCoordinator: boolean;
+  coordinatorHost?: string;
+}
+
+const [waitForCoordinatorSelectionPromise, selectCoordinator] = destructuredPromise<CoordinatorSelection>();
 export const waitForCoordinatorSelection = () => waitForCoordinatorSelectionPromise;
 
 export const getCoordinatorFromConfig = () => {

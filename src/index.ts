@@ -1,5 +1,6 @@
 import yargs from 'yargs';
 import debug from 'debug';
+import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/timekeeper';
 import { createHttpServer } from './communication/http_server';
 import { getWebrtcServer } from './communication/wrtc_server';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
@@ -53,8 +54,14 @@ const main = async () => {
   } else {
     await webrtcServer.connectToCoordinatorHost(coordinatorChoice.coordinatorHost);
   }
+  attachTimekeeperClient(webrtcServer);
+  if (!coordinatorChoice.isCoordinator) {
+    await waitForFirstTimeSync();
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager, !!argv.startCoordinator);
+  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
+
   refreshMenu();
 };
 

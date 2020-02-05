@@ -12,7 +12,6 @@ import {
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
-import { attachTimekeeperClient } from './timekeeper';
 import { getLocalPeer } from '../communication/local_peer';
 import { Pipe } from './pipe';
 
@@ -22,7 +21,7 @@ export class ClientCoordinator {
   log: debug.Debugger;
   private pipes: Pipe[] = [];
 
-  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager, isCoordinator = false) {
+  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
     this.audioSourcesSinksManager = audioSourcesSinksManager;
     this.log = debug(`soundsync:clientCoordinator`);
@@ -45,9 +44,6 @@ export class ClientCoordinator {
       audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
       audioSourcesSinksManager.on('sinkUpdate', this.announceSinkToController);
       audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
-      if (!isCoordinator) {
-        attachTimekeeperClient(webrtcServer);
-      }
     });
   }
 

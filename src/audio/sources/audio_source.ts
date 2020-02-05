@@ -3,7 +3,7 @@ import uuidv4 from 'uuid/v4';
 
 import { PassThrough } from 'stream';
 import { SourceDescriptor, SourceType, BaseSourceDescriptor } from './source_type';
-import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
+import { getCurrentSynchronizedTime, getTimeDeltaWithCoodinator } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources

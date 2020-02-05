@@ -4,14 +4,20 @@ import { WebrtcServer } from '../communication/wrtc_server';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { TimekeepRequest, TimekeepResponse } from '../communication/messages';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
+import { destructuredPromise } from '../utils/promise';
 
 const log = debug(`soundsync:timekeeper`);
 
 let deltaWithCoordinator = 0;
 let networkLatency = 0;
 
+let isFirstSyncPromiseResolved = false;
+const [firstSyncPromise, resolve] = destructuredPromise();
+
+export const getTimeDeltaWithCoodinator = () => deltaWithCoordinator;
 export const getCurrentSynchronizedTime = () => performance.now() + deltaWithCoordinator;
 
+export const waitForFirstTimeSync = () => firstSyncPromise;
 export const getNetworkLatency = () => networkLatency;
 
 export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
@@ -34,6 +40,10 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
     deltaWithCoordinator = delta;
     networkLatency = roundtripTime / 2;
     log(`Received response from coordinator, setting delta to ${delta}`);
+    if (!isFirstSyncPromiseResolved) {
+      isFirstSyncPromiseResolved = true;
+      resolve();
+    }
   });
 
   let intervalId;
