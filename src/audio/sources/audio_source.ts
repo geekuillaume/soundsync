@@ -7,6 +7,7 @@ import {
 } from './source_type';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { getWebrtcServer } from '../../communication/wrtc_server';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
@@ -37,9 +38,13 @@ export abstract class AudioSource {
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
     this.latency = descriptor.latency || 500;
-    this.channels = descriptor.channels;
+    this.channels = descriptor.channels || 2;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
+  }
+
+  get peer() {
+    return getWebrtcServer().peers[this.peerUuid];
   }
 
   // Change info about a source in response to a user event

@@ -11,6 +11,7 @@ import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { getWebrtcServer } from '../../communication/wrtc_server';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {
@@ -45,6 +46,10 @@ export abstract class AudioSink {
     this.channels = 2;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink`);
+  }
+
+  get peer() {
+    return getWebrtcServer().peers[this.peerUuid];
   }
 
   patch(descriptor: Partial<SinkDescriptor>) {

@@ -132,16 +132,17 @@ export class ClientCoordinator {
       return;
     }
     if (message.offer) {
-      // @ts-ignore
       await peer.connection.setRemoteDescription(message.offer);
-      const answer = await peer.connection.createAnswer();
-      peer.connection.setLocalDescription(answer);
+      if (peer.connection.signalingState !== 'stable') {
+        const answer = await peer.connection.createAnswer();
+        peer.connection.setLocalDescription(answer);
 
-      this.webrtcServer.coordinatorPeer.sendControllerMessage({
-        type: 'peerConnectionInfo',
-        peerUuid: peer.uuid,
-        offer: peer.connection.localDescription,
-      });
+        this.webrtcServer.coordinatorPeer.sendControllerMessage({
+          type: 'peerConnectionInfo',
+          peerUuid: peer.uuid,
+          offer: peer.connection.localDescription,
+        });
+      }
     }
     // if (message.iceCandidates) {
     //   for (const iceCandidate of message.iceCandidates) {

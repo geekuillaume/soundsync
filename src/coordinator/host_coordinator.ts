@@ -1,6 +1,6 @@
 import debug from 'debug';
 import _ from 'lodash';
-import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
+import { AudioSourcesSinksManager, getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { SourceInfoMessage, SinkInfoMessage, PeerConnectionInfoMessage } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
@@ -48,7 +48,17 @@ export class HostCoordinator {
       type: 'soundState',
       sinks: this.sinks,
       sources: this.sources,
-      pipes: this.pipes,
+      pipes: this.pipes.filter((pipe) => {
+        const source = getAudioSourcesSinksManager().getSourceByUuid(pipe.sourceUuid);
+        const sink = getAudioSourcesSinksManager().getSinkByUuid(pipe.sinkUuid);
+        if (!source || !sink || !source.peer || !sink.peer) {
+          return false;
+        }
+        if (source.peer.state !== 'connected' || sink.peer.state !== 'connected') {
+          return false;
+        }
+        return true;
+      }),
     });
   }
 

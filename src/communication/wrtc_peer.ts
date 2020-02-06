@@ -27,11 +27,6 @@ export class WebrtcPeer extends Peer {
     });
     this.connectHandler = connectHandler;
     this.webrtcServer = webrtcServer;
-    this.connection = new RTCPeerConnection();
-    this.controllerChannel = this.connection.createDataChannel('controller', {
-      negotiated: true,
-      id: CONTROLLER_CHANNEL_ID,
-    });
 
     // this.connection.onicecandidate = (e) => {
     //   if (e.candidate) {
@@ -43,6 +38,17 @@ export class WebrtcPeer extends Peer {
     //   }
     // }
 
+    this.initWebrtc();
+    this.log = debug(`soundsync:wrtcPeer:${uuid}`);
+    this.log(`Created new peer`);
+  }
+
+  private initWebrtc = () => {
+    this.connection = new RTCPeerConnection();
+    this.controllerChannel = this.connection.createDataChannel('controller', {
+      negotiated: true,
+      id: CONTROLLER_CHANNEL_ID,
+    });
     this.connection.ondatachannel = this.handleRequestedAudioSourceChannel;
 
     this.controllerChannel.addEventListener('open', () => {
@@ -58,9 +64,6 @@ export class WebrtcPeer extends Peer {
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
-
-    this.log = debug(`soundsync:wrtcPeer:${uuid}`);
-    this.log(`Created new peer`);
   }
 
   setUuid = (uuid: string) => {
@@ -80,6 +83,9 @@ export class WebrtcPeer extends Peer {
       await this.sendControllerMessage({ type: 'disconnect' });
     }
     this.connection.close();
+    delete this.connection;
+    delete this.controllerChannel;
+    this.initWebrtc();
 
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout);
