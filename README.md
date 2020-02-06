@@ -30,7 +30,6 @@ Soundsync is still in a early stage. It's evolving quickly but there is still a 
 - UPnP: gmrender-resurrect
 - Sink volume with hardware control
 - Group of sinks
-- Hide / Unhide sources and sinks in the webui
 - Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
 - Integration media info on webui
 - Synchronize sound with Philips Hue light bulbs
