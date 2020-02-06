@@ -64,6 +64,7 @@ export class RtAudioSink extends AudioSink {
       clearInterval(writeInterval);
       clearInterval(latencyInterval);
       this.rtaudio.closeStream();
+      delete this.rtaudio;
     };
   }
 

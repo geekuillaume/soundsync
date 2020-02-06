@@ -13,13 +13,8 @@ export class RemoteSink extends AudioSink {
       channels: this.channels,
       latency: descriptor.latency || this.latency,
       name: descriptor.name || this.name,
+      instanceUuid: this.instanceUuid,
     });
-  }
-
-  async linkSource() {
-  }
-
-  async unlinkSource() {
   }
 
   _startSink() {

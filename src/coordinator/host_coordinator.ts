@@ -9,8 +9,8 @@ import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
 import { PipeDescriptor } from './pipe';
 import { updateConfigArrayItem, deleteConfigArrayItem, getConfigField } from './config';
-import { SourceDescriptor, BaseSourceDescriptor } from '../audio/sources/source_type';
-import { SinkDescriptor, BaseSinkDescriptor } from '../audio/sinks/sink_type';
+import { SourceInstanceDescriptor, BaseSourceInstanceDescriptor } from '../audio/sources/source_type';
+import { BaseSinkInstanceDescriptor, SinkInstanceDescriptor } from '../audio/sinks/sink_type';
 
 export class HostCoordinator {
   webrtcServer: WebrtcServer;
@@ -18,8 +18,8 @@ export class HostCoordinator {
   log: debug.Debugger;
 
   pipes: PipeDescriptor[] = getConfigField('pipes');
-  sources: {[key: string]: SourceDescriptor} = {};
-  sinks: {[key: string]: SinkDescriptor} = {};
+  sources: {[key: string]: SourceInstanceDescriptor} = {};
+  sinks: {[key: string]: SinkInstanceDescriptor} = {};
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
@@ -53,7 +53,7 @@ export class HostCoordinator {
   }
 
   private handleSourceInfo = async (peer: WebrtcPeer, message: SourceInfoMessage) => {
-    const descriptor: BaseSourceDescriptor = {
+    const descriptor: BaseSourceInstanceDescriptor = {
       uuid: message.uuid,
       type: message.sourceType,
       peerUuid: peer.uuid,
@@ -61,16 +61,10 @@ export class HostCoordinator {
       channels: message.channels,
       startedAt: message.startedAt,
       latency: message.latency,
+      instanceUuid: message.instanceUuid,
     };
     this.sources[descriptor.uuid] = descriptor;
     this.broadcastState();
-    // TODO: handle disconnect of peer
-    // peer.once('disconnected', () => {
-    //   this.webrtcServer.broadcast({
-    //     type: 'removeRemoteSource',
-    //     uuid: message.uuid,
-    //   }, [peer.uuid]);
-    // });
   }
 
   private handleRequestSourceList = (peer: WebrtcPeer) => {
@@ -83,12 +77,13 @@ export class HostCoordinator {
   }
 
   private handleSinkInfo = (peer: WebrtcPeer, message: SinkInfoMessage) => {
-    const descriptor: BaseSinkDescriptor = {
+    const descriptor: BaseSinkInstanceDescriptor = {
       uuid: message.uuid,
       type: message.sinkType,
       peerUuid: peer.uuid,
       name: message.name,
       latency: message.latency,
+      instanceUuid: message.instanceUuid,
     };
     this.sinks[descriptor.uuid] = descriptor;
     this.broadcastState();

@@ -11,7 +11,6 @@ export interface PipeDescriptor {
 export class Pipe {
   sourceUuid: string;
   sinkUuid: string;
-  active = false;
 
   constructor(sourceUuid: string, sinkUuid: string) {
     this.sourceUuid = sourceUuid;
@@ -23,10 +22,6 @@ export class Pipe {
       return;
     }
     this.sink.linkSource(this.source);
-    // TODO: handle disponect
-    // this.source.peer.once('disconnected', closePipe);
-    // this.sink.peer.once('disconnected', closePipe);
-    this.active = true;
   }
 
   close = () => {
@@ -36,7 +31,6 @@ export class Pipe {
     if (this.sink) {
       this.sink.unlinkSource();
     }
-    this.active = false;
   }
 
   get source(): AudioSource {
@@ -45,6 +39,10 @@ export class Pipe {
 
   get sink(): AudioSink {
     return _.find(getAudioSourcesSinksManager().sinks, { uuid: this.sinkUuid });
+  }
+
+  get active() {
+    return this.source && this.sink && this.sink.pipedSource;
   }
 
   get activable() {

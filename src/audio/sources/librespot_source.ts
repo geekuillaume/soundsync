@@ -32,13 +32,17 @@ export class LibrespotSource extends AudioSource {
         '-p', this.options.password,
       ] : []),
     ]);
-    // this.librespotProcess.stderr.on('data', (d) => console.log(d.toString()))
+    const librespotLog = this.log.extend('librespot');
+    this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
+    this.librespotProcess.on('exit', (code) => {
+      this.log('Librespot excited with code:', code);
+    });
     this.testPcm = createReadStream('./test.pcm');
   }
 
   _getAudioEncodedStream() {
     return createAudioEncodedStream(this.testPcm, this.rate, this.channels);
-    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels)
+    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }
 
   toDescriptor: (() => LibresportSourceDescriptor) = () => ({

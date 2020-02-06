@@ -20,6 +20,7 @@ export interface SourceInfoMessage extends BaseMessage {
   latency: number;
   startedAt: number;
   peerUuid: string;
+  instanceUuid: string;
 }
 
 export interface SinkInfoMessage extends BaseMessage {
@@ -29,6 +30,7 @@ export interface SinkInfoMessage extends BaseMessage {
   uuid: string;
   channels: number;
   latency: number;
+  instanceUuid: string;
 }
 
 // TODO: implement sink removal messages and handling

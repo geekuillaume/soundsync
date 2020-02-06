@@ -2,8 +2,10 @@ import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
 import { PassThrough } from 'stream';
-import { SourceDescriptor, SourceType, BaseSourceDescriptor } from './source_type';
-import { getCurrentSynchronizedTime, getTimeDeltaWithCoodinator } from '../../coordinator/timekeeper';
+import {
+  SourceDescriptor, SourceType, BaseSourceDescriptor, SourceInstanceDescriptor,
+} from './source_type';
+import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
@@ -17,6 +19,7 @@ export abstract class AudioSource {
   uuid: string;
   peerUuid: string;
   manager: AudioSourcesSinksManager;
+  instanceUuid = uuidv4(); // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
@@ -45,10 +48,14 @@ export abstract class AudioSource {
   }
 
   // Update source info in response to a controllerMessage
-  updateInfo(descriptor: Partial<SourceDescriptor>) {
+  updateInfo(descriptor: Partial<SourceInstanceDescriptor>) {
+    if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
+      this.log('Received update for a different instance of the source, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
+      return;
+    }
     let hasChanged = false;
     Object.keys(descriptor).forEach((prop) => {
-      if (descriptor[prop] && this[prop] !== descriptor[prop]) {
+      if (descriptor[prop] !== undefined && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
       }
@@ -66,6 +73,11 @@ export abstract class AudioSource {
         this.updateInfo({ startedAt: getCurrentSynchronizedTime() });
       }
       this.directSourceStream = await this._getAudioEncodedStream();
+      this.directSourceStream.on('finish', () => {
+        this.encodedAudioStream.end();
+        delete this.encodedAudioStream;
+        delete this.directSourceStream;
+      });
       this.directSourceStream.pipe(this.encodedAudioStream);
     }
     // we use a PassThrough here instead of sending this.encodedAudioStream to simplify the detection of a stream close event

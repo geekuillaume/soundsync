@@ -8,6 +8,11 @@ export interface BaseSourceDescriptor {
   channels?: number;
 }
 
+// used only in messages to prevent an update targeting an old instances of source
+export interface BaseSourceInstanceDescriptor extends BaseSourceDescriptor {
+  instanceUuid: string;
+}
+
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
   type: 'librespot';
   librespotOptions: {
@@ -23,4 +28,5 @@ export interface NullSourceDescriptor extends BaseSourceDescriptor {
 }
 
 export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor;
+export type SourceInstanceDescriptor = SourceDescriptor & BaseSourceInstanceDescriptor;
 export type SourceType = SourceDescriptor['type'];

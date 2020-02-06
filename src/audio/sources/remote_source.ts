@@ -22,6 +22,7 @@ export class RemoteSource extends AudioSource {
       sourceType: this.type,
       startedAt: this.startedAt,
       name: descriptor.name || this.name,
+      instanceUuid: this.instanceUuid,
     });
   }
 

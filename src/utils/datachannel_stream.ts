@@ -7,7 +7,9 @@ export class DataChannelStream extends Duplex {
     super();
     this.datachannel = datachannel;
     datachannel.onmessage = this.handleDataChannelMessage;
-    datachannel.onclose = () => this.destroy();
+    datachannel.onclose = () => {
+      this.end();
+    };
   }
 
   private handleDataChannelMessage = (ev: MessageEvent) => {

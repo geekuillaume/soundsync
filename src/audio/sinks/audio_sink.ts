@@ -4,7 +4,9 @@ import uuidv4 from 'uuid/v4';
 import { PassThrough } from 'stream';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPLES_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
-import { SinkDescriptor, SinkType, BaseSinkDescriptor } from './sink_type';
+import {
+  SinkDescriptor, SinkType, BaseSinkDescriptor, SinkInstanceDescriptor,
+} from './sink_type';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
@@ -24,6 +26,7 @@ export abstract class AudioSink {
   sourceStream: PassThrough;
   decodedStream: ReturnType<typeof createAudioDecodedStream>;
   peerUuid: string;
+  instanceUuid = uuidv4(); // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
   latency = 50;
@@ -48,7 +51,11 @@ export abstract class AudioSink {
     return this.updateInfo(descriptor);
   }
 
-  updateInfo(descriptor: Partial<SinkDescriptor>) {
+  updateInfo(descriptor: Partial<SinkInstanceDescriptor>) {
+    if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
+      this.log('Received update for a different instance of the sink, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
+      return;
+    }
     let hasChanged = false;
     Object.keys(descriptor).forEach((prop) => {
       if (descriptor[prop] && this[prop] !== descriptor[prop]) {
@@ -78,6 +85,10 @@ export abstract class AudioSink {
       this.log(`Error while starting sink`, e);
     }
     this.decodedStream.on('data', this.handleAudioChunk);
+    this.sourceStream.on('end', () => {
+      this.log('Decoded stream has closed, unlinking');
+      this.unlinkSource();
+    });
   }
 
   unlinkSource() {

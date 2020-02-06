@@ -53,6 +53,9 @@ export class ClientCoordinator {
   }
 
   private announceSinkToController = (sink: AudioSink) => {
+    if (!sink.local) {
+      return;
+    }
     this.webrtcServer.coordinatorPeer.sendControllerMessage({
       type: 'sinkInfo',
       name: sink.name,
@@ -60,6 +63,7 @@ export class ClientCoordinator {
       uuid: sink.uuid,
       channels: sink.channels,
       latency: sink.latency,
+      instanceUuid: sink.instanceUuid,
     });
   }
 
@@ -76,6 +80,7 @@ export class ClientCoordinator {
       latency: source.latency,
       startedAt: source.startedAt,
       peerUuid: getLocalPeer().uuid,
+      instanceUuid: source.instanceUuid,
     });
   }
 
