@@ -16,7 +16,7 @@ Soundsync is a set of applications that connect every speaker in you home to a s
 
 Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-- Handle pipe deletion and sink / source stoping by reference counting of sinks being piped to
+- Handle source stoping by reference counting of sinks being piped to
 - Handle reconnection
   - With controller
   - With another peer
