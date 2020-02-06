@@ -8,7 +8,7 @@ export interface BaseMessage {
 }
 
 export interface LightMessage extends BaseMessage {
-  type: 'ping' | 'pong' | 'requestSoundState';
+  type: 'ping' | 'pong' | 'requestSoundState' | 'disconnect';
 }
 
 export interface SourceInfoMessage extends BaseMessage {

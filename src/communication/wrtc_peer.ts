@@ -1,6 +1,7 @@
 import { performance } from 'perf_hooks';
 import { RTCPeerConnection } from 'wrtc';
 import debug, { Debugger } from 'debug';
+import { onExit } from '../utils/on_exit';
 import {
   CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
@@ -52,7 +53,8 @@ export class WebrtcPeer extends Peer {
       this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
     });
 
-    this.controllerChannel.addEventListener('close', this.handleDisconnect);
+    this.controllerChannel.addEventListener('close', () => this.handleDisconnect());
+    onExit(() => this.handleDisconnect(true));
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
@@ -66,15 +68,18 @@ export class WebrtcPeer extends Peer {
     this.log = debug(`soundsync:wrtcPeer:${uuid}`);
   }
 
-  private handleDisconnect = () => {
+  private handleDisconnect = async (advertiseDisconnect = false) => {
+    if (this.state === 'disconnected') {
+      return;
+    }
     this.log('Connection closed');
     this.state = 'disconnected';
     this.emit('disconnected');
 
-    this.controllerChannel.close();
-    this.datachannels.forEach((channel) => channel.close());
-    // TODO: this makes nodejs segfault, should investigate why
-    // this.connection.close();
+    if (advertiseDisconnect) {
+      await this.sendControllerMessage({ type: 'disconnect' });
+    }
+    this.connection.close();
 
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout);
@@ -89,6 +94,10 @@ export class WebrtcPeer extends Peer {
   private handleControllerMessage = (message: ControllerMessage) => {
     if (message.type === 'ping' || message.type === 'pong') {
       this.handleReceivedHeartbeat(message.type === 'ping');
+      return;
+    }
+    if (message.type === 'disconnect') {
+      this.handleDisconnect();
       return;
     }
     this.log.extend(message.type)('Received controller message', message);
