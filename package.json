@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -b",
     "build:watch": "tsc -w",
-    "start": "electron app/index.js",
+    "start": "node app/index.js",
+    "start:electron": "electron app/index.js",
     "pack": "electron-builder --dir",
     "pack:bin": "electron-builder -l AppImage",
     "postinstall": "electron-builder install-app-deps",
@@ -28,7 +29,7 @@
     "@types/yargs": "^13.0.4",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
-    "electron": "8",
+    "electron": "7.1.11",
     "electron-builder": "^22.3.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
