@@ -132,8 +132,15 @@ export class ClientCoordinator {
       return;
     }
     if (message.offer) {
-      await peer.connection.setRemoteDescription(message.offer);
+      if (peer.connection.signalingState === 'have-local-offer') {
+        // we received an offer while waiting for a response, it usually means that the two peers are trying to connect at the same time, it this is the case, ONLY ONE the two peer need to reset its connection and accept the offer. To determine which peer needs to do that, we use the UUID of the remote peer and if it is higher than our own UUID we reset our connection. The remote peer will just ignore the message.
+        if (message.peerUuid < getLocalPeer().uuid) {
+          return;
+        }
+        peer.initWebrtc();
+      }
       if (peer.connection.signalingState !== 'stable') {
+        await peer.connection.setRemoteDescription(message.offer);
         const answer = await peer.connection.createAnswer();
         peer.connection.setLocalDescription(answer);
 

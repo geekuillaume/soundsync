@@ -43,7 +43,13 @@ export class WebrtcPeer extends Peer {
     this.log(`Created new peer`);
   }
 
-  private initWebrtc = () => {
+  initWebrtc = () => {
+    if (this.connection) {
+      this.connection.close();
+    }
+    delete this.connection;
+    delete this.controllerChannel;
+
     this.connection = new RTCPeerConnection();
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
@@ -82,10 +88,6 @@ export class WebrtcPeer extends Peer {
     if (advertiseDisconnect) {
       await this.sendControllerMessage({ type: 'disconnect' });
     }
-    this.connection.close();
-    delete this.connection;
-    delete this.controllerChannel;
-    this.initWebrtc();
 
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout);
@@ -95,6 +97,7 @@ export class WebrtcPeer extends Peer {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
+    this.initWebrtc();
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {
