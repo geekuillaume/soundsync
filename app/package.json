@@ -4,6 +4,7 @@
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
   "main": "./index.js",
+  "bin": "./index.js",
   "license": "BSL 1.1",
   "dependencies": {
     "@koa/cors": "^3.0.0",

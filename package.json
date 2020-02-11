@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
-  "main": "dist/index.js",
+  "main": "app/index.js",
+  "bin": "app/index.js",
   "scripts": {
     "build": "tsc -b",
     "build:watch": "tsc -w",
@@ -11,7 +12,9 @@
     "start:electron": "electron app/index.js",
     "pack": "electron-builder --dir",
     "pack:bin": "electron-builder -l AppImage",
-    "postinstall": "electron-builder install-app-deps",
+    "pack:headless": "bash -c \"pkg ./package.json -o ./bin/soundsync-headless-`node -e \\\"process.stdout.write(process.platform +'-'+process.arch)\\\"`\"",
+    "pack:headless:arm": "bash -c \"pkg ./package.json -o ./bin/soundsync-headless-`node -e \\\"process.stdout.write(process.platform +'-'+process.arch)\\\"` -t node12.2.0-linux-armv7\"",
+    "postinstall": "bash -c \"cd app && yarn\"",
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src"
   },
@@ -34,6 +37,7 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
+    "pkg": "https://github.com/geekuillaume/pkg",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
   },
@@ -50,6 +54,14 @@
     "asarUnpack": [
       "**/*.node",
       "**/*.so*"
+    ]
+  },
+  "pkg": {
+    "assets": [
+      "**/*.node",
+      "**/*.so*",
+      "res/*",
+      "webui/dist/**/*"
     ]
   }
 }
