@@ -10,3 +10,4 @@ export const getRtAudio = () => {
 };
 
 export const getAudioDevices = () => getRtAudio().getDevices();
+export const audioApiSupportsLoopback = () => getRtAudio().getApi() === 'WASAPI';

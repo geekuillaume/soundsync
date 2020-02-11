@@ -1,4 +1,3 @@
-// import Speaker from 'speaker';
 import {
   RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
 } from 'audify';

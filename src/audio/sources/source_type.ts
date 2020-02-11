@@ -27,6 +27,11 @@ export interface NullSourceDescriptor extends BaseSourceDescriptor {
   type: 'null';
 }
 
-export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor;
+export interface RtAudioSourceDescriptor extends BaseSourceDescriptor {
+  type: 'rtaudio';
+  deviceName: string;
+}
+
+export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | RtAudioSourceDescriptor;
 export type SourceInstanceDescriptor = SourceDescriptor & BaseSourceInstanceDescriptor;
 export type SourceType = SourceDescriptor['type'];

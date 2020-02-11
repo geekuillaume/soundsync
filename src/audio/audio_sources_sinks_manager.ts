@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
 
+import { RtAudioSource } from './sources/rtaudio_source';
 import { AudioSource } from './sources/audio_source';
 import { LibrespotSource } from './sources/librespot_source';
 import { SourceDescriptor } from './sources/source_type';
@@ -11,7 +12,7 @@ import { SinkDescriptor } from './sinks/sink_type';
 import { RtAudioSink } from './sinks/rtaudio_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices } from '../utils/rtaudio';
+import { getAudioDevices, audioApiSupportsLoopback } from '../utils/rtaudio';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
@@ -52,6 +53,14 @@ export class AudioSourcesSinksManager extends EventEmitter {
           name: device.name,
           peerUuid: getLocalPeer().uuid,
         });
+        if (audioApiSupportsLoopback()) {
+          this.addSource({
+            type: 'rtaudio',
+            deviceName: device.name,
+            name: `Output of ${device.name}`,
+            peerUuid: getLocalPeer().uuid,
+          });
+        }
       }
     });
   }
@@ -64,6 +73,16 @@ export class AudioSourcesSinksManager extends EventEmitter {
       this.getSourceByUuid(sourceDescriptor.uuid).updateInfo(sourceDescriptor);
       return;
     }
+    if (sourceDescriptor.type === 'rtaudio' && sourceDescriptor.peerUuid === getLocalPeer().uuid) {
+      // when auto detecting rtaudio devices on local host, we cannot compare with the uuid
+      // so we need to compare with the device name to see if we need to update the existing
+      // or add a new Source
+      const existingSource = _.find(this.sources, (source) => source instanceof RtAudioSource && source.deviceName === sourceDescriptor.deviceName);
+      if (existingSource) {
+        existingSource.updateInfo(sourceDescriptor);
+        return;
+      }
+    }
 
     const isLocal = !sourceDescriptor.peerUuid || sourceDescriptor.peerUuid === getLocalPeer().uuid;
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
@@ -74,6 +93,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       source = new LibrespotSource(sourceDescriptor, this);
     } else if (sourceDescriptor.type === 'null') {
       source = new NullSource(sourceDescriptor, this);
+    } else if (sourceDescriptor.type === 'rtaudio') {
+      source = new RtAudioSource(sourceDescriptor, this);
     } else {
       // @ts-ignore
       throw new Error(`Unknown source type ${sourceDescriptor.type}`);
