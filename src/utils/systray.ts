@@ -24,7 +24,7 @@ export const createSystray = () => {
     const { app, Menu, Tray } = require('electron');
     app.on('ready', () => {
       try {
-        const tray = new Tray(resolve(__dirname, '../../res/logo_only.png'));
+        const tray = new Tray(resolve(__dirname, '../../res/logo_small.png'));
 
         const onAutostartClick = async () => {
           if (await autoLauncher.isEnabled()) {
