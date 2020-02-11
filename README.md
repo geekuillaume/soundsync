@@ -5,8 +5,8 @@
 Soundsync is a set of applications that connect every speaker in you home to a single interface where you can plug in virtual cables between any audio source and any number of speakers.
 
 - 🆓 Free to use
-- 🎶 Compatible with a lot of different audio source (Spotify Connect, Windows and MacOS audio system audio, Airplay, UPnP and other)
-- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi), to a device with a web browser or with Bluetooth
+- 🎶 Compatible with a lot of different audio source (Spotify Connect, Windows system audio and soon Airplay, UPnP)
+- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi), and soon to a web page and Chromecast
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🔓 Not linked to any external service, works offline
 
@@ -19,12 +19,10 @@ Soundsync is still in a early stage. It's evolving quickly but there is still a 
 - Handle source stoping by reference counting of sinks being piped to
 - Handle reconnection
   - With controller
-  - With another peer
 - Handle precise track synchronization
   - Network latency
   - Received time vs playing time
   - Handle Unordered chunks (JitterBuffer / Circular Buffer)
-- Windows output loopback
 - Bluetooth on linux
 - Airplay: Shairport-sync
 - UPnP: gmrender-resurrect
