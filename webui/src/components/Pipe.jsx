@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { find } from 'lodash-es';
 import { useSinks, useSources } from '../utils/useSoundSyncState';
+
+function setupCanvas(canvas) {
+  // Get the device pixel ratio, falling back to 1.
+  const dpr = window.devicePixelRatio || 1;
+  // Get the size of the canvas in CSS pixels.
+  const rect = canvas.getBoundingClientRect();
+  // Give the canvas pixel dimensions of their CSS
+  // size * the device pixel ratio.
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  // Scale all drawing operations by the dpr, so you
+  // don't have to worry about the difference.
+  ctx.scale(dpr, dpr);
+  return ctx;
+}
 
 export const Pipe = ({ pipe }) => {
   const sources = useSources();
@@ -16,6 +32,58 @@ export const Pipe = ({ pipe }) => {
   const rowStart = Math.min(sourceIndex, sinkIndex);
   const rowEnd = Math.max(sourceIndex, sinkIndex);
 
+  const canvasRef = useRef();
+  const ctxRef = useRef();
+
+  useEffect(() => {
+    const initCanvas = () => {
+      if (!canvasRef.current) {
+        requestAnimationFrame(initCanvas);
+      }
+      ctxRef.current = setupCanvas(canvasRef.current);
+    };
+    document.addEventListener('resize', initCanvas);
+    initCanvas();
+    return () => {
+      document.removeEventListener('resize', initCanvas);
+    };
+  }, []);
+
+  useEffect(() => {
+    let animationFrameRequest;
+    let offset = 0;
+    const draw = () => {
+      if (ctxRef.current && canvasRef.current) {
+        const ctx = ctxRef.current;
+        const dpr = window.devicePixelRatio || 1;
+        const height = canvasRef.current.height / dpr;
+        const width = canvasRef.current.width / dpr;
+        ctx.clearRect(0, 0, width, height);
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'rgba(0, 209, 178, 0.5)';
+        ctx.setLineDash([5, 10]);
+        offset++;
+        if (offset > 300) {
+          offset = 0;
+        }
+        ctx.lineDashOffset = -offset * 0.3;
+
+        ctx.beginPath();
+        ctx.moveTo(10, ((sourceIndex - rowStart) * 130) + 50);
+        ctx.lineTo(width - 10, ((sinkIndex - rowStart) * 50) + 50);
+        ctx.stroke();
+      }
+      animationFrameRequest = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => {
+      if (animationFrameRequest) {
+        cancelAnimationFrame(animationFrameRequest);
+      }
+    };
+  }, []);
+
   return (
     <div
       className="pipe"
@@ -24,14 +92,7 @@ export const Pipe = ({ pipe }) => {
         gridRowEnd: rowEnd + 3,
       }}
     >
-      <svg>
-        <line
-          x1="10"
-          x2="calc(100% - 10px)"
-          y1={sourceIndex <= sinkIndex ? '50px' : 'calc(100% - 50px)'}
-          y2={sourceIndex <= sinkIndex ? 'calc(100% - 50px)' : '50px'}
-        />
-      </svg>
+      <canvas ref={canvasRef} />
     </div>
   );
 };

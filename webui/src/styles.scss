@@ -1,8 +1,11 @@
+body {
+  --source-sink-height: 100px;
+}
+
 .scene-grid {
-  margin-top: 30px;
+  margin-top: 15px;
   display: grid;
   grid-template-columns: 1fr 70px 1fr;
-  grid-template-rows: 30px repeat(10, 100px);
   row-gap: 30px;
 }
 
@@ -18,7 +21,7 @@
 }
 
 .source-container, .sink-container {
-  // filter: drop-shadow(16px 16px 20px rgba(10, 10, 10, 0.1));
+  height: var(--source-sink-height);
   filter: drop-shadow(0 0.5em 1em rgba(10, 10, 10, 0.2));
   width: 100%;
   position: relative;
@@ -121,26 +124,17 @@
 }
 
 .pipe {
+  // height: var(--source-sink-height);
   pointer-events: none;
   grid-column: 2;
-  svg {
+  position: relative;
+  canvas {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
     width: 100%;
     height: 100%;
-    position: relative;
     z-index: 2;
-  }
-  line {
-    stroke: rgba(0, 209, 178, 0.5);
-    stroke-width: 5px;
-    stroke-linecap: round;
-    stroke-dasharray: 5 10;
-    // animation: dash 5s linear infinite;
-  }
-}
-
-@keyframes dash {
-  to {
-    stroke-dashoffset: -150;
   }
 }
 
