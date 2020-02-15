@@ -1,4 +1,4 @@
-import { EventEmitter, once } from 'events';
+import { EventEmitter } from 'events';
 import _ from 'lodash';
 import superagent from 'superagent';
 import debug from 'debug';
@@ -9,9 +9,10 @@ import { getLocalPeer } from './local_peer';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
-import { publishService } from './coordinatorDetector';
+import { once } from '../utils/misc';
 
 const log = debug('soundsync:wrtc');
+let webrtcServer: WebrtcServer;
 
 export class WebrtcServer extends EventEmitter {
   peers: {[uuid: string]: Peer} = {};
@@ -19,6 +20,9 @@ export class WebrtcServer extends EventEmitter {
 
   constructor() {
     super();
+    if (webrtcServer) {
+      throw new Error('Cannot create multiple webrtc servers');
+    }
     log(`Creating new Webrtc server with peer uuid ${getLocalPeer().uuid}`);
     this.peers[getLocalPeer().uuid] = getLocalPeer();
   }
@@ -33,6 +37,10 @@ export class WebrtcServer extends EventEmitter {
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
       const { name, uuid, sdp } = ctx.request.body;
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
+      const existingPeer = this.peers[uuid];
+      if (existingPeer && existingPeer instanceof WebrtcPeer) {
+        existingPeer.disconnect(true);
+      }
       const peer = new WebrtcPeer({
         webrtcServer: this,
         uuid,
@@ -56,8 +64,6 @@ export class WebrtcServer extends EventEmitter {
       };
       this.peers[uuid] = peer;
     });
-
-    publishService(httpServer.port);
 
     // httpServer.router.post('/ice_candidate', async (ctx) => {
     //   const { uuid, iceCandidates } = ctx.request.body;
@@ -146,7 +152,6 @@ export class WebrtcServer extends EventEmitter {
   }
 }
 
-let webrtcServer: WebrtcServer;
 export const getWebrtcServer = () => {
   if (!webrtcServer) {
     webrtcServer = new WebrtcServer();

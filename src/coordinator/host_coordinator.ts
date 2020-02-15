@@ -138,8 +138,8 @@ export class HostCoordinator {
     this.broadcastState();
   }
 
-  destroyPipe = (source: AudioSource, sink: AudioSink) => {
-    const pipe = _.find(this.pipes, (p) => p.sourceUuid === source.uuid && p.sinkUuid === sink.uuid);
+  destroyPipe = (sourceUuid: string, sinkUuid: string) => {
+    const pipe = _.find(this.pipes, (p) => p.sourceUuid === sourceUuid && p.sinkUuid === sinkUuid);
     if (!pipe) {
       return;
     }

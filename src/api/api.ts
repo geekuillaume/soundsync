@@ -33,8 +33,8 @@ export class ApiController {
 
   handleStateRoute = async (ctx: Context) => {
     ctx.body = {
-      sources: getAudioSourcesSinksManager().sources.map((source) => source.toObject()),
-      sinks: getAudioSourcesSinksManager().sinks.map((sink) => sink.toObject()),
+      sources: getAudioSourcesSinksManager().sources.filter((s) => s.peer && s.peer.state === 'connected').map((source) => source.toObject()),
+      sinks: getAudioSourcesSinksManager().sinks.filter((s) => s.peer && s.peer.state === 'connected').map((sink) => sink.toObject()),
       peers: _.map(getWebrtcServer().peers, (peer) => ({
         name: peer.name,
         uuid: peer.uuid,
@@ -66,19 +66,8 @@ export class ApiController {
 
   handleDeletePipe = async (ctx: Context) => {
     const { sourceUuid, sinkUuid } = ctx.params;
-    const source = _.find(getAudioSourcesSinksManager().sources, { uuid: sourceUuid });
-    const sink = _.find(getAudioSourcesSinksManager().sinks, { uuid: sinkUuid });
 
-    if (!source || !sink) {
-      ctx.body = {
-        status: 'error',
-        error: 'Source or sink unknown',
-      };
-      ctx.status = 400;
-      return;
-    }
-
-    this.coordinator.destroyPipe(source, sink);
+    this.coordinator.destroyPipe(sourceUuid, sinkUuid);
     ctx.body = {
       status: 'ok',
     };

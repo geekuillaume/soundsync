@@ -3,7 +3,7 @@ import {
   RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
 } from 'audify';
 
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT } from '../../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT } from '../../utils/constants';
 import { AudioSource } from './audio_source';
 import { RtAudioSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
@@ -42,7 +42,7 @@ export class RtAudioSource extends AudioSource {
       inputConfig, // output stream
       RtAudioFormat.RTAUDIO_SINT16, // format
       OPUS_ENCODER_RATE, // rate
-      OPUS_ENCODER_FRAME_SAMPLES_COUNT, // samples per frame
+      OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
       `soundsync`, // name
       (chunk) => {
         inputStream.push(chunk);

@@ -36,9 +36,9 @@ export class ClientCoordinator {
       .onControllerMessage('sourceInfo', this.handleSourceUpdate);
 
     this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
-      // this.webrtcServer.coordinatorPeer.sendControllerMessage({
-      //   type: 'requestSoundState',
-      // })
+      this.webrtcServer.coordinatorPeer.sendControllerMessage({
+        type: 'requestSoundState',
+      });
       this.announceAllSourcesSinksToController();
       audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
       audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);

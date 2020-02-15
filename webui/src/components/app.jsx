@@ -2,10 +2,12 @@ import React from 'react';
 import { Provider } from 'use-http';
 import { SoundState } from './SoundState';
 import { SoundSyncProvider } from '../utils/useSoundSyncState';
+import { WebPlayer } from './WebPlayer';
 
 export const App = () => (
-  <Provider>
+  <Provider url="http://localhost:6512">
     <SoundSyncProvider>
+      <WebPlayer />
       <section className="hero is-dark is-bold">
         <div className="hero-head">
           <nav className="navbar">

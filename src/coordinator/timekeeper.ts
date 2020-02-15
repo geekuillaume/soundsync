@@ -1,10 +1,10 @@
-import { performance } from 'perf_hooks';
 import debug from 'debug';
 import { WebrtcServer } from '../communication/wrtc_server';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { TimekeepRequest, TimekeepResponse } from '../communication/messages';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 import { destructuredPromise } from '../utils/promise';
+import { now } from '../utils/time';
 
 const log = debug(`soundsync:timekeeper`);
 
@@ -15,7 +15,7 @@ let isFirstSyncPromiseResolved = false;
 const [firstSyncPromise, resolve] = destructuredPromise();
 
 export const getTimeDeltaWithCoodinator = () => deltaWithCoordinator;
-export const getCurrentSynchronizedTime = () => performance.now() + deltaWithCoordinator;
+export const getCurrentSynchronizedTime = () => now() + deltaWithCoordinator;
 
 export const waitForFirstTimeSync = () => firstSyncPromise;
 export const getNetworkLatency = () => networkLatency;
@@ -26,14 +26,14 @@ export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
     peer.sendControllerMessage({
       type: 'timekeepResponse',
       sentAt: message.sentAt,
-      respondedAt: performance.now(),
+      respondedAt: now(),
     });
   });
 };
 
 export const attachTimekeeperClient = (server: WebrtcServer) => {
   server.coordinatorPeer.on('controllerMessage:timekeepResponse', ({ message }: {message: TimekeepResponse}) => {
-    const receivedAt = performance.now();
+    const receivedAt = now();
     const roundtripTime = receivedAt - message.sentAt;
     const receivedByCoordinatorAt = message.sentAt + (roundtripTime / 2);
     const delta = message.respondedAt - receivedByCoordinatorAt;
@@ -55,7 +55,7 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
     }
     server.coordinatorPeer.sendControllerMessage({
       type: 'timekeepRequest',
-      sentAt: performance.now(),
+      sentAt: now(),
     });
   };
 

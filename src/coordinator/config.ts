@@ -11,13 +11,15 @@ import uuidv4 from 'uuid/v4';
 import debug from 'debug';
 import _ from 'lodash';
 import produce from 'immer';
+import { isBrowser } from '../utils/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
 import { Pipe, PipeDescriptor } from './pipe';
 
 const log = debug(`soundsync:config`);
 
-const writeFilePromisified = promisify(writeFile);
+// @ts-ignore
+const writeFilePromisified = (...args) => promisify(writeFile)(...args);
 
 interface ConfigData {
   name: string;
@@ -50,21 +52,36 @@ let config: {
   configData: ConfigData;
 };
 
-export const initConfig = (dirOverride) => {
-  const configDir = dirOverride || defaultPaths.config;
-  try {
-    mkdirp.sync(configDir);
-  } catch (e) {
-    console.error(`Couldn't create config directory at ${configDir}`, e);
-    process.exit(1);
+export const initConfig = (dirOverride?: string) => {
+  config = {
+    configDir: '',
+    configFilePath: '',
+    configData: defaultConfig,
+  };
+
+  const configDir = isBrowser ? 'soundsync:config' : (dirOverride || defaultPaths.config);
+  const configFilePath = isBrowser ? 'soundsync:config' : resolve(configDir, 'config.json');
+
+  let configRawData;
+  if (isBrowser) {
+    configRawData = localStorage.getItem(configFilePath) || '{}';
+  } else {
+    // Creating folder if it doesn't exists
+    try {
+      mkdirp.sync(configDir);
+    } catch (e) {
+      console.error(`Couldn't create config directory at ${configDir}`, e);
+      process.exit(1);
+    }
+
+    log(`Reading config from ${configFilePath}`);
+    if (!existsSync(configFilePath)) {
+      writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
+    }
+    configRawData = readFileSync(configFilePath).toString() || '{}';
   }
-  const configFilePath = resolve(configDir, 'config.json');
-  log(`Reading config from ${configFilePath}`);
-  if (!existsSync(configFilePath)) {
-    writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
-  }
   try {
-    const configData = JSON.parse(readFileSync(configFilePath).toString() || '{}');
+    const configData = JSON.parse(configRawData);
     config = {
       configDir,
       configFilePath,
@@ -73,7 +90,10 @@ export const initConfig = (dirOverride) => {
   } catch (e) {
     console.error(`Error while parsing config file at ${configFilePath}`);
     console.error(e);
-    process.exit(1);
+    if (!isBrowser) {
+      // if it is running in a browser, do nothing and use default config
+      process.exit(1);
+    }
   }
 };
 
@@ -83,8 +103,12 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
   const newConfig = produce(config.configData, setter);
   if (newConfig !== config.configData) {
     config.configData = newConfig;
-    // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
-    writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
+    if (isBrowser) {
+      localStorage.setItem(config.configFilePath, JSON.stringify(config.configData));
+    } else {
+      // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
+      writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
+    }
   }
 };
 

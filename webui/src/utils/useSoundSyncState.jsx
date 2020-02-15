@@ -2,7 +2,7 @@ import React, {
   useCallback, useEffect, createContext, useReducer, useContext,
 } from 'react';
 
-import useFetch from 'use-http';
+import useFetch, { CachePolicies } from 'use-http';
 import { find, some, sortBy } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
@@ -19,6 +19,7 @@ const unregisterForPipe = createAction('unregisterForPipe');
 export const SoundSyncProvider = ({ children }) => {
   const { get } = useFetch({
     path: '/state',
+    cachePolicy: CachePolicies.NO_CACHE,
   });
 
   const [state, dispatch] = useReducer(handleActions({

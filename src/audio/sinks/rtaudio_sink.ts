@@ -3,7 +3,7 @@ import {
 } from 'audify';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_PER_SECONDS } from '../../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNKS_PER_SECONDS } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
@@ -41,7 +41,7 @@ export class RtAudioSink extends AudioSink {
       null, // input stream
       RtAudioFormat.RTAUDIO_SINT16, // format
       OPUS_ENCODER_RATE, // rate
-      OPUS_ENCODER_FRAME_SAMPLES_COUNT, // samples per frame
+      OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
       `soundsync-${source.name}`, // name
       null, // input callback, not used
       null,
@@ -58,7 +58,7 @@ export class RtAudioSink extends AudioSink {
         this.updateInfo({ latency: newLatency });
       }
     }, 2000);
-    const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_SAMPLES_PER_SECONDS) / 2);
+    const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_CHUNKS_PER_SECONDS) / 2);
     this.cleanStream = () => {
       clearInterval(writeInterval);
       clearInterval(latencyInterval);

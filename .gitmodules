@@ -1,0 +1,3 @@
+[submodule "webui/src/utils/opus_decoder/opus"]
+	path = webui/src/utils/opus_decoder/opus
+	url = https://git.xiph.org/opus.git

@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
 
+import { WebAudioSink } from './sinks/webaudio_sink';
 import { RtAudioSource } from './sources/rtaudio_source';
 import { AudioSource } from './sources/audio_source';
 import { LibrespotSource } from './sources/librespot_source';
@@ -77,7 +78,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
       // when auto detecting rtaudio devices on local host, we cannot compare with the uuid
       // so we need to compare with the device name to see if we need to update the existing
       // or add a new Source
-      const existingSource = _.find(this.sources, (source) => source instanceof RtAudioSource && source.deviceName === sourceDescriptor.deviceName);
+      const existingSource = _.find(this.sources, (source) => source instanceof RtAudioSource
+        && source.deviceName === sourceDescriptor.deviceName
+        && source.peerUuid === sourceDescriptor.peerUuid);
       if (existingSource) {
         existingSource.updateInfo(sourceDescriptor);
         return;
@@ -126,7 +129,18 @@ export class AudioSourcesSinksManager extends EventEmitter {
       // when auto detecting rtaudio devices on local host, we cannot compare with the uuid
       // so we need to compare with the device name to see if we need to update the existing
       // or add a new Sink
-      const existingSink = _.find(this.sinks, (sink) => sink instanceof RtAudioSink && sink.deviceName === sinkDescriptor.deviceName);
+      const existingSink = _.find(this.sinks, (sink) => sink instanceof RtAudioSink
+        && sink.deviceName === sinkDescriptor.deviceName
+        && sink.peerUuid === sinkDescriptor.peerUuid);
+      if (existingSink) {
+        existingSink.updateInfo(sinkDescriptor);
+        return;
+      }
+    }
+    if (sinkDescriptor.type === 'webaudio' && sinkDescriptor.peerUuid === getLocalPeer().uuid) {
+      // Only one webaudio sink per browser can be created, if trying to create a new local one, update the existing
+      const existingSink = _.find(this.sinks, (sink) => sink instanceof WebAudioSink
+        && sink.peerUuid === sinkDescriptor.peerUuid);
       if (existingSink) {
         existingSink.updateInfo(sinkDescriptor);
         return;
@@ -142,6 +156,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       sink = new RtAudioSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'null') {
       sink = new NullSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'webaudio') {
+      sink = new WebAudioSink(sinkDescriptor, this);
     } else {
       // @ts-ignore
       throw new Error(`Unknown sink type ${sinkDescriptor.type}`);

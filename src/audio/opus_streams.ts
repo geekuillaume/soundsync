@@ -4,7 +4,7 @@ import { Transform } from 'stream';
 import {
   AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder,
 } from '../utils/chunk_stream';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_FRAME_SAMPLES_COUNT, OPUS_ENCODER_SAMPLES_DURATION } from '../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION } from '../utils/constants';
 
 export class OpusEncodeStream extends Transform {
   encoder: OpusEncoder;
@@ -17,7 +17,7 @@ export class OpusEncodeStream extends Transform {
   }
 
   _transform(data: AudioChunkStreamOutput, encoding, callback) {
-    const frame = this.encoder.encode(data.chunk, OPUS_ENCODER_FRAME_SAMPLES_COUNT);
+    const frame = this.encoder.encode(data.chunk, OPUS_ENCODER_CHUNK_SAMPLES_COUNT);
     callback(null, {
       i: data.i,
       chunk: frame,
@@ -36,7 +36,18 @@ export class OpusDecodeStream extends Transform {
   }
 
   _transform(data: AudioChunkStreamOutput, encoding, callback) {
-    const decodedFrame = this.decoder.decode(data.chunk, OPUS_ENCODER_FRAME_SAMPLES_COUNT);
+    const decodedFrame: any = this.decoder.decode(data.chunk, OPUS_ENCODER_CHUNK_SAMPLES_COUNT);
+    // decoder returns a promise when used with the WASM version in the browser
+    // so we need to check if it is a promise or a chunk
+    if (decodedFrame.then) {
+      decodedFrame.then((chunk) => {
+        callback(null, {
+          i: data.i,
+          chunk,
+        });
+      });
+      return;
+    }
     const output: AudioChunkStreamOutput = {
       i: data.i,
       chunk: decodedFrame,
@@ -53,8 +64,8 @@ export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, so
   }
   const chunkStream = new AudioChunkStream(
     source,
-    OPUS_ENCODER_SAMPLES_DURATION,
-    OPUS_ENCODER_FRAME_SAMPLES_COUNT * channels * 2,
+    OPUS_ENCODER_CHUNK_DURATION,
+    OPUS_ENCODER_CHUNK_SAMPLES_COUNT * channels * 2,
   ); // *2 because this is 16bits so 2 bytes
   const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_AUDIO);
   const chunkEncoder = new AudioChunkStreamEncoder();
@@ -66,5 +77,7 @@ export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, so
 export const createAudioDecodedStream = (encodedStream: NodeJS.ReadableStream, channels: number) => {
   const chunkDecoderStream = new AudioChunkStreamDecoder();
   const opusDecoderStream = new OpusDecodeStream(OPUS_ENCODER_RATE, channels);
-  return encodedStream.pipe(chunkDecoderStream).pipe(opusDecoderStream);
+  return encodedStream
+    .pipe(chunkDecoderStream)
+    .pipe(opusDecoderStream);
 };

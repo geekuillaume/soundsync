@@ -20,6 +20,10 @@ export interface NullSinkDescriptor extends BaseSinkDescriptor {
   type: 'null';
 }
 
-export type SinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor;
+export interface WebAudioSinkDescriptor extends BaseSinkDescriptor {
+  type: 'webaudio';
+}
+
+export type SinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor;
 export type SinkInstanceDescriptor = SinkDescriptor & BaseSinkInstanceDescriptor;
 export type SinkType = SinkDescriptor['type'];

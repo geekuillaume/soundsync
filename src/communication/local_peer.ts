@@ -1,6 +1,5 @@
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
-import { getConfigField } from '../coordinator/config';
 
 class LocalPeer extends Peer {
   constructor({ uuid, name }) {
@@ -16,12 +15,13 @@ class LocalPeer extends Peer {
 }
 
 let localPeer: LocalPeer;
+export const registerLocalPeer = ({ name, uuid }) => {
+  localPeer = new LocalPeer({ name, uuid });
+};
+
 export const getLocalPeer = () => {
   if (!localPeer) {
-    localPeer = new LocalPeer({
-      name: getConfigField('name'),
-      uuid: getConfigField('uuid'),
-    });
+    throw new Error('Local peer is not registered yet');
   }
   return localPeer;
 };

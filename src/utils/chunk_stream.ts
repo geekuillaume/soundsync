@@ -41,6 +41,7 @@ export class AudioChunkStream extends Readable {
       const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
       const chunk = this.sourceStream.read(this.sampleSize) as Buffer;
       if (chunk === null) {
+        console.log('breaking here');
         break;
       }
       const chunkOutput: AudioChunkStreamOutput = {
@@ -49,10 +50,12 @@ export class AudioChunkStream extends Readable {
       };
       const canPush = this.push(chunkOutput);
       this.lastEmitTime = this.interval * chunkGlobalIndex;
-      if (!canPush) {
-        clearInterval(this.readInterval);
-        break;
-      }
+      // we should always be pushing to consume the audio source at the same speed and not block it
+      // if (!canPush) {
+      //   clearInterval(this.readInterval);
+      //   this.readInterval = null;
+      //   break;
+      // }
     }
   }
 }

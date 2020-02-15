@@ -2,7 +2,7 @@ import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
 import { PassThrough } from 'stream';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_SAMPLES_DURATION } from '../../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
   SinkDescriptor, SinkType, BaseSinkDescriptor, SinkInstanceDescriptor,
@@ -45,7 +45,7 @@ export abstract class AudioSink {
     this.peerUuid = descriptor.peerUuid;
     this.channels = 2;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
-    this.log(`Created new audio sink`);
+    this.log(`Created new audio sink of type ${descriptor.type}`);
   }
 
   get peer() {
@@ -88,6 +88,7 @@ export abstract class AudioSink {
     } catch (e) {
       this.decodedStream.end();
       this.log(`Error while starting sink`, e);
+      console.error(e);
     }
     this.decodedStream.on('data', this.handleAudioChunk);
     this.sourceStream.on('end', () => {
@@ -109,7 +110,7 @@ export abstract class AudioSink {
     this.buffer = {};
   }
 
-  private handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
+  handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
     // TODO: handle removing previous non read chunks
     this.buffer[chunk.i] = chunk.chunk;
   }
@@ -119,7 +120,7 @@ export abstract class AudioSink {
       return null;
     }
     const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + this.latency;
-    const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_SAMPLES_DURATION);
+    const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_CHUNK_DURATION);
     const chunk = this.buffer[correspondingChunkIndex];
     this.buffer[correspondingChunkIndex] = undefined;
     if (!chunk) {

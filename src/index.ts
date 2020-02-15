@@ -9,7 +9,10 @@ import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
-import { startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig } from './communication/coordinatorDetector';
+import {
+  startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig, publishService,
+} from './communication/coordinatorDetector';
+import { registerLocalPeer } from './communication/local_peer';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState');
@@ -27,6 +30,11 @@ const main = async () => {
     .completion().parse(process.argv.slice(1));
 
   initConfig(argv.configDir);
+  registerLocalPeer({
+    name: getConfigField('name'),
+    uuid: getConfigField('uuid'),
+  });
+
   const webrtcServer = getWebrtcServer();
   const audioSourcesSinksManager = getAudioSourcesSinksManager();
 
@@ -44,6 +52,7 @@ const main = async () => {
   if (coordinatorChoice.isCoordinator) {
     const httpServer = await createHttpServer(6512);
     webrtcServer.attachToSignalingServer(httpServer);
+    publishService(httpServer.port);
 
     const hostCoordinator = new HostCoordinator(webrtcServer, audioSourcesSinksManager);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

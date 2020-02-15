@@ -1,4 +1,4 @@
-import { EventEmitter, once } from 'events';
+import { EventEmitter } from 'events';
 import {
   ControllerMessage,
   LightMessage,
@@ -10,6 +10,7 @@ import {
   TimekeepResponse,
   SoundStateMessage,
 } from './messages';
+import { once } from '../utils/misc';
 
 export abstract class Peer extends EventEmitter {
   uuid: string;

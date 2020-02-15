@@ -1,4 +1,3 @@
-import { performance } from 'perf_hooks';
 import { RTCPeerConnection } from 'wrtc';
 import debug, { Debugger } from 'debug';
 import { onExit } from '../utils/on_exit';
@@ -9,6 +8,7 @@ import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { WebrtcServer } from './wrtc_server';
 import { DataChannelStream } from '../utils/datachannel_stream';
+import { now } from '../utils/time';
 
 export class WebrtcPeer extends Peer {
   connection: RTCPeerConnection;
@@ -62,11 +62,11 @@ export class WebrtcPeer extends Peer {
       this.log('Connected');
       this.emit('connected');
       this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
-      this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
+      this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
     });
 
-    this.controllerChannel.addEventListener('close', () => this.handleDisconnect());
-    onExit(() => this.handleDisconnect(true));
+    this.controllerChannel.addEventListener('close', () => this.disconnect());
+    onExit(() => this.disconnect(true));
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
@@ -77,7 +77,7 @@ export class WebrtcPeer extends Peer {
     this.log = debug(`soundsync:wrtcPeer:${uuid}`);
   }
 
-  private handleDisconnect = async (advertiseDisconnect = false) => {
+  disconnect = async (advertiseDisconnect = false) => {
     if (this.state === 'disconnected') {
       return;
     }
@@ -106,7 +106,7 @@ export class WebrtcPeer extends Peer {
       return;
     }
     if (message.type === 'disconnect') {
-      this.handleDisconnect();
+      this.disconnect();
       return;
     }
     this.log.extend(message.type)('Received controller message', message);
@@ -129,7 +129,7 @@ export class WebrtcPeer extends Peer {
   private missingPeerResponseTimeout;
   private lastHeartbeatReceivedTime;
   private handleReceivedHeartbeat(receivedPing = false) {
-    this.lastHeartbeatReceivedTime = performance.now();
+    this.lastHeartbeatReceivedTime = now();
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout);
       this.missingPeerResponseTimeout = null;
@@ -137,15 +137,15 @@ export class WebrtcPeer extends Peer {
     if (receivedPing) {
       this.sendControllerMessage({ type: 'pong' });
     }
-    this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
+    this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
   }
 
   private sendHeartbeat = () => {
-    if (performance.now() - this.lastHeartbeatReceivedTime < HEARTBEAT_INTERVAL) {
+    if (now() - this.lastHeartbeatReceivedTime < HEARTBEAT_INTERVAL) {
       return;
     }
     if (!this.missingPeerResponseTimeout) {
-      this.missingPeerResponseTimeout = setTimeout(this.handleDisconnect, NO_RESPONSE_TIMEOUT);
+      this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
     }
     this.sendControllerMessage({ type: 'ping' });
   }

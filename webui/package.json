@@ -13,6 +13,7 @@
     "@babel/core": "^7.8.3",
     "@babel/preset-env": "^7.8.3",
     "@babel/preset-react": "^7.8.3",
+    "@types/emscripten": "^1.39.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.20.1",
@@ -20,6 +21,7 @@
     "eslint-plugin-react": "^7.18.3",
     "eslint-plugin-react-hooks": "^1.7.0",
     "parcel-bundler": "^1.12.4",
+    "parcel-plugin-static-files-copy": "^2.3.1",
     "sass": "^1.25.0"
   },
   "dependencies": {
@@ -27,8 +29,10 @@
     "@material-ui/icons": "^4.5.1",
     "bulma": "^0.8.0",
     "classnames": "^2.2.6",
+    "events": "^3.1.0",
     "immer": "^5.3.2",
     "lodash-es": "^4.17.15",
+    "perf_hooks": "^0.0.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "redux-actions": "^2.6.5",
@@ -38,5 +42,14 @@
   },
   "browserslist": [
     "last 1 Chrome versions"
-  ]
+  ],
+  "alias": {
+    "perf_hooks": "/utils/perf_hooks.js",
+    "speex-resampler": "/utils/speex-resampler.js",
+    "audify": "/utils/audify.js"
+  },
+  "staticFiles": {
+    "staticPath": "src/static",
+    "watcherGlob": "**"
+  }
 }

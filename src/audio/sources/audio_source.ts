@@ -26,7 +26,7 @@ export abstract class AudioSource {
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
   private directSourceStream: NodeJS.ReadableStream; // internal stream from the source
   startedAt: number;
-  latency = 500;
+  latency = 2000;
 
   abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
@@ -85,11 +85,8 @@ export abstract class AudioSource {
       });
       this.directSourceStream.pipe(this.encodedAudioStream);
     }
-    // we use a PassThrough here instead of sending this.encodedAudioStream to simplify the detection of a stream close event
-    const sourceStream = new PassThrough();
     // TODO count stream references to close encodedStream if no usage
-    this.encodedAudioStream.pipe(sourceStream);
-    return sourceStream;
+    return this.encodedAudioStream;
   }
 
   toObject = () => ({
