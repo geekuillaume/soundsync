@@ -4,12 +4,14 @@
 /* eslint-disable camelcase */
 import Opus from './opus_decoder';
 
-// declare function _opus_decoder_create(
-//   samplingRate: number, channels: number, error_ptr: number): number;
-// declare function _opus_decode_float(
-//   handle: number, data: number, len: number,
-//   pcm: number, frameSize: number, decode_fec: number): number;
-// declare function _opus_decoder_destroy(handle: number): void;
+interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
+  _opus_decoder_create(samplingRate: number, channels: number, error_ptr: number): number;
+  _opus_decode_float(
+      handle: number, data: number, len: number,
+      pcm: number, frameSize: number, decode_fec: number): number;
+  _opus_decoder_destroy(handle: number): void;
+  getValue(ptr: number, type: string): any;
+}
 
 export class OpusDecoder {
   worker: Worker;
@@ -19,15 +21,15 @@ export class OpusDecoder {
   buf: Uint8Array;
   pcm: Float32Array;
   frameSize: number;
-  module: EmscriptenModule;
+  module: EmscriptenModuleOpusEncoder;
 
-  constructor(readonly sampleRate: number, readonly channels: number, readonly application: string) {
-  }
+  // eslint-disable-next-line no-empty-function
+  constructor(readonly sampleRate: number, readonly channels: number, readonly application: string) {}
 
   // The promise decorator is necessarry because else the js engine will try to call .then in loop
   // and so will create an infinite loop
   setup = () => new Promise((resolve) => {
-    Opus().then((Module: EmscriptenModule) => {
+    Opus().then((Module: EmscriptenModuleOpusEncoder) => {
       this.module = Module;
       const err = this.module._malloc(4);
       this.handle = this.module._opus_decoder_create(this.sampleRate, this.channels, err);
