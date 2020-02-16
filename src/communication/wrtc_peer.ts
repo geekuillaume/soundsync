@@ -15,7 +15,7 @@ export class WebrtcPeer extends Peer {
   controllerChannel: RTCDataChannel;
   log: Debugger;
   private heartbeatInterval;
-  private datachannels: RTCDataChannel[] = [];
+  private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
   private webrtcServer: WebrtcServer;
   connectHandler: (peer: WebrtcPeer) => Promise<void>;
 
@@ -158,6 +158,9 @@ export class WebrtcPeer extends Peer {
   }
 
   createAudioSourceChannel = async (sourceUuid: string) => {
+    if (this.datachannelsBySourceUuid[sourceUuid]) {
+      throw new Error('A data channel already exist for this source, this sould not happen as it is managed by the audio source');
+    }
     this.log(`Requesting channel for source ${sourceUuid}`);
     const channel = this.connection.createDataChannel(`audioSource:${sourceUuid}`, AUDIO_CHANNEL_OPTIONS);
     if (channel.readyState !== 'open') {
@@ -165,16 +168,24 @@ export class WebrtcPeer extends Peer {
         channel.onopen = resolve;
       });
     }
-    this.datachannels.push(channel);
+    this.datachannelsBySourceUuid[sourceUuid] = channel;
     // TODO: check that this isn't a memory leak when closing the channel
     return new DataChannelStream(channel);
+  }
+
+  closeAudioSourceChanel = (sourceUuid: string) => {
+    if (!this.datachannelsBySourceUuid[sourceUuid]) {
+      throw new Error('No channel for this source exist');
+    }
+    const datachannel = this.datachannelsBySourceUuid[sourceUuid];
+    datachannel.close();
+    delete this.datachannelsBySourceUuid[sourceUuid];
   }
 
   private handleRequestedAudioSourceChannel = async (e: RTCDataChannelEvent) => {
     const { channel } = e;
     const sourceUuid = channel.label.match(/^audioSource:(.*)$/)[1];
     this.log(`Received request for source ${sourceUuid}`);
-    this.datachannels.push(channel);
     const message = {
       peer: this,
       sourceUuid,

@@ -24,11 +24,11 @@ export abstract class AudioSource {
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
-  private directSourceStream: NodeJS.ReadableStream; // internal stream from the source
+  protected directSourceStream: NodeJS.ReadableStream; // internal stream from the source
   startedAt: number;
   latency = 2000;
 
-  abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
+  protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
   constructor(descriptor: SourceDescriptor, manager: AudioSourcesSinksManager) {
     this.manager = manager;
@@ -74,12 +74,19 @@ export abstract class AudioSource {
     this.log(`Starting audio source`);
     if (!this.encodedAudioStream) {
       this.encodedAudioStream = new PassThrough();
+      this.encodedAudioStream.on('end', () => {
+        // when no more sink is reading from the stream
+        this.handleNoMoreReadingSink();
+      });
       if (this.local) {
         this.updateInfo({ startedAt: getCurrentSynchronizedTime() });
       }
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.on('finish', () => {
-        this.encodedAudioStream.end();
+        // when the readable stream finishes => when the source program exit / source file finishes
+        if (this.encodedAudioStream) {
+          this.encodedAudioStream.end();
+        }
         delete this.encodedAudioStream;
         delete this.directSourceStream;
       });
@@ -87,6 +94,12 @@ export abstract class AudioSource {
     }
     // TODO count stream references to close encodedStream if no usage
     return this.encodedAudioStream;
+  }
+
+  protected handleNoMoreReadingSink() {
+    // by default do nothing
+    // this keeps process like librespot running in the background
+    // but can be changed by other sources like remote_source to stop receiving data
   }
 
   toObject = () => ({
