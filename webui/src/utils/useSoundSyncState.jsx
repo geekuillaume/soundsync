@@ -19,7 +19,6 @@ const unregisterForPipe = createAction('unregisterForPipe');
 export const SoundSyncProvider = ({ children }) => {
   const { get } = useFetch({
     path: '/state',
-    cachePolicy: CachePolicies.NO_CACHE,
   });
 
   const [state, dispatch] = useReducer(handleActions({
