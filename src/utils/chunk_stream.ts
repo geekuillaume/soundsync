@@ -41,7 +41,6 @@ export class AudioChunkStream extends Readable {
       const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
       const chunk = this.sourceStream.read(this.sampleSize) as Buffer;
       if (chunk === null) {
-        console.log('breaking here');
         break;
       }
       const chunkOutput: AudioChunkStreamOutput = {
