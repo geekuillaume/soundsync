@@ -46,5 +46,6 @@ module.exports = {
     "no-plusplus": 0,
     "no-empty": ["error", { "allowEmptyCatch": true }],
     "no-constant-condition": 0,
+    "prefer-destructuring": 0,
   },
 };
