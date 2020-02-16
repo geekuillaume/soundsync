@@ -1,12 +1,5 @@
 import * as React from 'react';
 
-import { getWebrtcServer } from '../serverSrc/communication/wrtc_server';
-import { registerLocalPeer, getLocalPeer } from '../serverSrc/communication/local_peer';
-import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
-import { ClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
-import { initConfig, getConfig, getConfigField } from '../serverSrc/coordinator/config';
-import { waitForFirstTimeSync, attachTimekeeperClient } from '../serverSrc/coordinator/timekeeper';
-
 let isInitialized = false;
 
 const initialize = async () => {
@@ -15,9 +8,25 @@ const initialize = async () => {
   }
   isInitialized = true;
 
+  const [
+    { getWebrtcServer },
+    { registerLocalPeer, getLocalPeer },
+    { getAudioSourcesSinksManager },
+    { ClientCoordinator },
+    { initConfig, getConfigField },
+    { waitForFirstTimeSync, attachTimekeeperClient },
+  ] = await Promise.all([
+    import('../serverSrc/communication/wrtc_server'),
+    import('../serverSrc/communication/local_peer'),
+    import('../serverSrc/audio/audio_sources_sinks_manager'),
+    import('../serverSrc/coordinator/client_coordinator'),
+    import('../serverSrc/coordinator/config'),
+    import('../serverSrc/coordinator/timekeeper'),
+  ]);
+
   initConfig();
   registerLocalPeer({
-    name: 'webclient',
+    name: 'Web page',
     uuid: getConfigField('uuid'),
   });
 
@@ -33,14 +42,12 @@ const initialize = async () => {
 
   audioSourcesSinksManager.addSink({
     type: 'webaudio',
-    name: 'WebAudio',
+    name: 'Web Page Output',
     peerUuid: getLocalPeer().uuid,
   });
 };
 
 export const WebPlayer = () => {
   initialize().catch((e) => console.error(e));
-  return (
-    <div>coucou</div>
-  );
+  return false;
 };
