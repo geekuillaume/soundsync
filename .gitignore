@@ -4,3 +4,5 @@ dist
 tmp
 bin
 app
+tmp*
+test.pcm
