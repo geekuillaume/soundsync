@@ -1,15 +1,21 @@
 import React from 'react';
 import classnames from 'classnames';
-import { usePeer, useSources, useRegisterForPipe } from '../utils/useSoundSyncState';
+import { Zoom } from '@material-ui/core';
+import {
+  usePeer, useSources, useRegisterForPipe, useShowHidden,
+} from '../utils/useSoundSyncState';
 import { useEditAudioStreamModal } from './editModal';
 
 import SpotifyLogo from '../res/spotify.svg';
 import nullSinkLogo from '../res/null.svg';
-import { nameWithoutHiddenMeta } from '../utils/hiddenUtils';
+import computerIcon from '../res/computer.svg';
+import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
+import { HiddenIndicator } from './utils/HiddenIndicator';
 
 const logos = {
   librespot: SpotifyLogo,
   null: nullSinkLogo,
+  rtaudio: computerIcon,
 };
 
 export const Source = ({ source }) => {
@@ -19,23 +25,36 @@ export const Source = ({ source }) => {
   const sources = useSources();
   const sourceIndex = sources.indexOf(source);
   const { handleOpen, anchor, modal } = useEditAudioStreamModal('source', source);
+  const hidden = isHidden(source.name);
+  const shouldShowHidden = useShowHidden();
 
   return (
-    <div
-      className={classnames('source-container', !shouldShow && 'not-selectable')}
-      style={{ gridRow: sourceIndex + 2 }}
-      ref={anchor}
+    <Zoom
+      in={!hidden || shouldShowHidden}
+      mountOnEnter
+      unmountOnExit
+      appear
+      style={{
+        transformOrigin: '0 50%',
+      }}
     >
       <div
-        className="handle"
-        onClick={registerForPipe}
-      />
-      <div className="box source-box" onClick={handleOpen}>
-        <img src={sourceLogo} className="source-logo" />
-        <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
-        <p className="peer-name">{peer.name}</p>
+        className={classnames('source-container', !shouldShow && 'not-selectable')}
+        style={{ gridRow: sourceIndex + 2 }}
+        ref={anchor}
+      >
+        <div
+          className="handle"
+          onClick={registerForPipe}
+        />
+        <div className="box source-box" onClick={handleOpen}>
+          <img src={sourceLogo} className="source-logo" />
+          <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
+          <p className="peer-name">{peer.name}</p>
+          {hidden && <HiddenIndicator />}
+        </div>
+        {modal}
       </div>
-      {modal}
-    </div>
+    </Zoom>
   );
 };

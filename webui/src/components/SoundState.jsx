@@ -1,25 +1,17 @@
-import React, { useState } from 'react';
-import { IconButton, withStyles } from '@material-ui/core';
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-import { useSinks, useSources, usePipes } from '../utils/useSoundSyncState';
+import React from 'react';
+import AddIcon from '@material-ui/icons/Add';
+
+import {
+  useSinks, useSources, usePipes,
+} from '../utils/useSoundSyncState';
 import { Source } from './Source';
 import { Sink } from './Sink';
 import { Pipe } from './Pipe';
 
-const HiddenButton = withStyles(() => ({
-  root: {
-    float: 'right',
-    marginTop: -12,
-  },
-}))(IconButton);
-
 export const SoundState = () => {
-  const [showHidden, setShowHidden] = useState(false);
   const pipes = usePipes();
-  const sinks = useSinks({ withHidden: showHidden });
-  const sources = useSources({ withHidden: showHidden });
-
+  const sinks = useSinks();
+  const sources = useSources();
 
   return (
     <div className="container">
@@ -27,9 +19,6 @@ export const SoundState = () => {
         <p className="sources-title">Sources</p>
         <div className="sinks-title">
           Speakers
-          <HiddenButton aria-label="Show hidden" onClick={() => setShowHidden(!showHidden)}>
-            {showHidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
-          </HiddenButton>
         </div>
         {sinks && (
           <>
@@ -38,6 +27,8 @@ export const SoundState = () => {
             <SinksList sinks={sinks} />
           </>
         )}
+        {/* <div className="add-source"><AddIcon fontSize="large" /></div>
+        <div className="add-sink"><AddIcon fontSize="large" /></div> */}
       </div>
     </div>
   );

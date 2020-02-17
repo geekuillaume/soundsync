@@ -2,19 +2,24 @@ import React, {
   useCallback, useEffect, createContext, useReducer, useContext,
 } from 'react';
 
-import useFetch, { CachePolicies } from 'use-http';
+import useFetch from 'use-http';
 import { find, some, sortBy } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
 
-const initialState = { soundsyncState: {}, registeringForPipe: { type: null, uuid: null } };
+const initialState = {
+  soundsyncState: {},
+  registeringForPipe: { type: null, uuid: null },
+  showHidden: false,
+};
 
 const soundSyncContext = createContext({ state: initialState, dispatch: (...args) => {}, refreshData: () => {} });
 
 const stateUpdate = createAction('stateUpdate');
 const registerForPipe = createAction('registerForPipe');
 const unregisterForPipe = createAction('unregisterForPipe');
+const changeHiddenVisibility = createAction('changeHiddenVisibility');
 
 export const SoundSyncProvider = ({ children }) => {
   const { get } = useFetch({
@@ -31,6 +36,9 @@ export const SoundSyncProvider = ({ children }) => {
     }),
     [unregisterForPipe.toString()]: produce((s) => {
       s.registeringForPipe = {};
+    }),
+    [changeHiddenVisibility.toString()]: produce((s, { payload }) => {
+      s.showHidden = payload;
     }),
   }, initialState), initialState);
 
@@ -65,7 +73,7 @@ const audioSourceSinkGetter = (collection, withHidden) => {
 export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sinks, withHidden);
 export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sources, withHidden);
 export const usePipes = () => useSoundSyncState().pipes || [];
-export const useIsSinkPiped = (uuid) => some(usePipes(), { sinkUuid: uuid });
+export const useIsPiped = (uuid) => some(usePipes(), (p) => p.sinkUuid === uuid || p.sourceUuid === uuid);
 
 export const usePeer = (uuid) => find(useSoundSyncState().peers, { uuid });
 
@@ -128,4 +136,10 @@ export const useAudioStreamEditAction = () => {
     await put(`/${type}/${id}`, body);
     refreshData();
   }, []);
+};
+
+export const useShowHidden = () => useContext(soundSyncContext).state.showHidden;
+export const useSetHiddenVisibility = () => {
+  const { dispatch } = useContext(soundSyncContext);
+  return (...args) => dispatch(changeHiddenVisibility(...args));
 };

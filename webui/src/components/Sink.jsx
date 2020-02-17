@@ -1,49 +1,66 @@
 import React from 'react';
 import classnames from 'classnames';
+import { Zoom } from '@material-ui/core';
 import {
-  usePeer, useSinks, useRegisterForPipe, useIsSinkPiped, useUnpipeAction,
+  usePeer, useSinks, useRegisterForPipe, useIsPiped, useUnpipeAction, useShowHidden,
 } from '../utils/useSoundSyncState';
 import { useEditAudioStreamModal } from './editModal';
 
 import speaker from '../res/speaker.svg';
 import nullSinkLogo from '../res/null.svg';
-import { nameWithoutHiddenMeta } from '../utils/hiddenUtils';
+import browserIcon from '../res/browser.svg';
+import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
+import { HiddenIndicator } from './utils/HiddenIndicator';
 
 const logos = {
   rtaudio: speaker,
   null: nullSinkLogo,
+  webaudio: browserIcon,
 };
 
 export const Sink = ({ sink }) => {
   const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('sink', sink.uuid);
-  const isPiped = useIsSinkPiped(sink.uuid);
+  const isPiped = useIsPiped(sink.uuid);
   const handleUnpipe = useUnpipeAction(sink.uuid);
   const peer = usePeer(sink.peerUuid);
   const { handleOpen, anchor, modal } = useEditAudioStreamModal('sink', sink);
   const sinks = useSinks();
   const sinkIndex = sinks.indexOf(sink);
   const sinkLogo = logos[sink.type];
+  const hidden = isHidden(sink.name);
+  const shouldShowHidden = useShowHidden();
 
   return (
-    <div
-      className={classnames('sink-container', !shouldShow && 'not-selectable')}
-      style={{ gridRow: sinkIndex + 2 }}
-      ref={anchor}
+    <Zoom
+      in={!hidden || shouldShowHidden}
+      mountOnEnter
+      unmountOnExit
+      appear
+      style={{
+        transformOrigin: '100% 50%',
+      }}
     >
       <div
-        className="handle"
-        onClick={registerForPipe}
-      />
-      <a
-        className={classnames('unpipe-button delete is-large', { active: isPiped && isSelectedElement })}
-        onClick={handleUnpipe}
-      />
-      <div className="box sink-box" onClick={handleOpen}>
-        <img src={sinkLogo} className="sink-logo" />
-        <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
-        <p className="peer-name">{peer.name}</p>
+        className={classnames('sink-container', !shouldShow && 'not-selectable')}
+        style={{ gridRow: sinkIndex + 2 }}
+        ref={anchor}
+      >
+        <div
+          className="handle"
+          onClick={registerForPipe}
+        />
+        <a
+          className={classnames('unpipe-button delete is-large', { active: isPiped && isSelectedElement })}
+          onClick={handleUnpipe}
+        />
+        <div className="box sink-box" onClick={handleOpen}>
+          <img src={sinkLogo} className="sink-logo" />
+          <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
+          <p className="peer-name">{peer.name}</p>
+          {hidden && <HiddenIndicator position="left" />}
+        </div>
+        {modal}
       </div>
-      {modal}
-    </div>
+    </Zoom>
   );
 };

@@ -1,12 +1,13 @@
 import React, { useRef, useEffect } from 'react';
 import { find } from 'lodash-es';
-import { useSinks, useSources } from '../utils/useSoundSyncState';
+import { useSinks, useSources, useShowHidden } from '../utils/useSoundSyncState';
+import { isHidden } from '../utils/hiddenUtils';
 
 function setupCanvas(canvas) {
   // Get the device pixel ratio, falling back to 1.
   const dpr = window.devicePixelRatio || 1;
   // Get the size of the canvas in CSS pixels.
-  const rect = canvas.getBoundingClientRect();
+  const rect = canvas.parentElement.getBoundingClientRect();
   // Give the canvas pixel dimensions of their CSS
   // size * the device pixel ratio.
   canvas.width = rect.width * dpr;
@@ -19,13 +20,11 @@ function setupCanvas(canvas) {
 }
 
 export const Pipe = ({ pipe }) => {
+  const showHidden = useShowHidden();
   const sources = useSources();
   const sinks = useSinks();
   const sink = find(sinks, { uuid: pipe.sinkUuid });
   const source = find(sources, { uuid: pipe.sourceUuid });
-  if (!sink || !source) {
-    return false;
-  }
   const sinkIndex = sinks.indexOf(sink);
   const sourceIndex = sources.indexOf(source);
 
@@ -35,7 +34,17 @@ export const Pipe = ({ pipe }) => {
   const canvasRef = useRef();
   const ctxRef = useRef();
 
+  let shouldShow = true;
+  if (!sink || !source) {
+    shouldShow = false;
+  } else if (!showHidden && (isHidden(sink.name) || isHidden(source.name))) {
+    shouldShow = false;
+  }
+
   useEffect(() => {
+    if (!shouldShow) {
+      return;
+    }
     const initCanvas = () => {
       if (!canvasRef.current) {
         requestAnimationFrame(initCanvas);
@@ -47,9 +56,12 @@ export const Pipe = ({ pipe }) => {
     return () => {
       document.removeEventListener('resize', initCanvas);
     };
-  }, []);
+  }, [shouldShow]);
 
   useEffect(() => {
+    if (!shouldShow) {
+      return;
+    }
     let animationFrameRequest;
     let offset = 0;
     const draw = () => {
@@ -82,9 +94,9 @@ export const Pipe = ({ pipe }) => {
         cancelAnimationFrame(animationFrameRequest);
       }
     };
-  }, []);
+  }, [shouldShow]);
 
-  return (
+  return shouldShow && (
     <div
       className="pipe"
       style={{

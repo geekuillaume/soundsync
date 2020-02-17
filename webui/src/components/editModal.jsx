@@ -13,7 +13,9 @@ import IconButton from '@material-ui/core/IconButton';
 // import Typography from '@material-ui/core/Typography';
 // import Slide from '@material-ui/core/Slide';
 import EditIcon from '@material-ui/icons/Edit';
-import { useAudioStreamEditAction } from '../utils/useSoundSyncState';
+import {
+  useAudioStreamEditAction, useRegisterForPipe, useIsPiped, useUnpipeAction,
+} from '../utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 
 // const Transition = React.forwardRef((props, ref) => <Slide direction="left" ref={ref} {...props} />);
@@ -124,6 +126,18 @@ export const useEditAudioStreamModal = (type, audioStream) => {
     await edit(type, audioStream.uuid, { name: newName });
     handleClose();
   };
+  const registerForPipe = useRegisterForPipe(type, audioStream.uuid)[2];
+  const handleLink = () => {
+    handleClose();
+    registerForPipe();
+  };
+  const handleUnpipe = useUnpipeAction(audioStream.uuid);
+  const handleUnlink = () => {
+    handleUnpipe();
+    handleClose();
+  };
+
+  const isPiped = useIsPiped(audioStream.uuid);
 
   const modal = (
     <EditPopover
@@ -162,6 +176,8 @@ export const useEditAudioStreamModal = (type, audioStream) => {
         )}
       {!renameOpen && (
         <>
+          <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
+          {type === 'sink' && isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
         </>

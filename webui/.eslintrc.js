@@ -45,5 +45,6 @@ module.exports = {
     "no-constant-condition": 0,
     "spaced-comment": 0,
     "no-useless-constructor": 0,
+    "arrow-body-style": 0,
   },
 };
