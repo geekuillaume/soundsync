@@ -3,6 +3,7 @@ import _ from 'lodash';
 import superagent from 'superagent';
 import debug from 'debug';
 
+import { SOUNDSYNC_VERSION } from '../utils/constants';
 import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
@@ -35,7 +36,12 @@ export class WebrtcServer extends EventEmitter {
     });
 
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
-      const { name, uuid, sdp } = ctx.request.body;
+      const {
+        name, uuid, sdp, version,
+      } = ctx.request.body;
+      if (version !== SOUNDSYNC_VERSION) {
+        ctx.throw(`Different version of Soundsync, please the client or the coordinator.\nCoordinator version: ${SOUNDSYNC_VERSION}\nClient version: ${version}`, 400);
+      }
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
       const existingPeer = this.peers[uuid];
       if (existingPeer && existingPeer instanceof WebrtcPeer) {
@@ -95,18 +101,32 @@ export class WebrtcServer extends EventEmitter {
         await p.connection.setLocalDescription(offer);
         await waitUntilIceGatheringStateComplete(p.connection);
 
-        const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
-          .send({
-            name,
-            uuid: getLocalPeer().uuid,
-            sdp: p.connection.localDescription,
-          });
-
-        p.setUuid(uuid);
-        p.name = coordinatorName;
-        p.log(`Got response from other peer http server`);
-        await p.connection.setRemoteDescription(sdp);
-        await once(p, 'connected');
+        const connect = async () => {
+          try {
+            const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${coordinatorHost}/connect_webrtc_peer`)
+              .send({
+                name,
+                uuid: getLocalPeer().uuid,
+                sdp: p.connection.localDescription,
+                version: SOUNDSYNC_VERSION,
+              });
+            p.setUuid(uuid);
+            p.name = coordinatorName;
+            p.log(`Got response from other peer http server`);
+            await p.connection.setRemoteDescription(sdp);
+            await once(p, 'connected');
+          } catch (e) {
+            if (e.status) {
+              console.error('Error while connecting to coordinator');
+              console.error(e.response.text);
+              process.exit(1);
+            }
+            console.error('Cannot connect to coordinator, retrying in 5 seconds');
+            console.error(e);
+            setTimeout(connect, 5000);
+          }
+        };
+        return connect();
       },
     });
 
