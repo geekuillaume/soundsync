@@ -71,7 +71,7 @@ export const Pipe = ({ pipe }) => {
 
         ctx.beginPath();
         ctx.moveTo(10, ((sourceIndex - rowStart) * 130) + 50);
-        ctx.lineTo(width - 10, ((sinkIndex - rowStart) * 50) + 50);
+        ctx.lineTo(width - 10, ((sinkIndex - rowStart) * 130) + 50);
         ctx.stroke();
       }
       animationFrameRequest = requestAnimationFrame(draw);
