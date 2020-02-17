@@ -112,13 +112,14 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
   }
 };
 
-export const getConfigField = <T extends keyof ConfigData>(field: T) => {
-  if (config.configData[field] === undefined) {
-    setConfig((configData) => {
-      configData[field] = defaultConfig[field];
+export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigData) => {
+  const configData = c || config.configData;
+  if (configData[field] === undefined) {
+    setConfig((data) => {
+      data[field] = defaultConfig[field];
     });
   }
-  return config.configData[field];
+  return configData[field];
 };
 
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
@@ -128,12 +129,12 @@ export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item
   setConfig((c) => {
     let existingItem;
     if (field === 'pipes') {
-      existingItem = _.find(getConfigField(field), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
+      existingItem = _.find(getConfigField(field, c), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
     } else {
-      existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
+      existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
     }
     if (existingItem) {
-      _.assign(existingItem, item);
+      Object.assign(existingItem, item);
     } else {
       c[field] = [...getConfigField(field), item];
     }
