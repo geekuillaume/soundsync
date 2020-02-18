@@ -128,6 +128,11 @@ export class HostCoordinator {
     if (_.some(this.pipes, (p) => p.sourceUuid === source.uuid && p.sinkUuid === sink.uuid)) {
       return;
     }
+    const existingPipe = _.find(this.pipes, (p) => p.sinkUuid === sink.uuid);
+    if (existingPipe) {
+      deleteConfigArrayItem('pipes', existingPipe);
+      this.pipes = getConfigField('pipes');
+    }
     const pipe: PipeDescriptor = {
       sourceUuid: source.uuid,
       sinkUuid: sink.uuid,
@@ -143,8 +148,8 @@ export class HostCoordinator {
     if (!pipe) {
       return;
     }
-    this.pipes = this.pipes.filter((p) => pipe !== p);
     deleteConfigArrayItem('pipes', pipe);
+    this.pipes = getConfigField('pipes');
     this.broadcastState();
   }
 }
