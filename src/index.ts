@@ -1,5 +1,6 @@
 import yargs from 'yargs';
 import debug from 'debug';
+import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
 import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/timekeeper';
 import { createHttpServer } from './communication/http_server';
 import { getWebrtcServer } from './communication/wrtc_server';
@@ -14,6 +15,7 @@ import {
 } from './communication/coordinatorDetector';
 import { registerLocalPeer } from './communication/local_peer';
 
+
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState');
 }
@@ -27,7 +29,12 @@ const main = async () => {
       type: 'string',
       description: 'Directory where the config and cache files can be found, if it doesn\'t exists it will be created',
     })
-    .completion().parse(process.argv.slice(1));
+    .option('launchAtStartup', {
+      type: 'boolean',
+      description: 'Register this process to be launched at startup',
+    })
+    .completion()
+    .parse(process.argv.slice(1));
 
   initConfig(argv.configDir);
   registerLocalPeer({
@@ -41,6 +48,12 @@ const main = async () => {
   audioSourcesSinksManager.addFromConfig();
   if (getConfigField('autoDetectAudioDevices')) {
     audioSourcesSinksManager.autodetectDevices();
+  }
+
+  if (argv.launchAtStartup === true) {
+    await enableAutolaunchAtStartup();
+  } else if (argv.launchAtStartup === false) {
+    await disableAutolaunchAtStartup();
   }
 
   createSystray();

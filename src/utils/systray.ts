@@ -1,10 +1,15 @@
-// import open from 'open';
+import _ from 'lodash';
+import open from 'open';
 import { resolve } from 'path';
-import AutoLaunch from 'auto-launch';
 import {
   getDetectedCoordinators, onDetectionChange, actAsCoordinator, actAsClientOfCoordinator,
 } from '../communication/coordinatorDetector';
 import { isCoordinator, getWebrtcServer } from '../communication/wrtc_server';
+import {
+  isAutolaunchedAtStartup,
+  disableAutolaunchAtStartup,
+  enableAutolaunchAtStartup,
+} from './launchAtStartup';
 
 let updateMenu;
 
@@ -16,10 +21,6 @@ export const refreshMenu = async () => {
 
 export const createSystray = () => {
   try {
-    const autoLauncher = new AutoLaunch({
-      name: 'Soundsync',
-    });
-
     // eslint-disable-next-line
     const { app, Menu, Tray } = require('electron');
     app.on('ready', () => {
@@ -27,24 +28,30 @@ export const createSystray = () => {
         const tray = new Tray(resolve(__dirname, '../../res/logo_small.png'));
 
         const onAutostartClick = async () => {
-          if (await autoLauncher.isEnabled()) {
-            await autoLauncher.disable();
+          if (await isAutolaunchedAtStartup()) {
+            await disableAutolaunchAtStartup();
           } else {
-            await autoLauncher.enable();
+            await enableAutolaunchAtStartup();
           }
           await refreshMenu();
         };
 
         updateMenu = async () => {
-          const template: any = [
+          const template: any = _.compact([
             { type: 'separator' },
+            getWebrtcServer().coordinatorPeer && {
+              label: 'Open Controller',
+              click: () => {
+                open(`http://${getWebrtcServer().coordinatorPeer.host}`);
+              },
+            },
             {
-              id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await autoLauncher.isEnabled(),
+              id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await isAutolaunchedAtStartup(),
             },
             {
               id: 'exit', label: 'Exit', type: 'normal', click: () => process.exit(0),
             },
-          ];
+          ]);
 
           if (isCoordinator()) {
             template.unshift({ label: 'Started as coordinator', enabled: false });
@@ -67,12 +74,8 @@ export const createSystray = () => {
             });
           }
 
-          // @ts-ignore
           const contextMenu = Menu.buildFromTemplate(template);
 
-          // { label: 'Open controller', type: 'normal', click: () => {
-          //   open('http://127.0.0.1:6512');
-          // } },
           tray.setContextMenu(contextMenu);
         };
 
