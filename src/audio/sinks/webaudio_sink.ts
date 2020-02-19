@@ -50,7 +50,7 @@ export class WebAudioSink extends AudioSink {
     this.workletNode = new RawPcmPlayerWorklet(this.context);
     this.workletNode.connect(this.context.destination);
 
-    await this.context.resume();
+    this.context.resume();
     // The context can be blocked from starting because of new webaudio changes
     // we need to wait for a user input to start it
     if (this.context.state === 'suspended') {
