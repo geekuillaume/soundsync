@@ -13,7 +13,6 @@ export class LibrespotSource extends AudioSource {
 
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
-  testPcm: NodeJS.ReadableStream;
 
   constructor(descriptor: LibresportSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -33,16 +32,16 @@ export class LibrespotSource extends AudioSource {
       ] : []),
     ]);
     const librespotLog = this.log.extend('librespot');
-    // this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
+    this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
     this.librespotProcess.on('exit', (code) => {
       this.log('Librespot excited with code:', code);
     });
-    this.testPcm = createReadStream('./test.pcm');
+    this.start(); // start right away to consume librespot chunks even when there is no sink connected
   }
 
   _getAudioEncodedStream() {
-    return createAudioEncodedStream(this.testPcm, this.rate, this.channels);
-    // return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
+    // return createAudioEncodedStream(createReadStream('./test.pcm'), this.rate, this.channels);
+    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }
 
   toDescriptor: (() => LibresportSourceDescriptor) = () => ({
