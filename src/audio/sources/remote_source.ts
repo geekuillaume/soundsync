@@ -45,6 +45,9 @@ export class RemoteSource extends AudioSource {
       throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
     }
     peer.closeAudioSourceChanel(this.uuid);
+    if (this.encodedAudioStream) {
+      this.encodedAudioStream.destroy();
+    }
     delete this.encodedAudioStream;
     delete this.directSourceStream;
   }

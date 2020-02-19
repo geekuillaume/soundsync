@@ -2,6 +2,7 @@ import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
 import { PassThrough } from 'stream';
+import eos from 'end-of-stream';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
@@ -86,13 +87,12 @@ export abstract class AudioSink {
     try {
       await this._startSink(this.pipedSource);
     } catch (e) {
-      this.decodedStream.end();
+      this.decodedStream.destroy();
       this.log(`Error while starting sink`, e);
-      console.error(e);
     }
     this.decodedStream.on('data', this.handleAudioChunk);
-    this.sourceStream.on('end', () => {
-      this.log('Decoded stream has closed, unlinking');
+    eos(this.sourceStream, () => {
+      this.log('Source stream has closed, unlinking');
       this.unlinkSource();
     });
   }
@@ -103,9 +103,10 @@ export abstract class AudioSink {
     }
     this._stopSink();
     delete this.pipedSource;
-    this.sourceStream.end();
+    this.sourceStream.destroy();
     delete this.sourceStream;
     this.decodedStream.off('data', this.handleAudioChunk);
+    this.decodedStream.destroy();
     delete this.decodedStream;
     this.buffer = {};
   }
