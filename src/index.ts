@@ -17,7 +17,7 @@ import { registerLocalPeer } from './communication/local_peer';
 
 
 if (!process.env.DEBUG) {
-  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState');
+  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot');
 }
 const l = debug('soundsync');
 
