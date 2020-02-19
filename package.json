@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
+  "homepage": "https://github.com/geekuillaume/soundsync",
   "main": "app/index.js",
   "bin": "app/index.js",
   "scripts": {
@@ -10,16 +11,15 @@
     "build:watch": "tsc -w",
     "start": "node app/index.js",
     "start:electron": "electron app/index.js",
-    "pack": "electron-builder --dir",
-    "pack:bin": "electron-builder -l AppImage",
-    "pack:headless": "bash -c \"pkg ./package.json -o ./bin/soundsync-headless-`node -e \\\"process.stdout.write(process.platform +'-'+process.arch)\\\"`\"",
-    "pack:headless:arm": "bash -c \"pkg ./package.json -o ./bin/soundsync-headless-`node -e \\\"process.stdout.write(process.platform +'-'+process.arch)\\\"` -t node12.2.0-linux-armv7\"",
-    "postinstall": "bash -c \"cd app && yarn\"",
+    "pack": "electron-builder",
+    "pack:bin": "electron-builder -l deb",
+    "postinstall": "electron-builder install-app-deps",
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src"
   },
   "license": "BSL 1.1",
   "devDependencies": {
+    "@types/auto-launch": "^5.0.1",
     "@types/bonjour": "^3.5.5",
     "@types/debug": "^4.1.5",
     "@types/koa": "^2.11.0",
@@ -37,7 +37,6 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
-    "pkg": "https://github.com/geekuillaume/pkg",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
   },
@@ -54,14 +53,9 @@
     "asarUnpack": [
       "**/*.node",
       "**/*.so*"
-    ]
-  },
-  "pkg": {
-    "assets": [
-      "**/*.node",
-      "**/*.so*",
-      "res/*",
-      "webui/dist/**/*"
-    ]
+    ],
+    "deb": {
+      "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "libasound2"]
+    }
   }
 }

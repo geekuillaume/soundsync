@@ -2,6 +2,7 @@ import debug from 'debug';
 import uuidv4 from 'uuid/v4';
 
 import { PassThrough } from 'stream';
+import eos from 'end-of-stream';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor, SourceInstanceDescriptor,
 } from './source_type';
@@ -26,6 +27,7 @@ export abstract class AudioSource {
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
   protected directSourceStream: NodeJS.ReadableStream; // internal stream from the source
   startedAt: number;
+  private consumersStreams: PassThrough[] = [];
   latency = 2000;
 
   protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
@@ -71,29 +73,37 @@ export abstract class AudioSource {
   }
 
   async start(): Promise<PassThrough> {
-    this.log(`Starting audio source`);
     if (!this.encodedAudioStream) {
+      this.log(`Starting audio source`);
       this.encodedAudioStream = new PassThrough();
-      this.encodedAudioStream.on('end', () => {
-        // when no more sink is reading from the stream
-        this.handleNoMoreReadingSink();
+      this.encodedAudioStream.on('data', (d) => {
+        this.consumersStreams.forEach((s) => s.write(d));
       });
       if (this.local) {
         this.updateInfo({ startedAt: getCurrentSynchronizedTime() });
       }
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.on('finish', () => {
+        this.log('Source stream finished, cleaning source');
         // when the readable stream finishes => when the source program exit / source file finishes
         if (this.encodedAudioStream) {
-          this.encodedAudioStream.end();
+          this.encodedAudioStream.destroy();
         }
         delete this.encodedAudioStream;
         delete this.directSourceStream;
       });
       this.directSourceStream.pipe(this.encodedAudioStream);
     }
-    // TODO count stream references to close encodedStream if no usage
-    return this.encodedAudioStream;
+
+    const instanceStream = new PassThrough();
+    this.consumersStreams.push(instanceStream);
+    eos(instanceStream, () => {
+      this.consumersStreams = this.consumersStreams.filter((s) => s !== instanceStream);
+      if (this.consumersStreams.length === 0) {
+        this.handleNoMoreReadingSink();
+      }
+    });
+    return instanceStream;
   }
 
   protected handleNoMoreReadingSink() {
