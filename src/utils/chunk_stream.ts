@@ -23,8 +23,6 @@ export class AudioChunkStream extends Readable {
     this.sampleSize = sampleSize;
   }
 
-  // TODO handle close of this stream
-
   _read() {
     if (this.readInterval) {
       return;
@@ -39,9 +37,16 @@ export class AudioChunkStream extends Readable {
     const chunksToEmit = Math.floor((this.now() - this.lastEmitTime) / this.interval);
     for (let i = 0; i < chunksToEmit; i++) {
       const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
-      const chunk = this.sourceStream.read(this.sampleSize) as Buffer;
+      let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
       if (chunk === null) {
         break;
+      }
+      if (chunk.length !== this.sampleSize) {
+        // it could mean we are at the end of the stream and receiving an incomplete chunk
+        // so we complete it with zeros
+        const incompleteChunk = chunk;
+        chunk = Buffer.alloc(this.sampleSize);
+        chunk.set(incompleteChunk);
       }
       const chunkOutput: AudioChunkStreamOutput = {
         i: chunkGlobalIndex,
