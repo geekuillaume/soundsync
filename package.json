@@ -46,6 +46,7 @@
     "directories": {
       "output": "bin"
     },
+    "afterPack": "./scripts/electronpack-hook.js",
     "extraResources": [
       "webui/dist",
       "res/**/*"
@@ -55,7 +56,17 @@
       "**/*.so*"
     ],
     "deb": {
-      "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "libasound2"]
+      "fpm": ["--after-install=scripts/package_extra/install.sh"],
+      "depends": [
+        "gconf2",
+        "gconf-service",
+        "libnotify4",
+        "libappindicator1",
+        "libxtst6",
+        "libnss3",
+        "libasound2",
+        "pulseaudio"
+      ]
     }
   }
 }
