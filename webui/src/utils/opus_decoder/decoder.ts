@@ -60,7 +60,7 @@ export class OpusDecoder {
     if (ret < 0) {
       throw new Error(`Could not decode chunk: ${ret}`);
     }
-
-    return (new Float32Array(this.pcm.subarray(0, ret * this.channels))).buffer;
+    // TODO: do we need to use slice or subarray here ?
+    return this.pcm.slice(0, ret * this.channels);
   }
 }
