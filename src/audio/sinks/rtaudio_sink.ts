@@ -1,5 +1,5 @@
 import {
-  RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
+  RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters, RtAudioApi,
 } from 'audify';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
@@ -36,17 +36,31 @@ export class RtAudioSink extends AudioSink {
     }
     this.log(`Creating speaker`);
     this.rtaudio = new RtAudio();
-    this.rtaudio.openStream(
-      outputConfig, // output stream
-      null, // input stream
-      RtAudioFormat.RTAUDIO_SINT16, // format
-      OPUS_ENCODER_RATE, // rate
-      OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
-      `soundsync-${source.name}`, // name
-      null, // input callback, not used
-      null,
-      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
-    );
+    const openStream = () => {
+      this.rtaudio.openStream(
+        outputConfig, // output stream
+        null, // input stream
+        RtAudioFormat.RTAUDIO_SINT16, // format
+        OPUS_ENCODER_RATE, // rate
+        OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
+        `soundsync-${source.name}`, // name
+        null, // input callback, not used
+        null,
+        RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
+      );
+    };
+    try {
+      openStream();
+    } catch (e) {
+      // if we are running in headless, pulse probably isn't started, so we fallback to alsa
+      if (e.message === 'RtApiPulse::probeDeviceOpen: error connecting output to PulseAudio server.') {
+        this.rtaudio = new RtAudio(RtAudioApi.LINUX_ALSA);
+        delete outputConfig.deviceId;
+        openStream();
+      } else {
+        throw e;
+      }
+    }
     this.rtaudio.start();
     const latencyInterval = setInterval(() => {
       if (!this.rtaudio.isStreamOpen) {
