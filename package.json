@@ -12,7 +12,6 @@
     "start": "node app/index.js",
     "start:electron": "electron app/index.js",
     "pack": "electron-builder",
-    "pack:bin": "electron-builder -l deb",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src"
@@ -55,6 +54,12 @@
       "**/*.node",
       "**/*.so*"
     ],
+    "win": {
+      "asar": false
+    },
+    "linux": {
+      "target": ["deb"]
+    },
     "deb": {
       "fpm": ["--after-install=scripts/package_extra/install.sh"],
       "depends": [
