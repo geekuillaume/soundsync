@@ -7,6 +7,7 @@ import { find, some, sortBy } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
+import { getSoundState, onSoundStateChange } from './coordinator_communication';
 
 const initialState = {
   soundsyncState: {},
@@ -22,10 +23,6 @@ const unregisterForPipe = createAction('unregisterForPipe');
 const changeHiddenVisibility = createAction('changeHiddenVisibility');
 
 export const SoundSyncProvider = ({ children }) => {
-  const { get } = useFetch({
-    path: '/state',
-  });
-
   const [state, dispatch] = useReducer(handleActions({
     [stateUpdate.toString()]: produce((s, { payload }) => {
       s.soundsyncState = payload;
@@ -43,14 +40,14 @@ export const SoundSyncProvider = ({ children }) => {
   }, initialState), initialState);
 
   const refreshData = useCallback(async () => {
-    const res = await get();
-    dispatch(stateUpdate(res));
+    const soundState = await getSoundState();
+    console.log(soundState);
+    dispatch(stateUpdate(soundState));
   }, []);
 
   useEffect(() => {
     refreshData();
-    const id = setInterval(refreshData, 1000);
-    return () => clearInterval(id);
+    onSoundStateChange(refreshData);
   }, []);
 
   return (

@@ -21,6 +21,9 @@ export class Pipe {
     if (!this.activable || this.active) {
       return;
     }
+    if (!this.sink.local) {
+      return;
+    }
     this.sink.linkSource(this.source);
   }
 

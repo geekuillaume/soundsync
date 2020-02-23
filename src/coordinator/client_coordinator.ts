@@ -19,7 +19,7 @@ export class ClientCoordinator {
   webrtcServer: WebrtcServer;
   audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
-  private pipes: Pipe[] = [];
+  pipes: Pipe[] = [];
 
   constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
     this.webrtcServer = webrtcServer;
@@ -105,10 +105,6 @@ export class ClientCoordinator {
     });
 
     message.pipes.forEach((pipeDescriptor) => {
-      const sink = this.audioSourcesSinksManager.getSinkByUuid(pipeDescriptor.sinkUuid);
-      if (!sink || !sink.local) {
-        return;
-      }
       const existingPipe = _.find(this.pipes, { sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid });
       if (existingPipe) {
         existingPipe.activate();
@@ -124,6 +120,7 @@ export class ClientCoordinator {
         pipe.close();
       }
     });
+    this.audioSourcesSinksManager.emit('soundstateUpdated');
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
