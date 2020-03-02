@@ -10,11 +10,11 @@ exports.default = async function (context) {
 DIR="$( dirname "$( readlink -f "$0" )")"
 if [ -z "$DISPLAY" ]
 then
-  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron $DIR/resources/app.asar/index.js
+  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron $DIR/resources/app.asar/index.js "$@"
 else
   $DIR/soundsync_electron
 fi`);
     fs.chmodSync(path.resolve(context.appOutDir, 'soundsync'), '755');
-    cp.execSync(`cp -r ${path.resolve(__dirname, 'package_extra')} ${context.appOutDir}/services`);
+    cp.execSync(`cp -r ${path.resolve(__dirname, 'package_extra')} ${context.appOutDir}`);
   }
 };
