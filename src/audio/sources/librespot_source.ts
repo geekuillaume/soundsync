@@ -5,6 +5,7 @@ import { AudioSource } from './audio_source';
 import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
+import { ensureDep } from '../../utils/deps_downloader';
 
 export class LibrespotSource extends AudioSource {
   local = true;
@@ -18,9 +19,13 @@ export class LibrespotSource extends AudioSource {
     super(descriptor, manager);
     this.options = descriptor.librespotOptions || {};
     this.options.name = this.options.name || hostname();
+    this.start(); // start right away to consume librespot chunks even when there is no sink connected
+  }
 
+  async _getAudioEncodedStream() {
+    const librespotPath = await ensureDep('librespot');
     this.log(`Starting librespot process`);
-    this.librespotProcess = spawn(`librespot`, [
+    this.librespotProcess = spawn(librespotPath, [
       '-n', this.options.name,
       '--backend', 'pipe',
       '--initial-volume', '100',
@@ -36,10 +41,7 @@ export class LibrespotSource extends AudioSource {
     this.librespotProcess.on('exit', (code) => {
       this.log('Librespot excited with code:', code);
     });
-    this.start(); // start right away to consume librespot chunks even when there is no sink connected
-  }
 
-  _getAudioEncodedStream() {
     // return createAudioEncodedStream(createReadStream('./test.pcm'), this.rate, this.channels);
     return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }

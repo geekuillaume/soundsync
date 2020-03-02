@@ -93,6 +93,7 @@ export const initConfig = (dirOverride?: string) => {
   }
 };
 
+export const getConfigDir = () => config.configDir;
 export const getConfigPath = () => config.configFilePath;
 export const getConfig = () => config.configData;
 
