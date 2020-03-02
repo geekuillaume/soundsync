@@ -56,6 +56,7 @@ export class OpusDecodeStream extends Transform {
   }
 }
 
+// This only works for a source stream encoded as 16bits integers
 export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
   let source = sourceStream;
   if (sourceRate !== OPUS_ENCODER_RATE) {

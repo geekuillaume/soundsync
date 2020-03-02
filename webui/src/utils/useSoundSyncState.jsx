@@ -41,7 +41,7 @@ export const SoundSyncProvider = ({ children }) => {
 
   const refreshData = useCallback(async () => {
     const soundState = await getSoundState();
-    console.log(soundState);
+    console.log('============', soundState);
     dispatch(stateUpdate(soundState));
   }, []);
 

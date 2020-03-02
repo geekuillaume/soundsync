@@ -1,15 +1,15 @@
 import { resolve } from 'path';
-import { readFile, createWriteStream, chmod } from 'fs';
-import { promisify } from 'util';
+import { promises as fsPromises, createWriteStream } from 'fs';
+
 import debug from 'debug';
 import { getConfigDir } from '../coordinator/config';
 import { sha1sum, once } from './misc';
 
+// fsPromise is undefined when executed in a web browser context
+const { readFile, chmod } = fsPromises || {};
+
 const l = debug(`soundsync:depsDownloader`);
 import request = require('superagent');
-
-const readFilePromisified = promisify(readFile);
-const chmodPromisified = promisify(chmod);
 
 const deps = {
   librespot: {
@@ -34,7 +34,7 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
   }
   try {
     l(`Ensuring dep ${depName} at ${path}`);
-    const file = await readFilePromisified(path);
+    const file = await readFile(path);
     const sha1 = sha1sum(file);
     if (sha1 !== dep.sha1) {
       throw new Error('Hash do not match');
@@ -45,7 +45,7 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
     const writeStream = createWriteStream(path);
     req.pipe(writeStream);
     await once(writeStream, 'finish');
-    await chmodPromisified(path, '555');
+    await chmod(path, '555');
     l(`Downloaded dep to ${path}`);
   }
   return path;

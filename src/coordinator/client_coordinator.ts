@@ -1,7 +1,7 @@
 import debug from 'debug';
 import _ from 'lodash';
-import { AudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-import { WebrtcServer } from '../communication/wrtc_server';
+import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
+import { getWebrtcServer } from '../communication/wrtc_server';
 import { AudioSource } from '../audio/sources/audio_source';
 import {
   PeerConnectionInfoMessage,
@@ -16,47 +16,43 @@ import { getLocalPeer } from '../communication/local_peer';
 import { Pipe } from './pipe';
 
 export class ClientCoordinator {
-  webrtcServer: WebrtcServer;
-  audioSourcesSinksManager: AudioSourcesSinksManager;
   log: debug.Debugger;
   pipes: Pipe[] = [];
 
-  constructor(webrtcServer: WebrtcServer, audioSourcesSinksManager: AudioSourcesSinksManager) {
-    this.webrtcServer = webrtcServer;
-    this.audioSourcesSinksManager = audioSourcesSinksManager;
+  constructor() {
     this.log = debug(`soundsync:clientCoordinator`);
     this.log(`Created client coordinator`);
 
-    this.webrtcServer.on('newSourceChannel', this.handleNewSourceChannel);
+    getWebrtcServer().on('newSourceChannel', this.handleNewSourceChannel);
 
-    this.webrtcServer.coordinatorPeer
+    getWebrtcServer().coordinatorPeer
       .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
       .onControllerMessage('soundState', this.handleSoundStateUpdate)
       .onControllerMessage('sinkInfo', this.handleSinkUpdate)
       .onControllerMessage('sourceInfo', this.handleSourceUpdate);
 
-    this.webrtcServer.coordinatorPeer.waitForConnected().then(async () => {
-      this.webrtcServer.coordinatorPeer.sendControllerMessage({
+    getWebrtcServer().coordinatorPeer.waitForConnected().then(async () => {
+      getWebrtcServer().coordinatorPeer.sendControllerMessage({
         type: 'requestSoundState',
       });
       this.announceAllSourcesSinksToController();
-      audioSourcesSinksManager.on('newLocalSink', this.announceSinkToController);
-      audioSourcesSinksManager.on('newLocalSource', this.announceSourceToController);
-      audioSourcesSinksManager.on('sinkUpdate', this.announceSinkToController);
-      audioSourcesSinksManager.on('sourceUpdate', this.announceSourceToController);
+      getAudioSourcesSinksManager().on('newLocalSink', this.announceSinkToController);
+      getAudioSourcesSinksManager().on('newLocalSource', this.announceSourceToController);
+      getAudioSourcesSinksManager().on('sinkUpdate', this.announceSinkToController);
+      getAudioSourcesSinksManager().on('sourceUpdate', this.announceSourceToController);
     });
   }
 
   private announceAllSourcesSinksToController = () => {
-    this.audioSourcesSinksManager.sinks.forEach(this.announceSinkToController);
-    this.audioSourcesSinksManager.sources.forEach(this.announceSourceToController);
+    getAudioSourcesSinksManager().sinks.forEach(this.announceSinkToController);
+    getAudioSourcesSinksManager().sources.forEach(this.announceSourceToController);
   }
 
   private announceSinkToController = (sink: AudioSink) => {
     if (!sink.local) {
       return;
     }
-    this.webrtcServer.coordinatorPeer.sendControllerMessage({
+    getWebrtcServer().coordinatorPeer.sendControllerMessage({
       type: 'sinkInfo',
       name: sink.name,
       sinkType: sink.type,
@@ -71,7 +67,7 @@ export class ClientCoordinator {
     if (!source.local) {
       return;
     }
-    this.webrtcServer.coordinatorPeer.sendControllerMessage({
+    getWebrtcServer().coordinatorPeer.sendControllerMessage({
       type: 'sourceInfo',
       name: source.name,
       sourceType: source.type,
@@ -87,44 +83,45 @@ export class ClientCoordinator {
   private handleSoundStateUpdate = (message: SoundStateMessage) => {
     Object.keys(message.sources).forEach((sourceUuid) => {
       const source = message.sources[sourceUuid];
-      this.audioSourcesSinksManager.addSource(source);
+      getAudioSourcesSinksManager().addSource(source);
     });
     Object.keys(message.sinks).forEach((sinkUuid) => {
       const sink = message.sinks[sinkUuid];
-      this.audioSourcesSinksManager.addSink(sink);
+      getAudioSourcesSinksManager().addSink(sink);
     });
-    this.audioSourcesSinksManager.sources.forEach((source) => {
-      if (!message.sources[source.uuid] && !source.local) {
-        this.audioSourcesSinksManager.removeSource(source.uuid);
+    getAudioSourcesSinksManager().sources.forEach((source) => {
+      if (!_.some(message.sources, { uuid: source.uuid }) && !source.local) {
+        getAudioSourcesSinksManager().removeSource(source.uuid);
       }
     });
-    this.audioSourcesSinksManager.sinks.forEach((sink) => {
-      if (!message.sinks[sink.uuid] && !sink.local) {
-        this.audioSourcesSinksManager.removeSink(sink.uuid);
+    getAudioSourcesSinksManager().sinks.forEach((sink) => {
+      if (!_.some(message.sinks, { uuid: sink.uuid }) && !sink.local) {
+        getAudioSourcesSinksManager().removeSink(sink.uuid);
       }
     });
 
-    message.pipes.forEach((pipeDescriptor) => {
-      const existingPipe = _.find(this.pipes, { sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid });
-      if (existingPipe) {
-        existingPipe.activate();
-        return;
-      }
-      const pipe = new Pipe(pipeDescriptor.sourceUuid, pipeDescriptor.sinkUuid);
-      this.pipes.push(pipe);
-      pipe.activate();
-    });
+    message.pipes.forEach(this.addPipe);
 
     this.pipes.forEach((pipe) => {
       if (!_.some(message.pipes, { sourceUuid: pipe.sourceUuid, sinkUuid: pipe.sinkUuid })) {
         pipe.close();
       }
     });
-    this.audioSourcesSinksManager.emit('soundstateUpdated');
+  }
+
+  addPipe = (pipeDescriptor) => {
+    const existingPipe = _.find(this.pipes, { sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid });
+    if (existingPipe) {
+      existingPipe.activate();
+      return;
+    }
+    const pipe = new Pipe(pipeDescriptor.sourceUuid, pipeDescriptor.sinkUuid);
+    this.pipes.push(pipe);
+    pipe.activate();
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
-    const peer = this.webrtcServer.getPeerByUuid(message.peerUuid);
+    const peer = getWebrtcServer().getPeerByUuid(message.peerUuid);
     if (!(peer instanceof WebrtcPeer)) {
       return;
     }
@@ -141,7 +138,7 @@ export class ClientCoordinator {
         const answer = await peer.connection.createAnswer();
         peer.connection.setLocalDescription(answer);
 
-        this.webrtcServer.coordinatorPeer.sendControllerMessage({
+        getWebrtcServer().coordinatorPeer.sendControllerMessage({
           type: 'peerConnectionInfo',
           peerUuid: peer.uuid,
           offer: peer.connection.localDescription,
@@ -157,7 +154,7 @@ export class ClientCoordinator {
   }
 
   private handleNewSourceChannel = async ({ sourceUuid, stream }: {sourceUuid: string; stream: NodeJS.WritableStream}) => {
-    const source = _.find(this.audioSourcesSinksManager.sources, { uuid: sourceUuid });
+    const source = _.find(getAudioSourcesSinksManager().sources, { uuid: sourceUuid });
     if (!source) {
       this.log(`Trying to request channel to unknown source (uuid ${sourceUuid})`);
       return;
@@ -167,17 +164,26 @@ export class ClientCoordinator {
   }
 
   private handleSinkUpdate = (message: SinkInfoMessage) => {
-    const sink = this.audioSourcesSinksManager.getSinkByUuid(message.uuid);
+    const sink = getAudioSourcesSinksManager().getSinkByUuid(message.uuid);
     sink.updateInfo({
       name: message.name,
     });
   }
 
   private handleSourceUpdate = (message: SourceInfoMessage) => {
-    const source = this.audioSourcesSinksManager.getSourceByUuid(message.uuid);
+    const source = getAudioSourcesSinksManager().getSourceByUuid(message.uuid);
     source.updateInfo({
       name: message.name,
       latency: message.latency,
     });
   }
 }
+
+
+let clientCoordinator: ClientCoordinator;
+export const getClientCoordinator = () => {
+  if (!clientCoordinator) {
+    clientCoordinator = new ClientCoordinator();
+  }
+  return clientCoordinator;
+};

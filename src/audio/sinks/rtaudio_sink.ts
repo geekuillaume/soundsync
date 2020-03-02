@@ -92,6 +92,7 @@ export class RtAudioSink extends AudioSink {
     const chunk = this.getAudioChunkAtDelayFromNow();
     if (chunk) {
       if (!this.wroteLastTick) {
+        // the audio padder is used to delay the start of the internal rtaudio buffer read
         const audioPadder = Buffer.alloc((1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2);
         this.rtaudio.write(audioPadder);
       }

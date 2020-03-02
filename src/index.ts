@@ -5,9 +5,9 @@ import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/time
 import { createHttpServer } from './communication/http_server';
 import { getWebrtcServer } from './communication/wrtc_server';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
-import { HostCoordinator } from './coordinator/host_coordinator';
-import { ClientCoordinator } from './coordinator/client_coordinator';
-import { ApiController } from './api/api';
+import { attachHostCoordinator } from './coordinator/host_coordinator';
+import { getClientCoordinator } from './coordinator/client_coordinator';
+// import { ApiController } from './api/api';
 import { initConfig, getConfigField, getConfigPath } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
 import {
@@ -74,12 +74,11 @@ const main = async () => {
     webrtcServer.attachToSignalingServer(httpServer);
     publishService(httpServer.port);
 
-    const hostCoordinator = new HostCoordinator(webrtcServer, audioSourcesSinksManager);
+    attachHostCoordinator();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const apiController = new ApiController(
-      httpServer,
-      hostCoordinator,
-    );
+    // const apiController = new ApiController(
+    //   httpServer,
+    // );
   } else {
     await webrtcServer.connectToCoordinatorHost(coordinatorChoice.coordinatorHost);
   }
@@ -88,8 +87,7 @@ const main = async () => {
     await waitForFirstTimeSync();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
+  getClientCoordinator();
 
   refreshMenu();
 };

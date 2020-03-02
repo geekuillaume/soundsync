@@ -60,8 +60,8 @@ export interface TimekeepResponse extends BaseMessage {
 
 export interface SoundStateMessage extends BaseMessage {
   type: 'soundState';
-  sources: {[key: string]: SourceDescriptor};
-  sinks: {[key: string]: SinkDescriptor};
+  sources: SourceDescriptor[];
+  sinks: SinkDescriptor[];
   pipes: PipeDescriptor[];
 }
 

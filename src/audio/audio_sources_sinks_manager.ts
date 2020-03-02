@@ -107,6 +107,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     if (source.local) {
       this.emit('newLocalSource', source);
     }
+    this.emit('soundstateUpdated');
   }
 
   removeSource(uuid: string) {
@@ -118,6 +119,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     // TODO: stop source
     log(`Removing source ${source.name} (type: ${source.type} uuid: ${uuid})`);
     this.sources = _.filter(this.sources, (s) => s.uuid !== uuid);
+    this.emit('soundstateUpdated');
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
@@ -167,6 +169,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     if (sink.local) {
       this.emit('newLocalSink', sink);
     }
+    this.emit('soundstateUpdated');
   }
 
   removeSink(uuid: string) {
@@ -178,6 +181,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     // TODO: stop sink
     log(`Removing sink ${sink.name} (type: ${sink.type} uuid: ${uuid})`);
     this.sinks = _.filter(this.sinks, (s) => s.uuid !== uuid);
+    this.emit('soundstateUpdated');
   }
 
   addFromConfig() {

@@ -3,7 +3,7 @@ import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_si
 import { getWebrtcServer } from '../serverSrc/communication/wrtc_server';
 
 import { registerLocalPeer } from '../serverSrc/communication/local_peer';
-import { ClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
+import { ClientCoordinator, getClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
 import { initConfig, getConfigField } from '../serverSrc/coordinator/config';
 import { waitForFirstTimeSync, attachTimekeeperClient } from '../serverSrc/coordinator/timekeeper';
 
@@ -11,7 +11,7 @@ import { waitForFirstTimeSync, attachTimekeeperClient } from '../serverSrc/coord
 let initializePromise: Promise;
 let clientCoordinator: ClientCoordinator;
 
-const initialize = async () => {
+export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
     initConfig();
     registerLocalPeer({
@@ -22,19 +22,17 @@ const initialize = async () => {
     const webrtcServer = getWebrtcServer();
     await webrtcServer.connectToCoordinatorHost('http://127.0.0.1:6512');
 
-
     const audioSourcesSinksManager = getAudioSourcesSinksManager();
     audioSourcesSinksManager.addFromConfig();
     attachTimekeeperClient(webrtcServer);
     await waitForFirstTimeSync();
-    clientCoordinator = new ClientCoordinator(webrtcServer, audioSourcesSinksManager);
+    clientCoordinator = getClientCoordinator();
   };
   if (initializePromise) {
     return initializePromise;
   }
   initializePromise = innerInitialize();
   return initializePromise;
-
 
   // audioSourcesSinksManager.addSink({
   //   type: 'webaudio',
@@ -44,13 +42,13 @@ const initialize = async () => {
 };
 
 export const onSoundStateChange = async (listener) => {
-  await initialize();
+  await initializeCoordinator();
   const debouncedListener = debounce(listener);
   getAudioSourcesSinksManager().on('soundstateUpdated', debouncedListener);
 };
 
 export const getSoundState = async () => {
-  await initialize();
+  await initializeCoordinator();
 
   return {
     sources: getAudioSourcesSinksManager().sources.filter((s) => s.peer && s.peer.state === 'connected').map((source) => source.toObject()),
