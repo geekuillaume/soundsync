@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
 import {
-  readFileSync, existsSync, writeFileSync, writeFile,
+  readFileSync, existsSync, writeFileSync,
 } from 'fs';
 import { resolve } from 'path';
 import { hostname } from 'os';
-import { promisify } from 'util';
 import envPaths from 'env-paths';
 import mkdirp from 'mkdirp';
 import uuidv4 from 'uuid/v4';
@@ -17,9 +16,6 @@ import { SourceDescriptor } from '../audio/sources/source_type';
 import { Pipe, PipeDescriptor } from './pipe';
 
 const log = debug(`soundsync:config`);
-
-// @ts-ignore
-const writeFilePromisified = (...args) => promisify(writeFile)(...args);
 
 interface ConfigData {
   name: string;
@@ -97,6 +93,7 @@ export const initConfig = (dirOverride?: string) => {
   }
 };
 
+export const getConfigPath = () => config.configFilePath;
 export const getConfig = () => config.configData;
 
 export const setConfig = (setter: (config: ConfigData) => any) => {
@@ -106,8 +103,8 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
     if (isBrowser) {
       localStorage.setItem(config.configFilePath, JSON.stringify(config.configData));
     } else {
-      // for simplicity reasons, we start the writing of the file but we don't wait for it to continue
-      writeFilePromisified(config.configFilePath, JSON.stringify(config.configData, null, 2));
+      // TODO: we should use an async version here but for now it simplifies the code and as the config file is small, it's not a latency problem
+      writeFileSync(config.configFilePath, JSON.stringify(config.configData, null, 2));
     }
   }
 };
@@ -119,7 +116,7 @@ export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigD
       data[field] = defaultConfig[field];
     });
   }
-  return configData[field];
+  return (c || config.configData)[field];
 };
 
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;

@@ -8,7 +8,7 @@ import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager
 import { HostCoordinator } from './coordinator/host_coordinator';
 import { ClientCoordinator } from './coordinator/client_coordinator';
 import { ApiController } from './api/api';
-import { initConfig, getConfigField } from './coordinator/config';
+import { initConfig, getConfigField, getConfigPath } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
 import {
   startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig, publishService,
@@ -56,10 +56,17 @@ const main = async () => {
     await disableAutolaunchAtStartup();
   }
 
-  createSystray();
   startDetection();
-  l('Getting coordinator info from config file or from Tray interaction');
-  const coordinatorChoice = await getCoordinatorFromConfig() || await waitForCoordinatorSelection();
+  let coordinatorChoice = await getCoordinatorFromConfig();
+  if (!coordinatorChoice) {
+    if (!createSystray()) {
+      console.error('No coordinator selected in config file and current instance is not configured to act as a coordinator');
+      console.error(`Set coordinatorHost or isCoordinator in the config file at ${getConfigPath()}`);
+      process.exit(1);
+    }
+    l('Getting coordinator info from Tray interaction');
+    coordinatorChoice = await waitForCoordinatorSelection();
+  }
   refreshMenu();
 
   if (coordinatorChoice.isCoordinator) {
