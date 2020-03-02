@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source="/opt/Soundsync"
+source="/opt/Soundsync/package_extra"
 
 cleanup_script="$source/cleanup.sh"
 

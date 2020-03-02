@@ -48,7 +48,7 @@ interface CoordinatorSelection {
 const [waitForCoordinatorSelectionPromise, selectCoordinator] = destructuredPromise<CoordinatorSelection>();
 export const waitForCoordinatorSelection = () => waitForCoordinatorSelectionPromise;
 
-export const getCoordinatorFromConfig = () => {
+export const getCoordinatorFromConfig = (): CoordinatorSelection => {
   if (getConfigField('isCoordinator')) {
     return { isCoordinator: true };
   }

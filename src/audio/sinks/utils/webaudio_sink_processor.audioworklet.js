@@ -39,6 +39,21 @@ class CircularTypedArray {
     output.set(this.buffer.subarray(0, overflow), length - overflow);
     return output;
   }
+
+  // this will copy the info in another buffer passed in parameter and empty the current buffer for this offset + length
+  getInTypedArray(targetTypedArray, offset, length) {
+    const realOffset = offset % this.buffer.length;
+    const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
+    if (!overflow) {
+      targetTypedArray.set(this.buffer.subarray(realOffset, realOffset + length));
+      this.buffer.fill(0, realOffset, realOffset + length);
+    } else {
+      targetTypedArray.set(this.buffer.subarray(realOffset, this.buffer.length - overflow), 0);
+      this.buffer.fill(0, realOffset, this.buffer.length - overflow);
+      targetTypedArray.set(this.buffer.subarray(0, overflow), length - overflow);
+      this.buffer.fill(0, 0, overflow);
+    }
+  }
 }
 
 class RawPcmPlayerProcessor extends AudioWorkletProcessor {
@@ -49,12 +64,12 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
     this.buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
 
     this.currentSampleIndex = 0;
+    this.chunkBuffer = new Float32Array(128 * CHANNELS);
   }
 
   handleMessage_(event) {
     if (event.data.type === 'chunk') {
-      const chunkIndex = (event.data.i * CHANNELS);
-      this.buffer.set(event.data.chunk, chunkIndex * SAMPLE_RATE * 0.01);
+      this.buffer.set(event.data.chunk, event.data.i * SAMPLE_RATE * 0.01 * 2);
     }
     if (event.data.type === 'sourceTimeAtAudioTimeOrigin') {
       this.currentSampleIndex = Math.floor((event.data.sourceTimeAtAudioTimeOrigin * SAMPLE_RATE) / 1000);
@@ -65,14 +80,14 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
     // we cannot rely on the currentTime property to know which sample needs to be sent because
     // the precision is not high enough so we synchronize once the this.currentSampleIndex from the sourceTimeAtAudioTimeOrigin
     // message and then increase the currentSampleIndex everytime we output samples
-    const chunk = this.buffer.get(this.currentSampleIndex * CHANNELS, outputs[0][0].length * CHANNELS);
+    this.buffer.getInTypedArray(this.chunkBuffer, this.currentSampleIndex * CHANNELS, outputs[0][0].length * CHANNELS);
 
     for (let sampleIndex = 0; sampleIndex < outputs[0][0].length; sampleIndex++) {
-      outputs[0][0][sampleIndex] = chunk[sampleIndex * 2];
-      outputs[0][1][sampleIndex] = chunk[sampleIndex * 2 + 1];
+      outputs[0][0][sampleIndex] = this.chunkBuffer[sampleIndex * 2];
+      outputs[0][1][sampleIndex] = this.chunkBuffer[sampleIndex * 2 + 1];
+      this.currentSampleIndex += 2;
     }
 
-    this.currentSampleIndex += outputs[0][0].length;
     return true;
   }
 }

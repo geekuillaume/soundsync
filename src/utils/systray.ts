@@ -86,5 +86,8 @@ export const createSystray = () => {
         console.error(e);
       }
     });
-  } catch (e) {}
+    return true;
+  } catch (e) {
+    return false;
+  }
 };
