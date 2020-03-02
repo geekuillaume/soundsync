@@ -61,3 +61,22 @@ jobs:
         with:
           name: soundsync-win
           path: dist-win
+
+  crosscompile:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v1
+
+    - name: Build for raspberrypi
+      shell: bash
+      run: ./scripts/compile_for_raspberrypi.sh
+
+    - name: Clean build directory
+      run: rm -rf linux-*-unpacked builder-effective-config.yaml
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: soundsync-linux-armv7l
+        path: bin/
