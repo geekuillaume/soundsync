@@ -11,7 +11,7 @@ export class AudioChunkStream extends Readable {
   sampleSize: number;
   sourceStream: NodeJS.ReadableStream;
   readInterval: NodeJS.Timeout;
-  creationTime: number = performance.now();
+  creationTime: number = getCurrentSynchronizedTime();
   lastEmitTime: number;
 
   constructor(sourceStream: NodeJS.ReadableStream, interval: number, sampleSize: number) {
