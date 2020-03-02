@@ -8,7 +8,8 @@ RUN (curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -) && \
   apt-get update && apt-get install -y yarn
 
 # FPM installed by electron-builder is the x64 version so we need to install it ourself
-RUN gem install fpm
+# we use a fixed version for fpm because of this issue https://github.com/jordansissel/fpm/issues/1612
+RUN gem install fpm -v 1.10.2
 ENV USE_SYSTEM_FPM="true"
 
 WORKDIR /workspace
