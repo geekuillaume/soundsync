@@ -5,7 +5,7 @@ class LocalPeer extends Peer {
   constructor({ uuid, name }) {
     super({ uuid, name, host: '127.0.0.1' });
     this.state = 'connected';
-    this.emit('connected');
+    this.emit('connected', true);
   }
 
   sendControllerMessage(message: ControllerMessage) {

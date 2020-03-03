@@ -8,7 +8,7 @@ import {
 } from './source_type';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getWebrtcServer } from '../../communication/wrtc_server';
+import { getPeersManager } from '../../communication/peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
@@ -48,7 +48,7 @@ export abstract class AudioSource {
   }
 
   get peer() {
-    return getWebrtcServer().peers[this.peerUuid];
+    return getPeersManager().peers[this.peerUuid];
   }
 
   // Change info about a source in response to a user event

@@ -1,12 +1,14 @@
 import { RTCPeerConnection } from 'wrtc';
 import debug, { Debugger } from 'debug';
+import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
+import { getLocalPeer } from './local_peer';
+import { getPeersManager } from './peers_manager';
 import { onExit } from '../utils/on_exit';
 import {
   CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
-import { WebrtcServer } from './wrtc_server';
 import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 
@@ -16,18 +18,13 @@ export class WebrtcPeer extends Peer {
   log: Debugger;
   private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
-  private webrtcServer: WebrtcServer;
-  connectHandler: (peer: WebrtcPeer) => Promise<void>;
 
   constructor({
-    uuid, name, connectHandler, coordinator = false, webrtcServer, host,
+    uuid, name, host,
   }) {
     super({
-      uuid, name, coordinator, host,
+      uuid, name, host,
     });
-    this.connectHandler = connectHandler;
-    this.webrtcServer = webrtcServer;
-
     // this.connection.onicecandidate = (e) => {
     //   if (e.candidate) {
     //     this.webrtcServer.coordinatorPeer.sendControllerMessage({
@@ -72,6 +69,19 @@ export class WebrtcPeer extends Peer {
     });
   }
 
+  connectFromOtherPeers = async () => {
+    const offer = await this.connection.createOffer();
+    await this.connection.setLocalDescription(offer);
+    await waitUntilIceGatheringStateComplete(this.connection);
+    getPeersManager().broadcast({
+      type: 'peerConnectionInfo',
+      peerUuid: this.uuid,
+      requesterUuid: getLocalPeer().uuid,
+      offer: this.connection.localDescription,
+      isAnswer: false,
+    });
+  }
+
   setUuid = (uuid: string) => {
     this.uuid = uuid;
     this.log = debug(`soundsync:wrtcPeer:${uuid}`);
@@ -112,12 +122,10 @@ export class WebrtcPeer extends Peer {
     this.log.extend(message.type)('Received controller message', message);
     this.emit(`controllerMessage:all`, { peer: this, message });
     this.emit(`controllerMessage:${message.type}`, { peer: this, message });
-    this.webrtcServer.emit(`peerControllerMessage:${message.type}`, { peer: this, message });
   }
 
   sendControllerMessage(message: ControllerMessage) {
     if (this.controllerChannel.readyState !== 'open') {
-      this.log('WARNING: Tried to send a controller message when channel was not open');
       return Promise.resolve(false);
     }
     if (message.type !== 'ping' && message.type !== 'pong') {
@@ -151,10 +159,10 @@ export class WebrtcPeer extends Peer {
   }
 
   connect = async () => {
-    if (this.controllerChannel.readyState === 'open') {
-      return;
-    }
-    await this.connectHandler(this);
+    // if (this.controllerChannel.readyState === 'open') {
+    //   return;
+    // }
+    // todo handle connect here
   }
 
   createAudioSourceChannel = async (sourceUuid: string) => {
@@ -192,6 +200,6 @@ export class WebrtcPeer extends Peer {
       stream: new DataChannelStream(channel),
     };
     this.emit('newSourceChannel', message);
-    this.webrtcServer.emit('newSourceChannel', message);
+    getPeersManager().emit('newSourceChannel', message);
   }
 }

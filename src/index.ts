@@ -3,7 +3,7 @@ import debug from 'debug';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
 import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/timekeeper';
 import { createHttpServer } from './communication/http_server';
-import { getWebrtcServer } from './communication/wrtc_server';
+import { getPeersManager } from './communication/peers_manager';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { attachHostCoordinator } from './coordinator/host_coordinator';
 import { getClientCoordinator } from './coordinator/client_coordinator';
@@ -17,7 +17,7 @@ import { registerLocalPeer } from './communication/local_peer';
 
 
 if (!process.env.DEBUG) {
-  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot');
+  debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot');
 }
 const l = debug('soundsync');
 
@@ -42,7 +42,7 @@ const main = async () => {
     uuid: getConfigField('uuid'),
   });
 
-  const webrtcServer = getWebrtcServer();
+  const peersManager = getPeersManager();
   const audioSourcesSinksManager = getAudioSourcesSinksManager();
 
   audioSourcesSinksManager.addFromConfig();
@@ -57,35 +57,23 @@ const main = async () => {
   }
 
   startDetection();
-  let coordinatorChoice = await getCoordinatorFromConfig();
-  if (!coordinatorChoice) {
-    if (!createSystray()) {
-      console.error('No coordinator selected in config file and current instance is not configured to act as a coordinator');
-      console.error(`Set coordinatorHost or isCoordinator in the config file at ${getConfigPath()}`);
-      process.exit(1);
-    }
-    l('Getting coordinator info from Tray interaction');
-    coordinatorChoice = await waitForCoordinatorSelection();
-  }
   refreshMenu();
 
-  if (coordinatorChoice.isCoordinator) {
+  try {
     const httpServer = await createHttpServer(6512);
-    webrtcServer.attachToSignalingServer(httpServer);
-    publishService(httpServer.port);
+    peersManager.attachToSignalingServer(httpServer);
+  } catch (e) {}
+  // publishService(httpServer.port);
 
-    attachHostCoordinator();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const apiController = new ApiController(
-    //   httpServer,
-    // );
-  } else {
-    await webrtcServer.connectToCoordinatorHost(coordinatorChoice.coordinatorHost);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const apiController = new ApiController(
+  //   httpServer,
+  // );
+  if (argv.connectWithHttp) {
+    await peersManager.joinPeerWithHttpApi('http://localhost:6512');
   }
-  attachTimekeeperClient(webrtcServer);
-  if (!coordinatorChoice.isCoordinator) {
-    await waitForFirstTimeSync();
-  }
+  attachTimekeeperClient(peersManager);
+  // await waitForFirstTimeSync();
 
   getClientCoordinator();
 

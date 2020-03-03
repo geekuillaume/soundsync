@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { WebrtcServer } from '../communication/wrtc_server';
+import { PeersManager } from '../communication/peers_manager';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 import { TimekeepRequest, TimekeepResponse } from '../communication/messages';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
@@ -20,7 +20,7 @@ export const getCurrentSynchronizedTime = () => now() + deltaWithCoordinator;
 export const waitForFirstTimeSync = () => firstSyncPromise;
 export const getNetworkLatency = () => networkLatency;
 
-export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
+export const attachTimekeeperCoordinator = (server: PeersManager) => {
   server.on('peerControllerMessage:timekeepRequest', ({ peer, message }: {peer: WebrtcPeer; message: TimekeepRequest}) => {
     log(`Received request from ${peer.uuid}`);
     peer.sendControllerMessage({
@@ -31,8 +31,8 @@ export const attachTimekeeperCoordinator = (server: WebrtcServer) => {
   });
 };
 
-export const attachTimekeeperClient = (server: WebrtcServer) => {
-  server.coordinatorPeer.on('controllerMessage:timekeepResponse', ({ message }: {message: TimekeepResponse}) => {
+export const attachTimekeeperClient = (server: PeersManager) => {
+  server.onControllerMessage('timekeepResponse', (message) => {
     const receivedAt = now();
     const roundtripTime = receivedAt - message.sentAt;
     const receivedByCoordinatorAt = message.sentAt + (roundtripTime / 2);
@@ -49,14 +49,14 @@ export const attachTimekeeperClient = (server: WebrtcServer) => {
   let intervalId;
   const sendTimekeepRequest = () => {
     log(`Sending request to coordinator`);
-    if (!server.coordinatorPeer) {
-      clearInterval(intervalId);
-      return;
-    }
-    server.coordinatorPeer.sendControllerMessage({
-      type: 'timekeepRequest',
-      sentAt: now(),
-    });
+    // if (!server.coordinatorPeer) {
+    //   clearInterval(intervalId);
+    //   return;
+    // }
+    // server.coordinatorPeer.sendControllerMessage({
+    //   type: 'timekeepRequest',
+    //   sentAt: now(),
+    // });
   };
 
   intervalId = setInterval(sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);

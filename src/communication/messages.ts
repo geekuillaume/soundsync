@@ -33,8 +33,10 @@ export interface RemoveSourceMessage extends BaseMessage {
 export interface PeerConnectionInfoMessage extends BaseMessage {
   type: 'peerConnectionInfo';
   peerUuid: string;
+  requesterUuid: string;
   offer?: string;
   iceCandidates?: string[];
+  isAnswer: boolean;
 }
 
 export interface TimekeepRequest extends BaseMessage {
@@ -54,6 +56,11 @@ export interface SoundStateMessage extends BaseMessage {
   sinks: AudioInstance<BaseSinkDescriptor>[];
 }
 
+export interface PeerDiscoveryMessage extends BaseMessage {
+  type: 'peerDiscovery';
+  peersUuid: string[];
+}
+
 export type ControllerMessage =
   LightMessage |
   SourceInfoMessage |
@@ -61,6 +68,7 @@ export type ControllerMessage =
   SinkInfoMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
+  PeerDiscoveryMessage |
   SoundStateMessage;
 
 export type Handler<T extends BaseMessage> = ({ message, peer }: {message: T; peer: WebrtcPeer}) => any;

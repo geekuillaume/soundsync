@@ -12,7 +12,7 @@ import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getWebrtcServer } from '../../communication/wrtc_server';
+import { getPeersManager } from '../../communication/peers_manager';
 import { SourceUUID } from '../sources/source_type';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 
@@ -56,7 +56,7 @@ export abstract class AudioSink {
   }
 
   get peer() {
-    return getWebrtcServer().peers[this.peerUuid];
+    return getPeersManager().peers[this.peerUuid];
   }
 
   patch(descriptor: Partial<SinkDescriptor>) {

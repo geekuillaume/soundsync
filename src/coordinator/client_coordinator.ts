@@ -1,13 +1,15 @@
 import debug from 'debug';
 import _ from 'lodash';
+import { Peer } from '../communication/peer';
 import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-import { getWebrtcServer } from '../communication/wrtc_server';
+import { getPeersManager } from '../communication/peers_manager';
 import { AudioSource } from '../audio/sources/audio_source';
 import {
   PeerConnectionInfoMessage,
   SoundStateMessage,
   SinkInfoMessage,
   SourceInfoMessage,
+  PeerDiscoveryMessage,
 } from '../communication/messages';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
@@ -21,46 +23,48 @@ export class ClientCoordinator {
     this.log = debug(`soundsync:clientCoordinator`);
     this.log(`Created client coordinator`);
 
-    getWebrtcServer().on('newSourceChannel', this.handleNewSourceChannel);
+    getPeersManager().on('newSourceChannel', this.handleNewSourceChannel);
 
-    getWebrtcServer().coordinatorPeer
+    getPeersManager()
       .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
       .onControllerMessage('soundState', this.handleSoundStateUpdate)
       .onControllerMessage('sinkInfo', this.handleSinkUpdate)
-      .onControllerMessage('sourceInfo', this.handleSourceUpdate);
+      .onControllerMessage('sourceInfo', this.handleSourceUpdate)
+      .onControllerMessage('peerDiscovery', this.handlePeerDiscoveryMessage);
 
-    getWebrtcServer().coordinatorPeer.waitForConnected().then(async () => {
-      getWebrtcServer().coordinatorPeer.sendControllerMessage({
-        type: 'requestSoundState',
-      });
-      this.announceAllSourcesSinksToController();
-      getAudioSourcesSinksManager().on('newLocalSink', this.announceSinkToController);
-      getAudioSourcesSinksManager().on('newLocalSource', this.announceSourceToController);
-      getAudioSourcesSinksManager().on('sinkUpdate', this.announceSinkToController);
-      getAudioSourcesSinksManager().on('sourceUpdate', this.announceSourceToController);
-    });
+    getAudioSourcesSinksManager().on('newLocalSink', this.announceSink);
+    getAudioSourcesSinksManager().on('newLocalSource', this.announceSource);
+    getAudioSourcesSinksManager().on('sinkUpdate', this.announceSink);
+    getAudioSourcesSinksManager().on('sourceUpdate', this.announceSource);
+
+    // getPeersManager().coordinatorPeer.waitForConnected().then(async () => {
+    //   getPeersManager().coordinatorPeer.sendControllerMessage({
+    //     type: 'requestSoundState',
+    //   });
+    //   this.announceAllSourcesSinksToController();
+    // });
   }
 
   private announceAllSourcesSinksToController = () => {
-    getAudioSourcesSinksManager().sinks.forEach(this.announceSinkToController);
-    getAudioSourcesSinksManager().sources.forEach(this.announceSourceToController);
+    getAudioSourcesSinksManager().sinks.forEach(this.announceSink);
+    getAudioSourcesSinksManager().sources.forEach(this.announceSource);
   }
 
-  private announceSinkToController = (sink: AudioSink) => {
+  private announceSink = (sink: AudioSink) => {
     if (!sink.local) {
       return;
     }
-    getWebrtcServer().coordinatorPeer.sendControllerMessage({
+    getPeersManager().broadcast({
       type: 'sinkInfo',
       sink: sink.toDescriptor(),
     });
   }
 
-  private announceSourceToController = (source: AudioSource) => {
+  private announceSource = (source: AudioSource) => {
     if (!source.local) {
       return;
     }
-    getWebrtcServer().coordinatorPeer.sendControllerMessage({
+    getPeersManager().broadcast({
       type: 'sourceInfo',
       source: source.toDescriptor(),
     });
@@ -87,30 +91,41 @@ export class ClientCoordinator {
     });
   }
 
-  private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
-    const peer = getWebrtcServer().getPeerByUuid(message.peerUuid);
-    if (!(peer instanceof WebrtcPeer)) {
+  private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage, transmitter: Peer) => {
+    if (message.peerUuid !== getLocalPeer().uuid) {
+      // we received this message but it's not for us, let's retransmit it to the correct peer
+      const destinationPeer = getPeersManager().peers[message.peerUuid];
+      if (destinationPeer) {
+        destinationPeer.sendControllerMessage(message);
+      }
       return;
     }
-    if (message.offer) {
-      if (peer.connection.signalingState === 'have-local-offer') {
-        // we received an offer while waiting for a response, it usually means that the two peers are trying to connect at the same time, it this is the case, ONLY ONE the two peer need to reset its connection and accept the offer. To determine which peer needs to do that, we use the UUID of the remote peer and if it is higher than our own UUID we reset our connection. The remote peer will just ignore the message.
-        if (message.peerUuid < getLocalPeer().uuid) {
-          return;
-        }
-        peer.initWebrtc();
-      }
-      if (peer.connection.signalingState !== 'stable') {
-        await peer.connection.setRemoteDescription(message.offer);
-        const answer = await peer.connection.createAnswer();
-        peer.connection.setLocalDescription(answer);
+    const requesterPeer = getPeersManager().getPeerByUuid(message.requesterUuid);
+    if (!(requesterPeer instanceof WebrtcPeer)) {
+      return;
+    }
 
-        getWebrtcServer().coordinatorPeer.sendControllerMessage({
-          type: 'peerConnectionInfo',
-          peerUuid: peer.uuid,
-          offer: peer.connection.localDescription,
-        });
+    if (message.offer) {
+      if (message.isAnswer) {
+        await requesterPeer.connection.setRemoteDescription(message.offer);
+        return;
       }
+      // we received an offer while waiting for a response, it usually means that the two peers are trying to connect at the same time, it this is the case, ONLY ONE the two peer need to reset its connection and accept the offer. To determine which peer needs to do that, we use the UUID of the remote peer and if it is higher than our own UUID we reset our connection. The remote peer will just ignore the message.
+      if (requesterPeer.connection.signalingState === 'have-local-offer' && requesterPeer.uuid < getLocalPeer().uuid) {
+        return;
+      }
+      requesterPeer.initWebrtc();
+      await requesterPeer.connection.setRemoteDescription(message.offer);
+      const answer = await requesterPeer.connection.createAnswer();
+      requesterPeer.connection.setLocalDescription(answer);
+
+      transmitter.sendControllerMessage({
+        type: 'peerConnectionInfo',
+        peerUuid: requesterPeer.uuid,
+        requesterUuid: getLocalPeer().uuid,
+        offer: requesterPeer.connection.localDescription,
+        isAnswer: true,
+      });
     }
     // if (message.iceCandidates) {
     //   for (const iceCandidate of message.iceCandidates) {
@@ -142,6 +157,12 @@ export class ClientCoordinator {
     source.updateInfo({
       name: message.source.name,
       latency: message.source.latency,
+    });
+  }
+
+  private handlePeerDiscoveryMessage = (message: PeerDiscoveryMessage) => {
+    message.peersUuid.forEach((uuid) => {
+      getPeersManager().getPeerByUuid(uuid);
     });
   }
 }

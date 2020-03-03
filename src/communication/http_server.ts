@@ -24,18 +24,15 @@ export const createHttpServer = async (port: number): Promise<SoundSyncHttpServe
   app.use(bodyParser());
   app.use(router.routes());
 
-  l(`Listening on ${port}`);
   const server = createServer(app.callback());
-  server.on('error', (e) => {
-    // @ts-ignore
-    if (e.errno === 'EADDRINUSE') {
-      l(`Could not listen on port`, e.toString());
-    } else {
-      l(`Unknown Http server error`, e);
-    }
-    process.exit(1);
+  await new Promise((resolve, reject) => {
+    server.on('error', (e) => {
+      reject(e);
+    });
+    server.listen(port);
+    server.on('listening', resolve);
   });
-  server.listen(port);
+  l(`Listening on ${port}`);
 
   return {
     app,

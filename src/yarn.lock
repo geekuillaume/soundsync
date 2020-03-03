@@ -294,6 +294,11 @@ assert-plus@1.0.0, assert-plus@^1.0.0:
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"
   integrity sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
 
+async-messenger@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/async-messenger/-/async-messenger-1.0.0.tgz#f02480b2f7d1d2b9a31bb8487870a087e019d987"
+  integrity sha1-8CSAsvfR0rmjG7hIeHCgh+AZ2Yc=
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
@@ -362,7 +367,7 @@ binary@~0.3.0:
     buffers "~0.1.1"
     chainsaw "~0.1.0"
 
-bindings@^1.5.0:
+bindings@^1.2.1, bindings@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
   integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
@@ -567,6 +572,13 @@ combined-stream@^1.0.6, combined-stream@^1.0.8, combined-stream@~1.0.6:
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
   dependencies:
     delayed-stream "~1.0.0"
+
+communication@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/communication/-/communication-1.0.1.tgz#fa6fbff5361b41224ea6873e97161b421fecc3e0"
+  integrity sha1-+m+/9TYbQSJOpoc+lxYbQh/sw+A=
+  dependencies:
+    async-messenger "^1.0.0"
 
 component-emitter@^1.3.0:
   version "1.3.0"
@@ -797,7 +809,7 @@ encodeurl@^1.0.2:
   resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
   integrity sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=
 
-end-of-stream@^1.1.0, end-of-stream@^1.4.1:
+end-of-stream@^1.1.0, end-of-stream@^1.4.1, end-of-stream@^1.4.4:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.4.tgz#5ae64a5f45057baf3626ec14da0ca5e4b2431eb0"
   integrity sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
@@ -1688,6 +1700,11 @@ mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
+nan@^2.14.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
+  integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
+
 napi-build-utils@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/napi-build-utils/-/napi-build-utils-1.0.1.tgz#1381a0f92c39d66bf19852e7873432fc2123e508"
@@ -2208,6 +2225,14 @@ sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
+segfault-handler@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/segfault-handler/-/segfault-handler-1.3.0.tgz#054bc847832fa14f218ba6a79e42877501c8870e"
+  integrity sha512-p7kVHo+4uoYkr0jmIiTBthwV5L2qmWtben/KDunDZ834mbos+tY+iO0//HpAJpOFSQZZ+wxKWuRo4DxV02B7Lg==
+  dependencies:
+    bindings "^1.2.1"
+    nan "^2.14.0"
+
 semver@^5.0.3, semver@^5.3.0, semver@^5.4.1:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
@@ -2274,10 +2299,10 @@ source-map@^0.5.0:
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
   integrity sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=
 
-speex-resampler@1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-1.0.9.tgz#13c88c1a56261ea15dc86de1ce109cc71baa3bbb"
-  integrity sha512-9gFZujyQx9gdOgQ/TKMhaTy5mgYut/RWLYXJ71ms+ZzC46SWBMEU+da/LfKGkGrZwi0aJKmsGbvuygeyYDTPLQ==
+speex-resampler@1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-1.0.10.tgz#4974d236292df16c7add37925b276ac7897eac0e"
+  integrity sha512-NwxmLMHMp0kvm9lt4DWQ/UUU/VZVgZKs911+rPBWvB5dYMsl1KMWygWM5TW/iiQtmEoAgmis3S1U/ish4iYLmw==
   dependencies:
     bindings "^1.5.0"
     prebuild-install "^5.3.3"

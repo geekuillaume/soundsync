@@ -2,7 +2,7 @@ import { AudioSource } from './audio_source';
 import { SourceDescriptor } from './source_type';
 import { WebrtcPeer } from '../../communication/wrtc_peer';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getWebrtcServer } from '../../communication/wrtc_server';
+import { getPeersManager } from '../../communication/peers_manager';
 
 export class RemoteSource extends AudioSource {
   local: false = false;
@@ -13,7 +13,7 @@ export class RemoteSource extends AudioSource {
   }
 
   patch(descriptor: Partial<SourceDescriptor>) {
-    getWebrtcServer().getPeerByUuid(this.peerUuid).sendControllerMessage({
+    getPeersManager().getPeerByUuid(this.peerUuid).sendControllerMessage({
       type: 'sourceInfo',
       source: {
         ...this.toDescriptor(),
@@ -23,7 +23,7 @@ export class RemoteSource extends AudioSource {
   }
 
   async _getAudioEncodedStream() {
-    const peer = getWebrtcServer().getPeerByUuid(this.peerUuid);
+    const peer = getPeersManager().getPeerByUuid(this.peerUuid);
     if (!(peer instanceof WebrtcPeer)) {
       // this should never happens as a remote source should have a webrtc peer
       throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
