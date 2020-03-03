@@ -1,6 +1,6 @@
 import { debounce, map } from 'lodash-es';
 import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
-import { getWebrtcServer } from '../serverSrc/communication/wrtc_server';
+import { getPeersManager } from '../serverSrc/communication/peers_manager';
 
 import { registerLocalPeer } from '../serverSrc/communication/local_peer';
 import { ClientCoordinator, getClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
@@ -18,13 +18,13 @@ let clientCoordinator: ClientCoordinator;
 
 export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
-    const webrtcServer = getWebrtcServer();
-    await webrtcServer.connectToCoordinatorHost('http://127.0.0.1:6512');
+    const peersManager = getPeersManager();
+    await peersManager.joinPeerWithHttpApi('http://127.0.0.1:6512');
 
     const audioSourcesSinksManager = getAudioSourcesSinksManager();
     audioSourcesSinksManager.addFromConfig();
-    attachTimekeeperClient(webrtcServer);
-    await waitForFirstTimeSync();
+    // attachTimekeeperClient(peersManager);
+    // await waitForFirstTimeSync();
     clientCoordinator = getClientCoordinator();
   };
   if (initializePromise) {
@@ -52,11 +52,9 @@ export const getSoundState = async () => {
   return {
     sources: getAudioSourcesSinksManager().sources.filter((s) => s.peer && s.peer.state === 'connected').map((source) => source.toObject()),
     sinks: getAudioSourcesSinksManager().sinks.filter((s) => s.peer && s.peer.state === 'connected').map((sink) => sink.toObject()),
-    peers: map(getWebrtcServer().peers, (peer) => ({
+    peers: map(getPeersManager().peers, (peer) => ({
       name: peer.name,
       uuid: peer.uuid,
-      coordinator: peer.coordinator,
     })),
-    pipes: clientCoordinator.pipes,
   };
 };

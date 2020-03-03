@@ -5,13 +5,12 @@ import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/time
 import { createHttpServer } from './communication/http_server';
 import { getPeersManager } from './communication/peers_manager';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
-import { attachHostCoordinator } from './coordinator/host_coordinator';
 import { getClientCoordinator } from './coordinator/client_coordinator';
 // import { ApiController } from './api/api';
-import { initConfig, getConfigField, getConfigPath } from './coordinator/config';
+import { initConfig, getConfigField } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
 import {
-  startDetection, waitForCoordinatorSelection, getCoordinatorFromConfig, publishService,
+  startDetection, publishService,
 } from './communication/coordinatorDetector';
 import { registerLocalPeer } from './communication/local_peer';
 
@@ -62,8 +61,8 @@ const main = async () => {
   try {
     const httpServer = await createHttpServer(6512);
     peersManager.attachToSignalingServer(httpServer);
+    publishService(httpServer.port);
   } catch (e) {}
-  // publishService(httpServer.port);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const apiController = new ApiController(

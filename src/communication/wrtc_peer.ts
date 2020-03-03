@@ -1,5 +1,6 @@
 import { RTCPeerConnection } from 'wrtc';
 import debug, { Debugger } from 'debug';
+import uuidv4 from 'uuid/v4';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
@@ -79,6 +80,7 @@ export class WebrtcPeer extends Peer {
       requesterUuid: getLocalPeer().uuid,
       offer: this.connection.localDescription,
       isAnswer: false,
+      uuid: uuidv4(),
     });
   }
 
@@ -107,7 +109,6 @@ export class WebrtcPeer extends Peer {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
-    this.initWebrtc();
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {

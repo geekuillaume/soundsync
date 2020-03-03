@@ -8,7 +8,16 @@ import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
 import {
-  ControllerMessage, LightMessage, SourceInfoMessage, RemoveSourceMessage, SinkInfoMessage, PeerConnectionInfoMessage, TimekeepRequest, TimekeepResponse, SoundStateMessage, PeerDiscoveryMessage,
+  ControllerMessage,
+  LightMessage,
+  SourceInfoMessage,
+  RemoveSourceMessage,
+  SinkInfoMessage,
+  PeerConnectionInfoMessage,
+  TimekeepRequest,
+  TimekeepResponse,
+  PeerDiscoveryMessage,
+  PeerSoundStateMessage,
 } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
@@ -152,7 +161,7 @@ export class PeersManager extends EventEmitter {
   onControllerMessage(type: PeerConnectionInfoMessage['type'], handler: (message: PeerConnectionInfoMessage, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;
-  onControllerMessage(type: SoundStateMessage['type'], handler: (message: SoundStateMessage, peer: Peer) => any): this;
+  onControllerMessage(type: PeerSoundStateMessage['type'], handler: (message: PeerSoundStateMessage, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;
   onControllerMessage(type: PeerDiscoveryMessage['type'], handler: (message: PeerDiscoveryMessage, peer: Peer) => any): this;

@@ -14,7 +14,7 @@ export interface LightMessage extends BaseMessage {
 }
 
 export interface SourceInfoMessage extends BaseMessage {
-  type: 'sourceInfo'; // send from client to host coordinator when a client source changes
+  type: 'sourceInfo';
   source: AudioInstance<BaseSourceDescriptor>;
 }
 
@@ -37,6 +37,7 @@ export interface PeerConnectionInfoMessage extends BaseMessage {
   offer?: string;
   iceCandidates?: string[];
   isAnswer: boolean;
+  uuid: string;
 }
 
 export interface TimekeepRequest extends BaseMessage {
@@ -50,8 +51,8 @@ export interface TimekeepResponse extends BaseMessage {
   respondedAt: number;
 }
 
-export interface SoundStateMessage extends BaseMessage {
-  type: 'soundState';
+export interface PeerSoundStateMessage extends BaseMessage {
+  type: 'peerSoundState';
   sources: AudioInstance<BaseSourceDescriptor>[];
   sinks: AudioInstance<BaseSinkDescriptor>[];
 }
@@ -69,6 +70,6 @@ export type ControllerMessage =
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
   PeerDiscoveryMessage |
-  SoundStateMessage;
+  PeerSoundStateMessage;
 
 export type Handler<T extends BaseMessage> = ({ message, peer }: {message: T; peer: WebrtcPeer}) => any;
