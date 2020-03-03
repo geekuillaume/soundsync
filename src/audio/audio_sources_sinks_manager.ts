@@ -6,10 +6,10 @@ import { WebAudioSink } from './sinks/webaudio_sink';
 import { RtAudioSource } from './sources/rtaudio_source';
 import { AudioSource } from './sources/audio_source';
 import { LibrespotSource } from './sources/librespot_source';
-import { SourceDescriptor } from './sources/source_type';
+import { SourceDescriptor, SourceUUID } from './sources/source_type';
 import { RemoteSource } from './sources/remote_source';
 import { AudioSink } from './sinks/audio_sink';
-import { SinkDescriptor } from './sinks/sink_type';
+import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
 import { RtAudioSink } from './sinks/rtaudio_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
@@ -66,8 +66,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
     });
   }
 
-  getSourceByUuid = (uuid: string) => _.find(this.sources, { uuid });
-  getSinkByUuid = (uuid: string) => _.find(this.sinks, { uuid });
+  getSourceByUuid = (uuid: SourceUUID) => _.find(this.sources, { uuid });
+  getSinkByUuid = (uuid: SinkUUID) => _.find(this.sinks, { uuid });
 
   addSource(sourceDescriptor: SourceDescriptor) {
     if (sourceDescriptor.uuid && this.getSourceByUuid(sourceDescriptor.uuid)) {

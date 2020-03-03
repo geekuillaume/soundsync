@@ -9,6 +9,7 @@ import { RtAudioSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
 import { getAudioDevices } from '../../utils/rtaudio';
+import { AudioInstance } from '../utils';
 
 export class RtAudioSource extends AudioSource {
   local = true;
@@ -62,11 +63,15 @@ export class RtAudioSource extends AudioSource {
     // TODO: handle closing source
   }
 
-  toDescriptor: (() => RtAudioSourceDescriptor) = () => ({
+  toDescriptor: (() => AudioInstance<RtAudioSourceDescriptor>) = () => ({
     type: 'rtaudio',
     name: this.name,
     uuid: this.uuid,
     deviceName: this.deviceName,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    channels: this.channels,
+    latency: this.latency,
+    startedAt: this.startedAt,
   })
 }

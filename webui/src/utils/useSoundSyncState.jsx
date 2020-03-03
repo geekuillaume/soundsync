@@ -8,14 +8,19 @@ import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
 import { getSoundState, onSoundStateChange } from './coordinator_communication';
+import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
 
 const initialState = {
-  soundsyncState: {},
+  stateVersion: 0,
   registeringForPipe: { type: null, uuid: null },
   showHidden: false,
 };
 
-const soundSyncContext = createContext({ state: initialState, dispatch: (...args) => {}, refreshData: () => {} });
+const soundSyncContext = createContext({
+  state: initialState,
+  dispatch: (...args) => {},
+  audioSourcesSinksManager: getAudioSourcesSinksManager(),
+});
 
 const stateUpdate = createAction('stateUpdate');
 const registerForPipe = createAction('registerForPipe');
@@ -24,8 +29,9 @@ const changeHiddenVisibility = createAction('changeHiddenVisibility');
 
 export const SoundSyncProvider = ({ children }) => {
   const [state, dispatch] = useReducer(handleActions({
-    [stateUpdate.toString()]: produce((s, { payload }) => {
-      s.soundsyncState = payload;
+    [stateUpdate.toString()]: produce((s) => {
+      // used to force react refresh, the state is already in the audioSourcesSinksManager object
+      s.stateVersion++;
     }),
     [registerForPipe.toString()]: produce((s, { payload }) => {
       s.registeringForPipe.type = payload.type;
@@ -40,9 +46,7 @@ export const SoundSyncProvider = ({ children }) => {
   }, initialState), initialState);
 
   const refreshData = useCallback(async () => {
-    const soundState = await getSoundState();
-    console.log('============', soundState);
-    dispatch(stateUpdate(soundState));
+    dispatch(stateUpdate());
   }, []);
 
   useEffect(() => {
@@ -51,13 +55,11 @@ export const SoundSyncProvider = ({ children }) => {
   }, []);
 
   return (
-    <soundSyncContext.Provider value={{ state, dispatch, refreshData }}>
+    <soundSyncContext.Provider value={{ state, dispatch, audioSourcesSinksManager: getAudioSourcesSinksManager() }}>
       {children}
     </soundSyncContext.Provider>
   );
 };
-
-export const useSoundSyncState = () => useContext(soundSyncContext).state.soundsyncState;
 
 const audioSourceSinkGetter = (collection, withHidden) => {
   const orderedCollection = sortBy(collection, ({ name }) => (isHidden(name) ? 10 : 0));
@@ -67,12 +69,14 @@ const audioSourceSinkGetter = (collection, withHidden) => {
   return orderedCollection;
 };
 
-export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sinks, withHidden);
-export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(useSoundSyncState().sources, withHidden);
-export const usePipes = () => useSoundSyncState().pipes || [];
-export const useIsPiped = (uuid) => some(usePipes(), (p) => p.sinkUuid === uuid || p.sourceUuid === uuid);
+export const getContextAudioSourcesSinksManager = () => useContext(soundSyncContext).audioSourcesSinksManager;
 
-export const usePeer = (uuid) => find(useSoundSyncState().peers, { uuid });
+export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks, withHidden);
+export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources, withHidden);
+export const usePipes = () => [];
+export const useIsPiped = (uuid) => false;
+
+export const usePeer = (uuid) => ({});
 
 export const useRegisterForPipe = (type, uuid) => {
   const { post } = useFetch();
@@ -122,17 +126,6 @@ export const useUnpipeAction = (sinkUuid) => {
     await del(`/source/${pipe.sourceUuid}/pipe_to_sink/${pipe.sinkUuid}`);
     refreshData();
   }, [pipe]);
-};
-
-export const useAudioStreamEditAction = () => {
-  const { refreshData } = useContext(soundSyncContext);
-
-  const { put } = useFetch();
-
-  return useCallback(async (type, id, body) => {
-    await put(`/${type}/${id}`, body);
-    refreshData();
-  }, []);
 };
 
 export const useShowHidden = () => useContext(soundSyncContext).state.showHidden;

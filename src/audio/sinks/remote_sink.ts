@@ -8,12 +8,12 @@ export class RemoteSink extends AudioSink {
   patch(descriptor: Partial<SinkDescriptor>) {
     getWebrtcServer().getPeerByUuid(this.peerUuid).sendControllerMessage({
       type: 'sinkInfo',
-      uuid: this.uuid,
-      sinkType: this.type,
-      channels: this.channels,
-      latency: descriptor.latency || this.latency,
-      name: descriptor.name || this.name,
-      instanceUuid: this.instanceUuid,
+      sink: {
+        ...this.toDescriptor(),
+        latency: descriptor.latency || this.latency,
+        name: descriptor.name || this.name,
+        pipedFrom: descriptor.pipedFrom || this.pipedFrom,
+      },
     });
   }
 

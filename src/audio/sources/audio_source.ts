@@ -4,11 +4,12 @@ import uuidv4 from 'uuid/v4';
 import { PassThrough } from 'stream';
 import eos from 'end-of-stream';
 import {
-  SourceDescriptor, SourceType, BaseSourceDescriptor, SourceInstanceDescriptor,
+  SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getWebrtcServer } from '../../communication/wrtc_server';
+import { AudioInstance, MaybeAudioInstance } from '../utils';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
@@ -21,7 +22,7 @@ export abstract class AudioSource {
   uuid: string;
   peerUuid: string;
   manager: AudioSourcesSinksManager;
-  instanceUuid = uuidv4(); // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
+  instanceUuid; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
@@ -32,7 +33,7 @@ export abstract class AudioSource {
 
   protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
-  constructor(descriptor: SourceDescriptor, manager: AudioSourcesSinksManager) {
+  constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
     this.type = descriptor.type;
     this.uuid = descriptor.uuid || uuidv4();
@@ -41,6 +42,7 @@ export abstract class AudioSource {
     this.startedAt = descriptor.startedAt;
     this.latency = descriptor.latency || 500;
     this.channels = descriptor.channels || 2;
+    this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -55,7 +57,7 @@ export abstract class AudioSource {
   }
 
   // Update source info in response to a controllerMessage
-  updateInfo(descriptor: Partial<SourceInstanceDescriptor>) {
+  updateInfo(descriptor: Partial<AudioInstance<SourceDescriptor>>) {
     if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
       this.log('Received update for a different instance of the source, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
       return;
@@ -69,6 +71,7 @@ export abstract class AudioSource {
     });
     if (hasChanged) {
       this.manager.emit('sourceUpdate', this);
+      this.manager.emit('soundstateUpdated');
     }
   }
 
@@ -122,12 +125,14 @@ export abstract class AudioSource {
     latency: this.latency,
   })
 
-  toDescriptor = (): BaseSourceDescriptor => ({
+  toDescriptor = (): AudioInstance<BaseSourceDescriptor> => ({
     name: this.name,
     uuid: this.uuid,
     type: this.type,
     latency: this.latency,
     startedAt: this.startedAt,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    channels: this.channels,
   })
 }

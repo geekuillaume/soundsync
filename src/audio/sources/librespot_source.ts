@@ -6,6 +6,7 @@ import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../opus_streams';
 import { ensureDep } from '../../utils/deps_downloader';
+import { AudioInstance } from '../utils';
 
 export class LibrespotSource extends AudioSource {
   local = true;
@@ -46,11 +47,15 @@ export class LibrespotSource extends AudioSource {
     return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }
 
-  toDescriptor: (() => LibresportSourceDescriptor) = () => ({
+  toDescriptor: (() => AudioInstance<LibresportSourceDescriptor>) = () => ({
     type: 'librespot',
     name: this.name,
     uuid: this.uuid,
     librespotOptions: this.options,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    channels: this.channels,
+    latency: this.latency,
+    startedAt: this.startedAt,
   })
 }

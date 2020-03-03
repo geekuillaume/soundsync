@@ -7,6 +7,7 @@ import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK
 import { RtAudioSinkDescriptor } from './sink_type';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { AudioInstance } from '../utils';
 
 // used to prevent stream cut if trying to send chunk just in time
 // this adds a latency but is necessary as the nodejs thread is not running in real time
@@ -101,11 +102,14 @@ export class RtAudioSink extends AudioSink {
     }
   }
 
-  toDescriptor: (() => RtAudioSinkDescriptor) = () => ({
+  toDescriptor: (() => AudioInstance<RtAudioSinkDescriptor>) = () => ({
     type: 'rtaudio',
     name: this.name,
     uuid: this.uuid,
     deviceName: this.deviceName,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    pipedFrom: this.pipedFrom,
+    latency: this.latency,
   })
 }

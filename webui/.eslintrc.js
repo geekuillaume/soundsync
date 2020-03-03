@@ -46,5 +46,6 @@ module.exports = {
     "spaced-comment": 0,
     "no-useless-constructor": 0,
     "arrow-body-style": 0,
+    "jsx-filename-extension": 0,
   },
 };

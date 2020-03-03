@@ -1,7 +1,9 @@
-import { SourceType, SourceDescriptor } from '../audio/sources/source_type';
-import { SinkType, SinkDescriptor } from '../audio/sinks/sink_type';
+import {
+  SourceUUID, BaseSourceDescriptor,
+} from '../audio/sources/source_type';
+import { BaseSinkDescriptor } from '../audio/sinks/sink_type';
 import { WebrtcPeer } from './wrtc_peer';
-import { PipeDescriptor } from '../coordinator/pipe';
+import { AudioInstance } from '../audio/utils';
 
 export interface BaseMessage {
   type;
@@ -13,31 +15,19 @@ export interface LightMessage extends BaseMessage {
 
 export interface SourceInfoMessage extends BaseMessage {
   type: 'sourceInfo'; // send from client to host coordinator when a client source changes
-  sourceType: SourceType;
-  name: string;
-  uuid: string;
-  channels: number;
-  latency: number;
-  startedAt: number;
-  peerUuid: string;
-  instanceUuid: string;
+  source: AudioInstance<BaseSourceDescriptor>;
 }
 
 export interface SinkInfoMessage extends BaseMessage {
   type: 'sinkInfo';
-  sinkType: SinkType;
-  name: string;
-  uuid: string;
-  channels: number;
-  latency: number;
-  instanceUuid: string;
+  sink: AudioInstance<BaseSinkDescriptor>;
 }
 
 // TODO: implement sink removal messages and handling
 
 export interface RemoveSourceMessage extends BaseMessage {
   type: 'removeSource';
-  uuid: string;
+  uuid: SourceUUID;
 }
 
 export interface PeerConnectionInfoMessage extends BaseMessage {
@@ -60,9 +50,8 @@ export interface TimekeepResponse extends BaseMessage {
 
 export interface SoundStateMessage extends BaseMessage {
   type: 'soundState';
-  sources: SourceDescriptor[];
-  sinks: SinkDescriptor[];
-  pipes: PipeDescriptor[];
+  sources: AudioInstance<BaseSourceDescriptor>[];
+  sinks: AudioInstance<BaseSinkDescriptor>[];
 }
 
 export type ControllerMessage =

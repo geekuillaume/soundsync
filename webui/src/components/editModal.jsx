@@ -13,59 +13,8 @@ import IconButton from '@material-ui/core/IconButton';
 // import Typography from '@material-ui/core/Typography';
 // import Slide from '@material-ui/core/Slide';
 import EditIcon from '@material-ui/icons/Edit';
-import {
-  useAudioStreamEditAction, useRegisterForPipe, useIsPiped, useUnpipeAction,
-} from '../utils/useSoundSyncState';
+import { useRegisterForPipe, useIsPiped, useUnpipeAction } from '../utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
-
-// const Transition = React.forwardRef((props, ref) => <Slide direction="left" ref={ref} {...props} />);
-
-// const styles = (theme) => ({
-//   root: {
-//     margin: 0,
-//     padding: theme.spacing(2),
-//     paddingRight: theme.spacing(10),
-//   },
-//   closeButton: {
-//     position: 'absolute',
-//     right: theme.spacing(1),
-//     top: theme.spacing(1),
-//     color: theme.palette.grey[500],
-//   },
-// });
-
-// const DialogTitle = withStyles(styles)(({
-//   children, classes, onClose, ...other
-// }) => (
-//   <MuiDialogTitle disableTypography className={classes.root} {...other}>
-//     <Typography variant="h6">{children}</Typography>
-//     <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-//       <CloseIcon />
-//     </IconButton>
-//   </MuiDialogTitle>
-// ));
-
-// const DialogContent = withStyles((theme) => ({
-//   root: {
-//     padding: theme.spacing(2),
-//   },
-// }))(MuiDialogContent);
-
-// const DialogActions = withStyles((theme) => ({
-//   root: {
-//     margin: 0,
-//     padding: theme.spacing(1),
-//   },
-// }))(MuiDialogActions);
-
-// const CloseIconButton = withStyles((t) => ({
-//   root: {
-//     position: 'absolute',
-//     right: t.spacing(1),
-//     top: t.spacing(1),
-//     color: t.palette.grey[500],
-//   },
-// }))(IconButton);
 
 const EditPopover = withStyles((t) => ({
   paper: {
@@ -102,7 +51,6 @@ export const useEditAudioStreamModal = (type, audioStream) => {
   const [renameOpen, setRenameOpen] = useState(false);
   const anchor = useRef();
   const inputEl = useRef();
-  const edit = useAudioStreamEditAction();
   const hidden = isHidden(audioStream.name);
 
   const handleClose = () => {
@@ -117,13 +65,14 @@ export const useEditAudioStreamModal = (type, audioStream) => {
   const handleRename = async () => {
     const newName = inputEl.current.value;
     if (newName !== nameWithoutHiddenMeta(audioStream.name)) {
-      await edit(type, audioStream.uuid, { name: hidden ? `[hidden] ${newName}` : newName });
+      audioStream.patch({ name: hidden ? `[hidden] ${newName}` : newName });
     }
     handleClose();
   };
   const handleHide = async () => {
     const newName = hidden ? nameWithoutHiddenMeta(audioStream.name) : `[hidden] ${audioStream.name}`;
-    await edit(type, audioStream.uuid, { name: newName });
+    // await edit(type, audioStream.uuid, { name: newName });
+    audioStream.patch({ name: newName });
     handleClose();
   };
   const registerForPipe = useRegisterForPipe(type, audioStream.uuid)[2];

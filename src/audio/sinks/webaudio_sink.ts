@@ -7,6 +7,7 @@ import { AudioSource } from '../sources/audio_source';
 import { WebAudioSinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
+import { AudioInstance } from '../utils';
 
 export class WebAudioSink extends AudioSink {
   type: 'webaudio' = 'webaudio';
@@ -96,10 +97,13 @@ export class WebAudioSink extends AudioSink {
     }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
   }
 
-  toDescriptor: (() => WebAudioSinkDescriptor) = () => ({
+  toDescriptor: (() => AudioInstance<WebAudioSinkDescriptor>) = () => ({
     type: 'webaudio',
     name: this.name,
     uuid: this.uuid,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    pipedFrom: this.pipedFrom,
+    latency: this.latency,
   })
 }

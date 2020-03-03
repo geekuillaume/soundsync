@@ -1,16 +1,13 @@
+export type SourceUUID = string;
+
 export interface BaseSourceDescriptor {
   type;
   name: string;
-  uuid?: string;
+  uuid?: SourceUUID;
   peerUuid: string;
   startedAt?: number;
   latency?: number;
   channels?: number;
-}
-
-// used only in messages to prevent an update targeting an old instances of source
-export interface BaseSourceInstanceDescriptor extends BaseSourceDescriptor {
-  instanceUuid: string;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
@@ -33,5 +30,4 @@ export interface RtAudioSourceDescriptor extends BaseSourceDescriptor {
 }
 
 export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | RtAudioSourceDescriptor;
-export type SourceInstanceDescriptor = SourceDescriptor & BaseSourceInstanceDescriptor;
 export type SourceType = SourceDescriptor['type'];

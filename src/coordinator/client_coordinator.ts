@@ -13,11 +13,9 @@ import { AudioSink } from '../audio/sinks/audio_sink';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from '../communication/local_peer';
-import { Pipe } from './pipe';
 
 export class ClientCoordinator {
   log: debug.Debugger;
-  pipes: Pipe[] = [];
 
   constructor() {
     this.log = debug(`soundsync:clientCoordinator`);
@@ -54,12 +52,7 @@ export class ClientCoordinator {
     }
     getWebrtcServer().coordinatorPeer.sendControllerMessage({
       type: 'sinkInfo',
-      name: sink.name,
-      sinkType: sink.type,
-      uuid: sink.uuid,
-      channels: sink.channels,
-      latency: sink.latency,
-      instanceUuid: sink.instanceUuid,
+      sink: sink.toDescriptor(),
     });
   }
 
@@ -69,14 +62,7 @@ export class ClientCoordinator {
     }
     getWebrtcServer().coordinatorPeer.sendControllerMessage({
       type: 'sourceInfo',
-      name: source.name,
-      sourceType: source.type,
-      uuid: source.uuid,
-      channels: source.channels,
-      latency: source.latency,
-      startedAt: source.startedAt,
-      peerUuid: getLocalPeer().uuid,
-      instanceUuid: source.instanceUuid,
+      source: source.toDescriptor(),
     });
   }
 
@@ -99,25 +85,6 @@ export class ClientCoordinator {
         getAudioSourcesSinksManager().removeSink(sink.uuid);
       }
     });
-
-    message.pipes.forEach(this.addPipe);
-
-    this.pipes.forEach((pipe) => {
-      if (!_.some(message.pipes, { sourceUuid: pipe.sourceUuid, sinkUuid: pipe.sinkUuid })) {
-        pipe.close();
-      }
-    });
-  }
-
-  addPipe = (pipeDescriptor) => {
-    const existingPipe = _.find(this.pipes, { sourceUuid: pipeDescriptor.sourceUuid, sinkUuid: pipeDescriptor.sinkUuid });
-    if (existingPipe) {
-      existingPipe.activate();
-      return;
-    }
-    const pipe = new Pipe(pipeDescriptor.sourceUuid, pipeDescriptor.sinkUuid);
-    this.pipes.push(pipe);
-    pipe.activate();
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
@@ -164,17 +131,17 @@ export class ClientCoordinator {
   }
 
   private handleSinkUpdate = (message: SinkInfoMessage) => {
-    const sink = getAudioSourcesSinksManager().getSinkByUuid(message.uuid);
+    const sink = getAudioSourcesSinksManager().getSinkByUuid(message.sink.uuid);
     sink.updateInfo({
-      name: message.name,
+      name: message.sink.name,
     });
   }
 
   private handleSourceUpdate = (message: SourceInfoMessage) => {
-    const source = getAudioSourcesSinksManager().getSourceByUuid(message.uuid);
+    const source = getAudioSourcesSinksManager().getSourceByUuid(message.source.uuid);
     source.updateInfo({
-      name: message.name,
-      latency: message.latency,
+      name: message.source.name,
+      latency: message.source.latency,
     });
   }
 }

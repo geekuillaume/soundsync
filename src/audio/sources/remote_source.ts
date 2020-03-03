@@ -15,14 +15,10 @@ export class RemoteSource extends AudioSource {
   patch(descriptor: Partial<SourceDescriptor>) {
     getWebrtcServer().getPeerByUuid(this.peerUuid).sendControllerMessage({
       type: 'sourceInfo',
-      uuid: this.uuid,
-      channels: this.channels,
-      latency: this.latency,
-      peerUuid: this.peerUuid,
-      sourceType: this.type,
-      startedAt: this.startedAt,
-      name: descriptor.name || this.name,
-      instanceUuid: this.instanceUuid,
+      source: {
+        ...this.toDescriptor(),
+        name: descriptor.name || this.name,
+      },
     });
   }
 

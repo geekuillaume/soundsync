@@ -6,14 +6,10 @@ import {
   SourceInfoMessage, SinkInfoMessage, PeerConnectionInfoMessage, SoundStateMessage,
 } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
-import { AudioSource } from '../audio/sources/audio_source';
-import { AudioSink } from '../audio/sinks/audio_sink';
 import { attachTimekeeperCoordinator } from './timekeeper';
-import { PipeDescriptor } from './pipe';
-import { updateConfigArrayItem, deleteConfigArrayItem, getConfigField } from './config';
-import { BaseSourceInstanceDescriptor } from '../audio/sources/source_type';
-import { BaseSinkInstanceDescriptor } from '../audio/sinks/sink_type';
-import { getClientCoordinator } from './client_coordinator';
+import { AudioInstance } from '../audio/utils';
+import { BaseSourceDescriptor } from '../audio/sources/source_type';
+import { BaseSinkDescriptor } from '../audio/sinks/sink_type';
 
 const l = debug(`soundsync:hostCoordinator`);
 
@@ -21,37 +17,18 @@ const getSoundStateMessage = (): SoundStateMessage => ({
   type: 'soundState',
   sinks: getAudioSourcesSinksManager().sinks.map((sink) => sink.toDescriptor()),
   sources: getAudioSourcesSinksManager().sources.map((source) => source.toDescriptor()),
-  pipes: getClientCoordinator().pipes.map((pipe) => pipe.toDescriptor()),
 });
 
 const broadcastState = async () => getWebrtcServer().broadcast(getSoundStateMessage());
 const handleRequestSourceList = (peer: WebrtcPeer) => peer.sendControllerMessage(getSoundStateMessage());
 
 const handleSourceInfo = async (peer: WebrtcPeer, message: SourceInfoMessage) => {
-  const descriptor: BaseSourceInstanceDescriptor = {
-    uuid: message.uuid,
-    type: message.sourceType,
-    peerUuid: peer.uuid,
-    name: message.name,
-    channels: message.channels,
-    startedAt: message.startedAt,
-    latency: message.latency,
-    instanceUuid: message.instanceUuid,
-  };
-  getAudioSourcesSinksManager().addSource(descriptor);
+  getAudioSourcesSinksManager().addSource(message.source);
   broadcastState();
 };
 
 const handleSinkInfo = (peer: WebrtcPeer, message: SinkInfoMessage) => {
-  const descriptor: BaseSinkInstanceDescriptor = {
-    uuid: message.uuid,
-    type: message.sinkType,
-    peerUuid: peer.uuid,
-    name: message.name,
-    latency: message.latency,
-    instanceUuid: message.instanceUuid,
-  };
-  getAudioSourcesSinksManager().addSink(descriptor);
+  getAudioSourcesSinksManager().addSink(message.sink);
   broadcastState();
   // TODO: handle disconnect of peer
 };
@@ -79,19 +56,6 @@ const handlePeerConnectionInfo = (peer: WebrtcPeer, message: PeerConnectionInfoM
 //     })
 //   });
 // }
-
-export const createPipe = (source: AudioSource, sink: AudioSink) => {
-  if (_.some(getClientCoordinator().pipes, (p) => p.sourceUuid === source.uuid && p.sinkUuid === sink.uuid)) {
-    return;
-  }
-  const pipe: PipeDescriptor = {
-    sourceUuid: source.uuid,
-    sinkUuid: sink.uuid,
-  };
-  getClientCoordinator().addPipe(pipe);
-
-  this.broadcastState();
-};
 
 export const attachHostCoordinator = () => {
   l(`Created host coordinator`);

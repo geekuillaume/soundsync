@@ -6,38 +6,42 @@ import eos from 'end-of-stream';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
-  SinkDescriptor, SinkType, BaseSinkDescriptor, SinkInstanceDescriptor,
+  SinkDescriptor, SinkType, BaseSinkDescriptor, SinkUUID,
 } from './sink_type';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getWebrtcServer } from '../../communication/wrtc_server';
+import { SourceUUID } from '../sources/source_type';
+import { AudioInstance, MaybeAudioInstance } from '../utils';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink {
-  manager: AudioSourcesSinksManager;
+  uuid: SinkUUID;
   name: string;
   type: SinkType;
-  decoder: NodeJS.ReadWriteStream;
   rate: number;
   channels: number;
-  log: debug.Debugger;
   local: boolean;
-  uuid: string;
+  peerUuid: string;
+  pipedFrom?: SourceUUID;
+  pipedSource?: AudioSource;
+
+  manager: AudioSourcesSinksManager;
+  decoder: NodeJS.ReadWriteStream;
+  log: debug.Debugger;
   sourceStream: PassThrough;
   decodedStream: ReturnType<typeof createAudioDecodedStream>;
-  peerUuid: string;
-  instanceUuid = uuidv4(); // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
+  instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
   buffer: {[key: string]: Buffer};
   latency = 50;
-  pipedSource?: AudioSource;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
 
-  constructor(descriptor: SinkDescriptor, manager: AudioSourcesSinksManager) {
+  constructor(descriptor: MaybeAudioInstance<SinkDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
     this.name = descriptor.name;
     this.type = descriptor.type;
@@ -45,8 +49,10 @@ export abstract class AudioSink {
     this.uuid = descriptor.uuid || uuidv4();
     this.peerUuid = descriptor.peerUuid;
     this.channels = 2;
+    this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink of type ${descriptor.type}`);
+    this.manager.on('soundstateUpdated', this._syncPipeState);
   }
 
   get peer() {
@@ -57,8 +63,9 @@ export abstract class AudioSink {
     return this.updateInfo(descriptor);
   }
 
-  updateInfo(descriptor: Partial<SinkInstanceDescriptor>) {
+  updateInfo(descriptor: Partial<AudioInstance<SinkDescriptor>>) {
     if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
+      console.log(descriptor, this.instanceUuid);
       this.log('Received update for a different instance of the sink, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
       return;
     }
@@ -71,17 +78,34 @@ export abstract class AudioSink {
     });
     if (hasChanged) {
       this.manager.emit('sinkUpdate', this);
+      this.manager.emit('soundstateUpdated');
     }
   }
 
-  async linkSource(source: AudioSource) {
-    // TODO: handle pipe two sources to same sink
-    if (this.pipedSource) {
+  // this get executed everytime there is a change in the sources/sinks
+  private _syncPipeState = async () => {
+    const sourceToPipeFrom = this.pipedFrom && this.manager.getSourceByUuid(this.pipedFrom);
+    if (!sourceToPipeFrom) {
+      // should not be piped from something, unlinking if it is
+      this.unlinkSource();
       return;
     }
-    this.log(`Linking audio source ${source.name} (uuid ${source.uuid}) to sink`);
-    this.pipedSource = source;
+
+    if (this.pipedSource && sourceToPipeFrom !== this.pipedSource) {
+      // already piped but to the wrong source
+      this.unlinkSource();
+    }
+
+    if (this.pipedSource && sourceToPipeFrom === this.pipedSource) {
+      // nothing to do
+      return;
+    }
+
+    this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
     this.buffer = {};
+    // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
+    // is called multiple times before this.pipedSource.start() has finished
+    this.pipedSource = sourceToPipeFrom;
     this.sourceStream = await this.pipedSource.start();
     this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
     try {
@@ -117,10 +141,14 @@ export abstract class AudioSink {
   }
 
   getAudioChunkAtDelayFromNow() {
-    if (!this.pipedSource) {
+    if (!this.pipedFrom) {
       return null;
     }
-    const synchronizedChunkTime = (getCurrentSynchronizedTime() - this.pipedSource.startedAt - this.pipedSource.latency) + this.latency;
+    const source = this.manager.getSourceByUuid(this.pipedFrom);
+    if (!source) {
+      return null;
+    }
+    const synchronizedChunkTime = (getCurrentSynchronizedTime() - source.startedAt - source.latency) + this.latency;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_CHUNK_DURATION);
     const chunk = this.buffer[correspondingChunkIndex];
     this.buffer[correspondingChunkIndex] = undefined;
@@ -140,11 +168,13 @@ export abstract class AudioSink {
     latency: this.latency,
   })
 
-  toDescriptor: () => BaseSinkDescriptor = () => ({
+  toDescriptor: () => AudioInstance<BaseSinkDescriptor> = () => ({
     type: this.type,
     name: this.name,
     uuid: this.uuid,
     latency: this.latency,
     peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    pipedFrom: this.pipedFrom,
   })
 }

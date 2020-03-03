@@ -13,7 +13,6 @@ import produce from 'immer';
 import { isBrowser } from '../utils/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
-import { Pipe, PipeDescriptor } from './pipe';
 
 const log = debug(`soundsync:config`);
 
@@ -22,7 +21,6 @@ interface ConfigData {
   uuid: string;
   sinks: SinkDescriptor[];
   sources: SourceDescriptor[];
-  pipes: Pipe[];
   autoDetectAudioDevices: boolean;
   coordinatorHost?: string;
   isCoordinator?: boolean;
@@ -33,7 +31,6 @@ const defaultConfig: ConfigData = {
   uuid: uuidv4(),
   sinks: [],
   sources: [],
-  pipes: [],
   autoDetectAudioDevices: true,
   coordinatorHost: null,
   isCoordinator: false,
@@ -122,15 +119,9 @@ export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigD
 
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
 export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
-export function updateConfigArrayItem(field: 'pipes', item: PipeDescriptor): void;
-export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item) {
+export function updateConfigArrayItem(field: 'sources' | 'sinks', item) {
   setConfig((c) => {
-    let existingItem;
-    if (field === 'pipes') {
-      existingItem = _.find(getConfigField(field, c), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
-    } else {
-      existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
-    }
+    const existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
     if (existingItem) {
       Object.assign(existingItem, item);
     } else {
@@ -141,12 +132,7 @@ export function updateConfigArrayItem(field: 'sources' | 'sinks' | 'pipes', item
 
 export function deleteConfigArrayItem(field, item) {
   setConfig((c) => {
-    let existingItem;
-    if (field === 'pipes') {
-      existingItem = _.find(getConfigField(field), { sourceUuid: item.sourceUuid, sinkUuid: item.sinkUuid });
-    } else {
-      existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
-    }
+    const existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
     c[field] = getConfigField(field).filter((i) => i !== existingItem);
   });
 }

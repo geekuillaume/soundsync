@@ -1,14 +1,14 @@
+import { SourceUUID } from '../sources/source_type';
+
+export type SinkUUID = string;
+
 export interface BaseSinkDescriptor {
   type;
   name: string;
-  uuid?: string;
+  uuid?: SinkUUID;
   peerUuid: string;
   latency?: number;
-}
-
-// used only in messages to prevent an update targeting an old instances of sink
-export interface BaseSinkInstanceDescriptor extends BaseSinkDescriptor {
-  instanceUuid: string;
+  pipedFrom?: SourceUUID;
 }
 
 export interface RtAudioSinkDescriptor extends BaseSinkDescriptor {
@@ -25,5 +25,4 @@ export interface WebAudioSinkDescriptor extends BaseSinkDescriptor {
 }
 
 export type SinkDescriptor = RtAudioSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor;
-export type SinkInstanceDescriptor = SinkDescriptor & BaseSinkInstanceDescriptor;
 export type SinkType = SinkDescriptor['type'];
