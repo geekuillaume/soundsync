@@ -47,5 +47,6 @@ module.exports = {
     "no-useless-constructor": 0,
     "arrow-body-style": 0,
     "jsx-filename-extension": 0,
+    "no-nested-ternary": 0,
   },
 };

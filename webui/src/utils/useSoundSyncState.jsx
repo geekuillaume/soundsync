@@ -12,7 +12,7 @@ import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_si
 
 const initialState = {
   stateVersion: 0,
-  registeringForPipe: { type: null, uuid: null },
+  registeringForPipe: { selectedSink: null, selectedSource: null },
   showHidden: false,
 };
 
@@ -34,8 +34,12 @@ export const SoundSyncProvider = ({ children }) => {
       s.stateVersion++;
     }),
     [registerForPipe.toString()]: produce((s, { payload }) => {
-      s.registeringForPipe.type = payload.type;
-      s.registeringForPipe.uuid = payload.uuid;
+      console.log(payload);
+      if (payload.type === 'sink') {
+        s.registeringForPipe.selectedSink = payload.audioObject;
+      } else {
+        s.registeringForPipe.selectedSource = payload.audioObject;
+      }
     }),
     [unregisterForPipe.toString()]: produce((s) => {
       s.registeringForPipe = {};
@@ -73,59 +77,58 @@ export const getContextAudioSourcesSinksManager = () => useContext(soundSyncCont
 
 export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks, withHidden);
 export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources, withHidden);
-export const usePipes = () => [];
+export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
+// TODO: fix this
 export const useIsPiped = (uuid) => false;
 
+// TODO fix this with real peer once auto peer discovery is implemented
 export const usePeer = (uuid) => ({});
 
-export const useRegisterForPipe = (type, uuid) => {
-  const { post } = useFetch();
-
-  const { state, dispatch, refreshData } = useContext(soundSyncContext);
-  const isSelectedElement = state.registeringForPipe.uuid === uuid;
-  const shouldShow = state.registeringForPipe.type !== type || isSelectedElement;
+export const useRegisterForPipe = (type, audioObject) => {
+  const { state, dispatch } = useContext(soundSyncContext);
+  const isSelectedElement = state.registeringForPipe.selectedSink === audioObject || state.registeringForPipe.selectedSource === audioObject;
+  const selectedObjectType = state.registeringForPipe.selectedSink ? 'sink' : state.registeringForPipe.selectedSource ? 'source' : null;
+  const shouldShow = type !== selectedObjectType || isSelectedElement;
 
   useEffect(() => {
+    // used to handle a click outside that will unregister the selected element
     const clickListener = (e) => {
       if (!e.target.closest('.source-container,.sink-container')) {
         dispatch(unregisterForPipe());
       }
     };
-    if (state.registeringForPipe.uuid === uuid) {
+    if (isSelectedElement) {
       document.addEventListener('click', clickListener);
     }
     return () => {
       document.removeEventListener('click', clickListener);
     };
-  }, [state.registeringForPipe.uuid === uuid]);
+  }, [isSelectedElement]);
 
   return [shouldShow, isSelectedElement, async () => {
-    if (state.registeringForPipe.type && state.registeringForPipe.type !== type) {
-      const sourceUuid = type === 'source' ? uuid : state.registeringForPipe.uuid;
-      const sinkUuid = type === 'sink' ? uuid : state.registeringForPipe.uuid;
+    // event handler on click
+    if (selectedObjectType && selectedObjectType !== type) {
+      const sink = type === 'sink' ? audioObject : state.registeringForPipe.selectedSink;
+      const source = type === 'source' ? audioObject : state.registeringForPipe.selectedSource;
       dispatch(unregisterForPipe());
-      await post(`/source/${sourceUuid}/pipe_to_sink/${sinkUuid}`);
-      refreshData();
+      sink.patch({
+        pipedFrom: source.uuid,
+      });
     } else {
-      dispatch(registerForPipe({ type, uuid }));
+      dispatch(registerForPipe({ type, audioObject }));
     }
   }];
 };
 
-export const useUnpipeAction = (sinkUuid) => {
-  const { dispatch, refreshData } = useContext(soundSyncContext);
-
-  const { del } = useFetch();
-  const pipe = find(usePipes(), { sinkUuid });
+export const useUnpipeAction = (sink) => {
+  const { dispatch } = useContext(soundSyncContext);
 
   return useCallback(async () => {
-    if (!pipe) {
-      return;
-    }
     dispatch(unregisterForPipe());
-    await del(`/source/${pipe.sourceUuid}/pipe_to_sink/${pipe.sinkUuid}`);
-    refreshData();
-  }, [pipe]);
+    sink.patch({
+      pipedFrom: null,
+    });
+  }, [sink]);
 };
 
 export const useShowHidden = () => useContext(soundSyncContext).state.showHidden;

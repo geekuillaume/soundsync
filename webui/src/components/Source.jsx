@@ -19,7 +19,7 @@ const logos = {
 };
 
 export const Source = ({ source }) => {
-  const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('source', source.uuid);
+  const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('source', source);
   const peer = usePeer(source.peerUuid);
   const sourceLogo = logos[source.type];
   const sources = useSources();

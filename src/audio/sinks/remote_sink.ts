@@ -12,7 +12,7 @@ export class RemoteSink extends AudioSink {
         ...this.toDescriptor(),
         latency: descriptor.latency || this.latency,
         name: descriptor.name || this.name,
-        pipedFrom: descriptor.pipedFrom || this.pipedFrom,
+        pipedFrom: descriptor.pipedFrom === undefined ? this.pipedFrom : descriptor.pipedFrom,
       },
     });
   }

@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import { Zoom } from '@material-ui/core';
 import {
-  usePeer, useSinks, useRegisterForPipe, useIsPiped, useUnpipeAction, useShowHidden,
+  usePeer, useSinks, useRegisterForPipe, useUnpipeAction, useShowHidden,
 } from '../utils/useSoundSyncState';
 import { useEditAudioStreamModal } from './editModal';
 
@@ -19,9 +19,8 @@ const logos = {
 };
 
 export const Sink = ({ sink }) => {
-  const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('sink', sink.uuid);
-  const isPiped = useIsPiped(sink.uuid);
-  const handleUnpipe = useUnpipeAction(sink.uuid);
+  const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('sink', sink);
+  const handleUnpipe = useUnpipeAction(sink);
   const peer = usePeer(sink.peerUuid);
   const { handleOpen, anchor, modal } = useEditAudioStreamModal('sink', sink);
   const sinks = useSinks();
@@ -50,7 +49,7 @@ export const Sink = ({ sink }) => {
           onClick={registerForPipe}
         />
         <a
-          className={classnames('unpipe-button delete is-large', { active: isPiped && isSelectedElement })}
+          className={classnames('unpipe-button delete is-large', { active: sink.pipedFrom && isSelectedElement })}
           onClick={handleUnpipe}
         />
         <div className="box sink-box" onClick={handleOpen}>

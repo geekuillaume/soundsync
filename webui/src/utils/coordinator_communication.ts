@@ -7,18 +7,17 @@ import { ClientCoordinator, getClientCoordinator } from '../serverSrc/coordinato
 import { initConfig, getConfigField } from '../serverSrc/coordinator/config';
 import { waitForFirstTimeSync, attachTimekeeperClient } from '../serverSrc/coordinator/timekeeper';
 
+initConfig();
+registerLocalPeer({
+  name: 'Web page',
+  uuid: getConfigField('uuid'),
+});
 
 let initializePromise: Promise;
 let clientCoordinator: ClientCoordinator;
 
 export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
-    initConfig();
-    registerLocalPeer({
-      name: 'Web page',
-      uuid: getConfigField('uuid'),
-    });
-
     const webrtcServer = getWebrtcServer();
     await webrtcServer.connectToCoordinatorHost('http://127.0.0.1:6512');
 

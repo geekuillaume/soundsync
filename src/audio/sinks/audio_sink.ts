@@ -65,13 +65,12 @@ export abstract class AudioSink {
 
   updateInfo(descriptor: Partial<AudioInstance<SinkDescriptor>>) {
     if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
-      console.log(descriptor, this.instanceUuid);
       this.log('Received update for a different instance of the sink, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
       return;
     }
     let hasChanged = false;
     Object.keys(descriptor).forEach((prop) => {
-      if (descriptor[prop] && this[prop] !== descriptor[prop]) {
+      if (descriptor[prop] !== undefined && this[prop] !== descriptor[prop]) {
         hasChanged = true;
         this[prop] = descriptor[prop];
       }
@@ -84,6 +83,9 @@ export abstract class AudioSink {
 
   // this get executed everytime there is a change in the sources/sinks
   private _syncPipeState = async () => {
+    if (!this.local) {
+      return;
+    }
     const sourceToPipeFrom = this.pipedFrom && this.manager.getSourceByUuid(this.pipedFrom);
     if (!sourceToPipeFrom) {
       // should not be piped from something, unlinking if it is
@@ -101,11 +103,11 @@ export abstract class AudioSink {
       return;
     }
 
-    this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
     this.buffer = {};
     // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
     // is called multiple times before this.pipedSource.start() has finished
     this.pipedSource = sourceToPipeFrom;
+    this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
     this.sourceStream = await this.pipedSource.start();
     this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
     try {
