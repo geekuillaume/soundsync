@@ -1,5 +1,6 @@
 import debug from 'debug';
 import uuidv4 from 'uuid/v4';
+import _ from 'lodash';
 
 import { PassThrough } from 'stream';
 import eos from 'end-of-stream';
@@ -69,7 +70,7 @@ export abstract class AudioSink {
     }
     let hasChanged = false;
     Object.keys(descriptor).forEach((prop) => {
-      if (descriptor[prop] !== undefined && this[prop] !== descriptor[prop]) {
+      if (descriptor[prop] !== undefined && !_.isEqual(this[prop], descriptor[prop])) {
         hasChanged = true;
         this[prop] = descriptor[prop];
       }
@@ -77,6 +78,9 @@ export abstract class AudioSink {
     if (hasChanged) {
       this.manager.emit('sinkUpdate', this);
       this.manager.emit('soundstateUpdated');
+      if (this.local) {
+        this.manager.emit('localSoundStateUpdated');
+      }
     }
   }
 

@@ -106,12 +106,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
     this.sources.push(source);
     if (source.local) {
       this.emit('newLocalSource', source);
+      this.emit('localSoundStateUpdated');
     }
     this.emit('soundstateUpdated');
   }
 
   removeSource(uuid: string) {
-    const source = _.find(this.sources, { uuid });
+    const source = this.getSourceByUuid(uuid);
     if (!source) {
       log(`Tried to remove unknown source ${uuid}, ignoring`);
       return;
@@ -120,6 +121,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
     log(`Removing source ${source.name} (type: ${source.type} uuid: ${uuid})`);
     this.sources = _.filter(this.sources, (s) => s.uuid !== uuid);
     this.emit('soundstateUpdated');
+    if (source.local) {
+      this.emit('localSoundStateUpdated');
+    }
   }
 
   addSink(sinkDescriptor: SinkDescriptor) {
@@ -168,12 +172,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
     this.sinks.push(sink);
     if (sink.local) {
       this.emit('newLocalSink', sink);
+      this.emit('localSoundStateUpdated');
     }
     this.emit('soundstateUpdated');
   }
 
   removeSink(uuid: string) {
-    const sink = _.find(this.sinks, { uuid });
+    const sink = this.getSinkByUuid(uuid);
     if (!sink) {
       log(`Tried to remove unknown sink ${uuid}, ignoring`);
       return;
@@ -182,16 +187,25 @@ export class AudioSourcesSinksManager extends EventEmitter {
     log(`Removing sink ${sink.name} (type: ${sink.type} uuid: ${uuid})`);
     this.sinks = _.filter(this.sinks, (s) => s.uuid !== uuid);
     this.emit('soundstateUpdated');
+    if (sink.local) {
+      this.emit('localSoundStateUpdated');
+    }
   }
 
   addFromConfig() {
     const sources = getConfigField('sources');
     sources.forEach((source) => {
-      this.addSource(source);
+      this.addSource({
+        ...source,
+        peerUuid: getLocalPeer().uuid,
+      });
     });
     const sinks = getConfigField('sinks');
     sinks.forEach((sink) => {
-      this.addSink(sink);
+      this.addSink({
+        ...sink,
+        peerUuid: getLocalPeer().uuid,
+      });
     });
   }
 }

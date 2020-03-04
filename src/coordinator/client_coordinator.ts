@@ -35,16 +35,7 @@ export class ClientCoordinator {
         this.announceSoundState();
       });
 
-    getAudioSourcesSinksManager().on('newLocalSink', this.announceSoundState);
-    getAudioSourcesSinksManager().on('newLocalSource', this.announceSoundState);
-    getAudioSourcesSinksManager().on('sinkUpdate', this.announceSoundState);
-    getAudioSourcesSinksManager().on('sourceUpdate', this.announceSoundState);
-
-    // getPeersManager().coordinatorPeer.waitForConnected().then(async () => {
-    //   getPeersManager().coordinatorPeer.sendControllerMessage({
-    //     type: 'requestSoundState',
-    //   });
-    // });
+    getAudioSourcesSinksManager().on('localSoundStateUpdated', this.announceSoundState);
   }
 
   private announceSoundState = () => {
@@ -56,6 +47,9 @@ export class ClientCoordinator {
   }
 
   private handlePeerSoundStateUpdate = (message: PeerSoundStateMessage, peer: Peer) => {
+    if (peer === getLocalPeer()) {
+      return;
+    }
     Object.keys(message.sources).forEach((sourceUuid) => {
       const source = message.sources[sourceUuid];
       getAudioSourcesSinksManager().addSource(source);

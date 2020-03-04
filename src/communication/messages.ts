@@ -3,7 +3,6 @@ import {
   BaseSourceDescriptor,
 } from '../audio/sources/source_type';
 import { BaseSinkDescriptor } from '../audio/sinks/sink_type';
-import { WebrtcPeer } from './wrtc_peer';
 import { AudioInstance } from '../audio/utils';
 
 export interface BaseMessage {
