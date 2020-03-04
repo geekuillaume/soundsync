@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -b",
     "build:watch": "tsc -w",
-    "start": "node app/index.js",
+    "start": "node -r source-map-support/register app/index.js",
     "start:electron": "electron app/index.js",
     "pack": "electron-builder",
     "postinstall": "electron-builder install-app-deps",
@@ -36,6 +36,7 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
+    "source-map-support": "^0.5.16",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
   },
@@ -58,10 +59,14 @@
       "asar": false
     },
     "linux": {
-      "target": ["deb"]
+      "target": [
+        "deb"
+      ]
     },
     "deb": {
-      "fpm": ["--after-install=scripts/package_extra/install.sh"],
+      "fpm": [
+        "--after-install=scripts/package_extra/install.sh"
+      ],
       "depends": [
         "gconf2",
         "gconf-service",
