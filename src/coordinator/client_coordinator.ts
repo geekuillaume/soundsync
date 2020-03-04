@@ -8,8 +8,8 @@ import { AudioSource } from '../audio/sources/audio_source';
 import {
   PeerConnectionInfoMessage,
   PeerSoundStateMessage,
-  SinkInfoMessage,
-  SourceInfoMessage,
+  SinkPatchMessage,
+  SourcePatchMessage,
   PeerDiscoveryMessage,
 } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
@@ -29,8 +29,8 @@ export class ClientCoordinator {
     getPeersManager()
       .onControllerMessage('peerConnectionInfo', this.handlePeerConnectionInfo)
       .onControllerMessage('peerSoundState', this.handlePeerSoundStateUpdate)
-      .onControllerMessage('sinkInfo', this.handleSinkUpdate)
-      .onControllerMessage('sourceInfo', this.handleSourceUpdate)
+      .onControllerMessage('sinkPatch', this.handleSinkUpdate)
+      .onControllerMessage('sourcePatch', this.handleSourceUpdate)
       .onControllerMessage('peerDiscovery', this.handlePeerDiscoveryMessage)
       .on('newConnectedPeer', () => {
         this.announceSoundState();
@@ -142,19 +142,30 @@ export class ClientCoordinator {
     sourceStream.pipe(stream);
   }
 
-  private handleSinkUpdate = (message: SinkInfoMessage) => {
+  private handleSinkUpdate = (message: SinkPatchMessage) => {
     const sink = getAudioSourcesSinksManager().getSinkByUuid(message.sink.uuid);
-    sink.updateInfo({
-      name: message.sink.name,
-    });
+    if (!sink) {
+      this.log('Trying to update non existing souce');
+      return;
+    }
+    if (!sink.local) {
+      this.log('Trying to update remote source with a patch, ignoring');
+      return;
+    }
+    sink.updateInfo(message.sink);
   }
 
-  private handleSourceUpdate = (message: SourceInfoMessage) => {
+  private handleSourceUpdate = (message: SourcePatchMessage) => {
     const source = getAudioSourcesSinksManager().getSourceByUuid(message.source.uuid);
-    source.updateInfo({
-      name: message.source.name,
-      latency: message.source.latency,
-    });
+    if (!source) {
+      this.log('Trying to update non existing souce');
+      return;
+    }
+    if (!source.local) {
+      this.log('Trying to update remote source with a patch, ignoring');
+      return;
+    }
+    source.updateInfo(message.source);
   }
 
   private handlePeerDiscoveryMessage = (message: PeerDiscoveryMessage) => {

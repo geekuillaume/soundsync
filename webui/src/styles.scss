@@ -25,7 +25,7 @@ body {
   filter: drop-shadow(0 0.5em 1em rgba(10, 10, 10, 0.2));
   width: 100%;
   position: relative;
-  transition: 0.3s all ease;
+  transition: all 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms !important;
   .handle {
     cursor: pointer;
     position: absolute;

@@ -14,10 +14,12 @@ export class RemoteSource extends AudioSource {
 
   patch(descriptor: Partial<SourceDescriptor>) {
     getPeersManager().getPeerByUuid(this.peerUuid).sendControllerMessage({
-      type: 'sourceInfo',
+      type: 'sourcePatch',
       source: {
-        ...this.toDescriptor(),
+        uuid: this.uuid,
+        instanceUuid: this.instanceUuid,
         name: descriptor.name || this.name,
+        latency: descriptor.latency || this.latency,
       },
     });
   }

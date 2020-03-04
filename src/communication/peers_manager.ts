@@ -10,9 +10,8 @@ import { getLocalPeer } from './local_peer';
 import {
   ControllerMessage,
   LightMessage,
-  SourceInfoMessage,
-  RemoveSourceMessage,
-  SinkInfoMessage,
+  SourcePatchMessage,
+  SinkPatchMessage,
   PeerConnectionInfoMessage,
   TimekeepRequest,
   TimekeepResponse,
@@ -155,9 +154,8 @@ export class PeersManager extends EventEmitter {
   }
 
   onControllerMessage(type: LightMessage['type'], handler: (message: LightMessage, peer: Peer) => any): this;
-  onControllerMessage(type: SourceInfoMessage['type'], handler: (message: SourceInfoMessage, peer: Peer) => any): this;
-  onControllerMessage(type: RemoveSourceMessage['type'], handler: (message: RemoveSourceMessage, peer: Peer) => any): this;
-  onControllerMessage(type: SinkInfoMessage['type'], handler: (message: SinkInfoMessage, peer: Peer) => any): this;
+  onControllerMessage(type: SourcePatchMessage['type'], handler: (message: SourcePatchMessage, peer: Peer) => any): this;
+  onControllerMessage(type: SinkPatchMessage['type'], handler: (message: SinkPatchMessage, peer: Peer) => any): this;
   onControllerMessage(type: PeerConnectionInfoMessage['type'], handler: (message: PeerConnectionInfoMessage, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any): this;
   onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;

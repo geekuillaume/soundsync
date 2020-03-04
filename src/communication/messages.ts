@@ -1,5 +1,5 @@
 import {
-  SourceUUID, BaseSourceDescriptor,
+  BaseSourceDescriptor,
 } from '../audio/sources/source_type';
 import { BaseSinkDescriptor } from '../audio/sinks/sink_type';
 import { WebrtcPeer } from './wrtc_peer';
@@ -13,21 +13,14 @@ export interface LightMessage extends BaseMessage {
   type: 'ping' | 'pong' | 'requestSoundState' | 'disconnect';
 }
 
-export interface SourceInfoMessage extends BaseMessage {
-  type: 'sourceInfo';
-  source: AudioInstance<BaseSourceDescriptor>;
+export interface SourcePatchMessage extends BaseMessage {
+  type: 'sourcePatch';
+  source: Partial<AudioInstance<BaseSourceDescriptor>>;
 }
 
-export interface SinkInfoMessage extends BaseMessage {
-  type: 'sinkInfo';
-  sink: AudioInstance<BaseSinkDescriptor>;
-}
-
-// TODO: implement sink removal messages and handling
-
-export interface RemoveSourceMessage extends BaseMessage {
-  type: 'removeSource';
-  uuid: SourceUUID;
+export interface SinkPatchMessage extends BaseMessage {
+  type: 'sinkPatch';
+  sink: Partial<AudioInstance<BaseSinkDescriptor>>;
 }
 
 export interface PeerConnectionInfoMessage extends BaseMessage {
@@ -64,9 +57,8 @@ export interface PeerDiscoveryMessage extends BaseMessage {
 
 export type ControllerMessage =
   LightMessage |
-  SourceInfoMessage |
-  RemoveSourceMessage |
-  SinkInfoMessage |
+  SourcePatchMessage |
+  SinkPatchMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
   PeerDiscoveryMessage |

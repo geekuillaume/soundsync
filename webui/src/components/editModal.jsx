@@ -75,12 +75,12 @@ export const useEditAudioStreamModal = (type, audioStream) => {
     audioStream.patch({ name: newName });
     handleClose();
   };
-  const registerForPipe = useRegisterForPipe(type, audioStream.uuid)[2];
+  const registerForPipe = useRegisterForPipe(type, audioStream)[2];
   const handleLink = () => {
     handleClose();
     registerForPipe();
   };
-  const handleUnpipe = useUnpipeAction(audioStream.uuid);
+  const handleUnpipe = useUnpipeAction(audioStream);
   const handleUnlink = () => {
     handleUnpipe();
     handleClose();
