@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import _ from 'lodash';
 import debug, { Debugger } from 'debug';
+import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
 import {
   ControllerMessage,
@@ -49,10 +50,18 @@ export abstract class Peer extends EventEmitter {
       // networkLatency = roundtripTime / 2;
     });
     setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
+
+    this.onControllerMessage('peerInfo', (message) => {
+      this.name = message.name;
+    });
     this.on('connected', (shouldIgnore) => {
       if (shouldIgnore) {
         return;
       }
+      this.sendControllerMessage({
+        type: 'peerInfo',
+        name: getLocalPeer().name,
+      });
       getPeersManager().emit('newConnectedPeer', this);
       this._sendTimekeepRequest();
     });

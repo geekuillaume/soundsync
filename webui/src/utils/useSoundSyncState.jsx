@@ -9,6 +9,7 @@ import produce from 'immer';
 import { isHidden } from './hiddenUtils';
 import { getSoundState, onSoundStateChange } from './coordinator_communication';
 import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
+import { getPeersManager } from '../serverSrc/communication/peers_manager';
 
 const initialState = {
   stateVersion: 0,
@@ -81,8 +82,7 @@ export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter(
 // TODO: fix this
 export const useIsPiped = (uuid) => false;
 
-// TODO fix this with real peer once auto peer discovery is implemented
-export const usePeer = (uuid) => ({});
+export const usePeer = (uuid) => getPeersManager().peers[uuid];
 
 export const useRegisterForPipe = (type, audioObject) => {
   const { state, dispatch } = useContext(soundSyncContext);

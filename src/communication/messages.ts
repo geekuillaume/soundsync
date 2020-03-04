@@ -56,6 +56,11 @@ export interface PeerDiscoveryMessage extends BaseMessage {
   peersUuid: string[];
 }
 
+export interface PeerInfoMessage extends BaseMessage {
+  type: 'peerInfo';
+  name: string;
+}
+
 export type ControllerMessage =
   LightMessage |
   SourcePatchMessage |
@@ -63,14 +68,18 @@ export type ControllerMessage =
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
   PeerDiscoveryMessage |
+  PeerInfoMessage |
   PeerSoundStateMessage;
 
+type ControllerMessageSingleHandler<T extends BaseMessage, Y> = ((type: T['type'], handler: (message: T, peer: Peer) => any) => Y);
+
 export type ControllerMessageHandler<T> =
-  ((type: LightMessage['type'], handler: (message: LightMessage, peer: Peer) => any) => T) &
-  ((type: SourcePatchMessage['type'], handler: (message: SourcePatchMessage, peer: Peer) => any) => T) &
-  ((type: SinkPatchMessage['type'], handler: (message: SinkPatchMessage, peer: Peer) => any) => T) &
-  ((type: PeerConnectionInfoMessage['type'], handler: (message: PeerConnectionInfoMessage, peer: Peer) => any) => T) &
-  ((type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any) => T) &
-  ((type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any) => T) &
-  ((type: PeerDiscoveryMessage['type'], handler: (message: PeerDiscoveryMessage, peer: Peer) => any) => T) &
-  ((type: PeerSoundStateMessage['type'], handler: (message: PeerSoundStateMessage, peer: Peer) => any) => T);
+  ControllerMessageSingleHandler<LightMessage, T> &
+  ControllerMessageSingleHandler<SourcePatchMessage, T> &
+  ControllerMessageSingleHandler<SinkPatchMessage, T> &
+  ControllerMessageSingleHandler<PeerConnectionInfoMessage, T> &
+  ControllerMessageSingleHandler<TimekeepRequest, T> &
+  ControllerMessageSingleHandler<TimekeepResponse, T> &
+  ControllerMessageSingleHandler<PeerDiscoveryMessage, T> &
+  ControllerMessageSingleHandler<PeerInfoMessage, T> &
+  ControllerMessageSingleHandler<PeerSoundStateMessage, T>;
