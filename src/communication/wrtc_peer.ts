@@ -1,11 +1,14 @@
 import { RTCPeerConnection } from 'wrtc';
 import uuidv4 from 'uuid/v4';
+import superagent from 'superagent';
+
+import { once } from '../utils/misc';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
 import { onExit } from '../utils/on_exit';
 import {
-  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
+  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS, SOUNDSYNC_VERSION,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
@@ -78,6 +81,42 @@ export class WebrtcPeer extends Peer {
       isAnswer: false,
       uuid: uuidv4(),
     });
+  }
+
+  connectFromHttpApi = async (host: string) => {
+    const offer = await this.connection.createOffer();
+    await this.connection.setLocalDescription(offer);
+    await waitUntilIceGatheringStateComplete(this.connection);
+
+    const connect = async () => {
+      try {
+        const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${host}/connect_webrtc_peer`)
+          .send({
+            name: getLocalPeer().name,
+            uuid: getLocalPeer().uuid,
+            sdp: this.connection.localDescription,
+            version: SOUNDSYNC_VERSION,
+          });
+        if (getPeersManager().peers[uuid] && getPeersManager().peers[uuid] !== this) {
+          // we already connected to this peer, do nothing
+          this.delete();
+          return;
+        }
+        this.setUuid(uuid);
+        this.name = coordinatorName;
+        this.log(`Got response from other peer http server`);
+        await this.connection.setRemoteDescription(sdp);
+      } catch (e) {
+        if (e.status === 409) {
+          // we are already connected to this peer, bail out
+          this.delete();
+          return;
+        }
+        this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
+        setTimeout(connect, 10 * 1000);
+      }
+    };
+    connect();
   }
 
   disconnect = async (advertiseDisconnect = false) => {

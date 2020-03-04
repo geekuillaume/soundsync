@@ -9,7 +9,7 @@ class LocalPeer extends Peer {
   }
 
   sendControllerMessage(message: ControllerMessage) {
-    setImmediate(() => this._onReceivedMessage(message));
+    this._onReceivedMessage(message);
   }
 }
 

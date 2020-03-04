@@ -79,7 +79,12 @@ export abstract class Peer extends EventEmitter {
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
 
   setUuid = (uuid: string) => {
+    delete getPeersManager().peers[this.uuid];
     this.uuid = uuid;
+    if (getPeersManager().peers[uuid] && getPeersManager().peers[uuid] !== this) {
+      throw new Error('A peer with this uuid already exists');
+    }
+    getPeersManager().peers[uuid] = this;
     this.log = debug(`soundsync:peer:${uuid}`);
   }
 
@@ -96,5 +101,10 @@ export abstract class Peer extends EventEmitter {
       type: 'timekeepRequest',
       sentAt: now(),
     });
+  }
+
+  delete = () => {
+    delete getPeersManager().peers[this.uuid];
+    this.removeAllListeners();
   }
 }

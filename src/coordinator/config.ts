@@ -22,8 +22,8 @@ interface ConfigData {
   sinks: SinkDescriptor[];
   sources: SourceDescriptor[];
   autoDetectAudioDevices: boolean;
-  coordinatorHost?: string;
-  isCoordinator?: boolean;
+  port: number;
+  peers: string[];
 }
 
 const defaultConfig: ConfigData = {
@@ -32,8 +32,8 @@ const defaultConfig: ConfigData = {
   sinks: [],
   sources: [],
   autoDetectAudioDevices: true,
-  coordinatorHost: null,
-  isCoordinator: false,
+  port: 6512,
+  peers: [],
 };
 
 const defaultPaths = envPaths('soundsync', {
