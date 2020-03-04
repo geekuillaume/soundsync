@@ -87,7 +87,7 @@ export abstract class AudioSource {
         this.consumersStreams.forEach((s) => s.write(d));
       });
       if (this.local) {
-        this.updateInfo({ startedAt: now() });
+        this.updateInfo({ startedAt: Math.floor(now()) }); // no need for more than 1ms of precision
       }
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.on('finish', () => {
