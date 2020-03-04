@@ -1,3 +1,4 @@
+import { Peer } from './peer';
 import {
   BaseSourceDescriptor,
 } from '../audio/sources/source_type';
@@ -64,4 +65,12 @@ export type ControllerMessage =
   PeerDiscoveryMessage |
   PeerSoundStateMessage;
 
-export type Handler<T extends BaseMessage> = ({ message, peer }: {message: T; peer: WebrtcPeer}) => any;
+export type ControllerMessageHandler<T> =
+  ((type: LightMessage['type'], handler: (message: LightMessage, peer: Peer) => any) => T) &
+  ((type: SourcePatchMessage['type'], handler: (message: SourcePatchMessage, peer: Peer) => any) => T) &
+  ((type: SinkPatchMessage['type'], handler: (message: SinkPatchMessage, peer: Peer) => any) => T) &
+  ((type: PeerConnectionInfoMessage['type'], handler: (message: PeerConnectionInfoMessage, peer: Peer) => any) => T) &
+  ((type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any) => T) &
+  ((type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any) => T) &
+  ((type: PeerDiscoveryMessage['type'], handler: (message: PeerDiscoveryMessage, peer: Peer) => any) => T) &
+  ((type: PeerSoundStateMessage['type'], handler: (message: PeerSoundStateMessage, peer: Peer) => any) => T);

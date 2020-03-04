@@ -1,7 +1,6 @@
 import yargs from 'yargs';
 import debug from 'debug';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
-import { waitForFirstTimeSync, attachTimekeeperClient } from './coordinator/timekeeper';
 import { createHttpServer } from './communication/http_server';
 import { getPeersManager } from './communication/peers_manager';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
@@ -71,8 +70,6 @@ const main = async () => {
   if (argv.connectWithHttp) {
     await peersManager.joinPeerWithHttpApi('http://localhost:6512');
   }
-  attachTimekeeperClient(peersManager);
-  // await waitForFirstTimeSync();
 
   getClientCoordinator();
 

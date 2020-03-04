@@ -6,7 +6,6 @@ import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import { WebAudioSinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioInstance } from '../utils';
 
 export class WebAudioSink extends AudioSink {
@@ -71,7 +70,7 @@ export class WebAudioSink extends AudioSink {
       type: 'sourceTimeAtAudioTimeOrigin',
       sourceTimeAtAudioTimeOrigin:
         // current time of the audio context in the coordinator time referential
-        (getCurrentSynchronizedTime() - (this.context.currentTime * 1000))
+        (this.peer.getCurrentTime() - (this.context.currentTime * 1000))
         // minus the source time
         - (source.startedAt + source.latency),
     });

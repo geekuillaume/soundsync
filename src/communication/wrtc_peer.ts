@@ -1,5 +1,4 @@
 import { RTCPeerConnection } from 'wrtc';
-import debug, { Debugger } from 'debug';
 import uuidv4 from 'uuid/v4';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from './local_peer';
@@ -16,7 +15,6 @@ import { now } from '../utils/time';
 export class WebrtcPeer extends Peer {
   connection: RTCPeerConnection;
   controllerChannel: RTCDataChannel;
-  log: Debugger;
   private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
 
@@ -37,8 +35,6 @@ export class WebrtcPeer extends Peer {
     // }
 
     this.initWebrtc();
-    this.log = debug(`soundsync:wrtcPeer:${uuid}`);
-    this.log(`Created new peer`);
   }
 
   initWebrtc = () => {
@@ -84,11 +80,6 @@ export class WebrtcPeer extends Peer {
     });
   }
 
-  setUuid = (uuid: string) => {
-    this.uuid = uuid;
-    this.log = debug(`soundsync:wrtcPeer:${uuid}`);
-  }
-
   disconnect = async (advertiseDisconnect = false) => {
     if (this.state === 'disconnected') {
       return;
@@ -120,9 +111,7 @@ export class WebrtcPeer extends Peer {
       this.disconnect();
       return;
     }
-    this.log.extend(message.type)('Received controller message', message);
-    this.emit(`controllerMessage:all`, { peer: this, message });
-    this.emit(`controllerMessage:${message.type}`, { peer: this, message });
+    this._onReceivedMessage(message);
   }
 
   sendControllerMessage(message: ControllerMessage) {
@@ -157,13 +146,6 @@ export class WebrtcPeer extends Peer {
       this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
     }
     this.sendControllerMessage({ type: 'ping' });
-  }
-
-  connect = async () => {
-    // if (this.controllerChannel.readyState === 'open') {
-    //   return;
-    // }
-    // todo handle connect here
   }
 
   createAudioSourceChannel = async (sourceUuid: string) => {

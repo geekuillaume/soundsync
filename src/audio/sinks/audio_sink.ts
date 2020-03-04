@@ -10,7 +10,6 @@ import {
 } from './sink_type';
 import { createAudioDecodedStream } from '../opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
-import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/peers_manager';
 import { SourceUUID } from '../sources/source_type';
@@ -150,7 +149,7 @@ export abstract class AudioSink {
     if (!source) {
       return null;
     }
-    const synchronizedChunkTime = (getCurrentSynchronizedTime() - source.startedAt - source.latency) + this.latency;
+    const synchronizedChunkTime = (this.peer.getCurrentTime() - source.startedAt - source.latency) + this.latency;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_CHUNK_DURATION);
     const chunk = this.buffer[correspondingChunkIndex];
     this.buffer[correspondingChunkIndex] = undefined;

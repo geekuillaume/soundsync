@@ -6,10 +6,10 @@ import eos from 'end-of-stream';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
-import { getCurrentSynchronizedTime } from '../../coordinator/timekeeper';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
+import { now } from '../../utils/time';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
@@ -83,7 +83,7 @@ export abstract class AudioSource {
         this.consumersStreams.forEach((s) => s.write(d));
       });
       if (this.local) {
-        this.updateInfo({ startedAt: getCurrentSynchronizedTime() });
+        this.updateInfo({ startedAt: now() });
       }
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.on('finish', () => {

@@ -9,8 +9,7 @@ class LocalPeer extends Peer {
   }
 
   sendControllerMessage(message: ControllerMessage) {
-    this.emit(`controllerMessage:all`, { peer: this, message });
-    this.emit(`controllerMessage:${message.type}`, { peer: this, message });
+    setImmediate(() => this._onReceivedMessage(message));
   }
 }
 

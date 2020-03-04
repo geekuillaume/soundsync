@@ -4,7 +4,6 @@ import uuidv4 from 'uuid/v4';
 import { Peer } from '../communication/peer';
 import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../communication/peers_manager';
-import { AudioSource } from '../audio/sources/audio_source';
 import {
   PeerConnectionInfoMessage,
   PeerSoundStateMessage,
@@ -100,20 +99,14 @@ export class ClientCoordinator {
         await requesterPeer.connection.setRemoteDescription(message.offer);
         return;
       }
-      console.log(1, requesterPeer.connection.signalingState);
       // we received an offer while waiting for a response, it usually means that the two peers are trying to connect at the same time, it this is the case, ONLY ONE the two peer need to reset its connection and accept the offer. To determine which peer needs to do that, we use the UUID of the remote peer and if it is higher than our own UUID we reset our connection. The remote peer will just ignore the message.
       if (requesterPeer.connection.signalingState === 'have-local-offer' && requesterPeer.uuid < getLocalPeer().uuid) {
         return;
       }
-      console.log(2, requesterPeer.connection.signalingState);
       requesterPeer.initWebrtc();
-      console.log(3, requesterPeer.connection.signalingState);
       await requesterPeer.connection.setRemoteDescription(message.offer);
-      console.log(4, requesterPeer.connection.signalingState);
       const answer = await requesterPeer.connection.createAnswer();
-      console.log(5, requesterPeer.connection.signalingState);
       requesterPeer.connection.setLocalDescription(answer);
-      console.log(6, requesterPeer.connection.signalingState);
 
       transmitter.sendControllerMessage({
         type: 'peerConnectionInfo',

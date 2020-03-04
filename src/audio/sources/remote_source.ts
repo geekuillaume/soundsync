@@ -30,7 +30,7 @@ export class RemoteSource extends AudioSource {
       // this should never happens as a remote source should have a webrtc peer
       throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
     }
-    await peer.connect();
+    await peer.waitForConnected();
     const stream = await peer.createAudioSourceChannel(this.uuid);
     this.log(`Created audio channel with source peer`);
     return stream;

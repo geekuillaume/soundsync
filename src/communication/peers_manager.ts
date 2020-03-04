@@ -9,14 +9,7 @@ import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
 import {
   ControllerMessage,
-  LightMessage,
-  SourcePatchMessage,
-  SinkPatchMessage,
-  PeerConnectionInfoMessage,
-  TimekeepRequest,
-  TimekeepResponse,
-  PeerDiscoveryMessage,
-  PeerSoundStateMessage,
+  ControllerMessageHandler,
 } from './messages';
 import { Peer } from './peer';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
@@ -147,25 +140,13 @@ export class PeersManager extends EventEmitter {
         name: 'remote',
         host: 'unknown',
       });
-      peer.connectFromOtherPeers();
       this.peers[uuid] = peer;
+      peer.connectFromOtherPeers();
     }
     return this.peers[uuid];
   }
 
-  onControllerMessage(type: LightMessage['type'], handler: (message: LightMessage, peer: Peer) => any): this;
-  onControllerMessage(type: SourcePatchMessage['type'], handler: (message: SourcePatchMessage, peer: Peer) => any): this;
-  onControllerMessage(type: SinkPatchMessage['type'], handler: (message: SinkPatchMessage, peer: Peer) => any): this;
-  onControllerMessage(type: PeerConnectionInfoMessage['type'], handler: (message: PeerConnectionInfoMessage, peer: Peer) => any): this;
-  onControllerMessage(type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any): this;
-  onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;
-  onControllerMessage(type: PeerSoundStateMessage['type'], handler: (message: PeerSoundStateMessage, peer: Peer) => any): this;
-  onControllerMessage(type: TimekeepRequest['type'], handler: (message: TimekeepRequest, peer: Peer) => any): this;
-  onControllerMessage(type: TimekeepResponse['type'], handler: (message: TimekeepResponse, peer: Peer) => any): this;
-  onControllerMessage(type: PeerDiscoveryMessage['type'], handler: (message: PeerDiscoveryMessage, peer: Peer) => any): this;
-  onControllerMessage(type, handler) {
-    return this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer));
-  }
+  onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
 }
 
 export const getPeersManager = () => {

@@ -1,5 +1,5 @@
 import { Readable, Transform } from 'stream';
-import { getCurrentSynchronizedTime } from '../coordinator/timekeeper';
+import { now } from './time';
 
 export interface AudioChunkStreamOutput {
   i: number;
@@ -11,7 +11,7 @@ export class AudioChunkStream extends Readable {
   sampleSize: number;
   sourceStream: NodeJS.ReadableStream;
   readInterval: NodeJS.Timeout;
-  creationTime: number = getCurrentSynchronizedTime();
+  creationTime: number = now();
   lastEmitTime: number;
 
   constructor(sourceStream: NodeJS.ReadableStream, interval: number, sampleSize: number) {
@@ -31,7 +31,7 @@ export class AudioChunkStream extends Readable {
     this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
   }
 
-  now = () => getCurrentSynchronizedTime() - this.creationTime;
+  now = () => now() - this.creationTime;
 
   _pushNecessaryChunks = () => {
     const chunksToEmit = Math.floor((this.now() - this.lastEmitTime) / this.interval);
