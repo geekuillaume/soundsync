@@ -97,7 +97,8 @@ export class WebrtcPeer extends Peer {
             sdp: this.connection.localDescription,
             version: SOUNDSYNC_VERSION,
           });
-        if (getPeersManager().peers[uuid] && getPeersManager().peers[uuid] !== this) {
+        const existingPeer = getPeersManager().peers[uuid];
+        if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
           // we already connected to this peer, do nothing
           this.delete();
           return;

@@ -9,8 +9,8 @@ import { getClientCoordinator } from './coordinator/client_coordinator';
 import { initConfig, getConfigField } from './coordinator/config';
 import { createSystray, refreshMenu } from './utils/systray';
 import {
-  startDetection, publishService,
-} from './communication/coordinatorDetector';
+  startDetection, publishService, onDetectionChange,
+} from './communication/bonjour';
 import { registerLocalPeer } from './communication/local_peer';
 
 
@@ -54,11 +54,12 @@ const main = async () => {
     await disableAutolaunchAtStartup();
   }
 
+  createSystray();
   startDetection();
   refreshMenu();
 
   try {
-    const httpServer = await createHttpServer(6512);
+    const httpServer = await createHttpServer(getConfigField('port'));
     peersManager.attachToSignalingServer(httpServer);
     publishService(httpServer.port);
   } catch (e) {}
@@ -67,13 +68,20 @@ const main = async () => {
   // const apiController = new ApiController(
   //   httpServer,
   // );
-  if (argv.connectWithHttp) {
-    await peersManager.joinPeerWithHttpApi('http://localhost:6512');
-  }
+  getConfigField('peers').forEach((peerHost) => {
+    peersManager.joinPeerWithHttpApi(peerHost);
+  });
+
+  onDetectionChange((services) => {
+    services.forEach((service) => {
+      const uuid = service.name.match(/SoundSync @ (.*)/)[1];
+      if (!peersManager.peers[uuid]) {
+        peersManager.joinPeerWithHttpApi(`${service.host}:${service.port}`);
+      }
+    });
+  });
 
   getClientCoordinator();
-
-  refreshMenu();
 };
 
 main().catch((e) => {
@@ -83,11 +91,13 @@ main().catch((e) => {
 });
 
 process.on('uncaughtException', (e) => {
+  // eslint-disable-next-line no-console
   console.error(e);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (e) => {
+  // eslint-disable-next-line no-console
   console.error(e);
   process.exit(1);
 });

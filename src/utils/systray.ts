@@ -1,9 +1,6 @@
 import _ from 'lodash';
 import open from 'open';
 import { resolve } from 'path';
-import {
-  getDetectedCoordinators, onDetectionChange, actAsCoordinator, actAsClientOfCoordinator,
-} from '../communication/coordinatorDetector';
 import { getPeersManager } from '../communication/peers_manager';
 import {
   isAutolaunchedAtStartup,
@@ -38,7 +35,6 @@ export const createSystray = () => {
 
         updateMenu = async () => {
           const template: any = _.compact([
-            { type: 'separator' },
             // getPeersManager().coordinatorPeer && {
             //   label: 'Open Controller',
             //   click: () => {
@@ -53,34 +49,12 @@ export const createSystray = () => {
             },
           ]);
 
-          // if (isCoordinator()) {
-          //   template.unshift({ label: 'Started as coordinator', enabled: false });
-          // } else if (!getPeersManager().coordinatorPeer) {
-          //   const detectedCoordinators = getDetectedCoordinators();
-          //   template.unshift(...(detectedCoordinators.length
-          //     ? detectedCoordinators.map((coordinator) => ({
-          //       label: `  ${coordinator.host}`,
-          //       type: 'normal',
-          //       // @ts-ignore
-          //       click: () => actAsClientOfCoordinator(`${coordinator.addresses[0]}:${coordinator.port}`),
-          //     }))
-          //     : [{ label: '  Scanning...', type: 'normal', enabled: false }]));
-          //   template.unshift({ label: 'Select a coordinator:', enabled: false });
-          //   template.unshift({ label: 'Start a new coordinator', click: actAsCoordinator });
-          // } else {
-          //   template.unshift({
-          //     label: `Connected to ${getPeersManager().coordinatorPeer.name}`,
-          //     enabled: false,
-          //   });
-          // }
-
           const contextMenu = Menu.buildFromTemplate(template);
 
           tray.setContextMenu(contextMenu);
         };
 
         tray.setTitle('Soundsync');
-        onDetectionChange(refreshMenu);
         refreshMenu();
       } catch (e) {
         console.error(e);

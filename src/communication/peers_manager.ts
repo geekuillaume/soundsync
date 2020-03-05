@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import _ from 'lodash';
-import superagent from 'superagent';
 import debug from 'debug';
 
 import { SOUNDSYNC_VERSION } from '../utils/constants';
@@ -12,8 +11,6 @@ import {
   ControllerMessageHandler,
 } from './messages';
 import { Peer } from './peer';
-import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
-import { once } from '../utils/misc';
 
 const log = debug('soundsync:wrtc');
 let peersManager: PeersManager;
@@ -42,6 +39,9 @@ export class PeersManager extends EventEmitter {
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
       const existingPeer = this.peers[uuid];
       if (existingPeer && existingPeer instanceof WebrtcPeer) {
+        if (existingPeer.state === 'connected') {
+          return ctx.throw('peer with this uuid is already connected', 409);
+        }
         existingPeer.disconnect(true);
       }
       const peer = new WebrtcPeer({
@@ -50,6 +50,7 @@ export class PeersManager extends EventEmitter {
         host: ctx.request.ip,
       });
 
+      this.peers[uuid] = peer;
       await peer.connection.setRemoteDescription(sdp);
       const answer = await peer.connection.createAnswer();
 
@@ -61,7 +62,6 @@ export class PeersManager extends EventEmitter {
         uuid: getLocalPeer().uuid,
         coordinatorName: getLocalPeer().name,
       };
-      this.peers[uuid] = peer;
       this.broadcastPeersDiscoveryInfo();
     });
 
@@ -81,45 +81,19 @@ export class PeersManager extends EventEmitter {
   }
 
   async joinPeerWithHttpApi(host: string) {
-    const { name } = getLocalPeer();
     const peer = new WebrtcPeer({
-      name: '',
-      uuid: 'placeholderForCoordinatorUuid',
+      name: 'remote',
+      uuid: `placeholder:${host}`,
       host,
     });
-
-    const offer = await peer.connection.createOffer();
-    await peer.connection.setLocalDescription(offer);
-    await waitUntilIceGatheringStateComplete(peer.connection);
-
-    const connect = async () => {
-      try {
-        const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${host}/connect_webrtc_peer`)
-          .send({
-            name,
-            uuid: getLocalPeer().uuid,
-            sdp: peer.connection.localDescription,
-            version: SOUNDSYNC_VERSION,
-          });
-        peer.setUuid(uuid);
-        this.peers[uuid] = peer;
-        peer.name = coordinatorName;
-        peer.log(`Got response from other peer http server`);
-        await peer.connection.setRemoteDescription(sdp);
-        await once(peer, 'connected');
-      } catch (e) {
-        console.error('Cannot join peer, retrying in 5 seconds');
-        console.error(e);
-        setTimeout(connect, 5000);
-      }
-    };
-    return connect();
+    this.peers[peer.uuid] = peer;
+    await peer.connectFromHttpApi(host);
   }
 
   broadcastPeersDiscoveryInfo = () => {
     this.broadcast({
       type: 'peerDiscovery',
-      peersUuid: _.map(this.peers, (p) => p.uuid),
+      peersUuid: _.map(_.filter(this.peers, (p) => p.state === 'connected'), (p) => p.uuid),
     });
   }
 
