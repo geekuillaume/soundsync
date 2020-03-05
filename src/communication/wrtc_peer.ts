@@ -2,7 +2,6 @@ import { RTCPeerConnection } from 'wrtc';
 import uuidv4 from 'uuid/v4';
 import superagent from 'superagent';
 
-import { once } from '../utils/misc';
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
