@@ -1,5 +1,4 @@
 import React from 'react';
-// import AddIcon from '@material-ui/icons/Add';
 
 import {
   useSinks, useSources, usePipes,
@@ -7,6 +6,8 @@ import {
 import { Source } from './Source';
 import { Sink } from './Sink';
 import { Pipe } from './Pipe';
+import { AddSinkButton } from './AddSinkButton';
+import { AddSourceButton } from './AddSourceButton';
 
 export const SoundState = () => {
   const pipes = usePipes();
@@ -27,8 +28,8 @@ export const SoundState = () => {
             <SinksList sinks={sinks} />
           </>
         )}
-        {/* <div className="add-source"><AddIcon fontSize="large" /></div>
-        <div className="add-sink"><AddIcon fontSize="large" /></div> */}
+        <AddSourceButton />
+        <AddSinkButton />
       </div>
     </div>
   );

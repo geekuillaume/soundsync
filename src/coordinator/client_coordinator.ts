@@ -10,6 +10,7 @@ import {
   SinkPatchMessage,
   SourcePatchMessage,
   PeerDiscoveryMessage,
+  SourceCreateMessage,
 } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
@@ -31,6 +32,7 @@ export class ClientCoordinator {
       .onControllerMessage('sinkPatch', this.handleSinkUpdate)
       .onControllerMessage('sourcePatch', this.handleSourceUpdate)
       .onControllerMessage('peerDiscovery', this.handlePeerDiscoveryMessage)
+      .onControllerMessage('sourceCreate', this.handleSourceCreate)
       .on('newConnectedPeer', () => {
         this.announceSoundState();
       });
@@ -159,6 +161,10 @@ export class ClientCoordinator {
     message.peersUuid.forEach((uuid) => {
       getPeersManager().getPeerByUuid(uuid);
     });
+  }
+
+  private handleSourceCreate = (message: SourceCreateMessage) => {
+    getAudioSourcesSinksManager().addSource(message.source);
   }
 }
 

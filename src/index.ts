@@ -12,6 +12,7 @@ import {
   startDetection, publishService, onDetectionChange,
 } from './communication/bonjour';
 import { registerLocalPeer } from './communication/local_peer';
+import { Capacity } from './communication/peer';
 
 
 if (!process.env.DEBUG) {
@@ -38,6 +39,7 @@ const main = async () => {
   registerLocalPeer({
     name: getConfigField('name'),
     uuid: getConfigField('uuid'),
+    capacities: [Capacity.Librespot],
   });
 
   const peersManager = getPeersManager();

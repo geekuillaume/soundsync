@@ -13,6 +13,10 @@ import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 
 const TIME_DELTAS_TO_KEEP = 10;
 
+export enum Capacity {
+  Librespot = 'librespot'
+}
+
 export abstract class Peer extends EventEmitter {
   uuid: string;
   name: string;
@@ -21,15 +25,17 @@ export abstract class Peer extends EventEmitter {
   timeDelta = 0;
   private _previousTimeDeltas: number[] = [];
   log: Debugger;
+  capacities: Capacity[] ;
 
   constructor({
-    uuid, name, host,
-  }) {
+    uuid, name, capacities, host,
+  }: PeerDescriptor) {
     super();
     this.setMaxListeners(1000);
     this.name = name;
     this.uuid = uuid;
     this.host = host;
+    this.capacities = capacities || [];
     this.log = debug(`soundsync:peer:${uuid}`);
     this.log(`Created new peer`);
     this.onControllerMessage(`timekeepRequest`, (message) => {
@@ -52,7 +58,8 @@ export abstract class Peer extends EventEmitter {
     setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
 
     this.onControllerMessage('peerInfo', (message) => {
-      this.name = message.name;
+      this.name = message.peer.name;
+      this.capacities = message.peer.capacities;
     });
     this.on('connected', (shouldIgnore) => {
       if (shouldIgnore) {
@@ -60,7 +67,7 @@ export abstract class Peer extends EventEmitter {
       }
       this.sendControllerMessage({
         type: 'peerInfo',
-        name: getLocalPeer().name,
+        peer: getLocalPeer().toDescriptor(),
       });
       getPeersManager().emit('newConnectedPeer', this);
       this._sendTimekeepRequest();
@@ -107,4 +114,17 @@ export abstract class Peer extends EventEmitter {
     delete getPeersManager().peers[this.uuid];
     this.removeAllListeners();
   }
+
+  toDescriptor = (): PeerDescriptor => ({
+    uuid: this.uuid,
+    name: this.name,
+    capacities: this.capacities,
+  })
+}
+
+export interface PeerDescriptor {
+  uuid: string;
+  name: string;
+  host?: string;
+  capacities?: Capacity[];
 }

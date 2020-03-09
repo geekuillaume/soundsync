@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider, CachePolicies } from 'use-http';
 import { SoundState } from './SoundState';
 import { SoundSyncProvider } from '../utils/useSoundSyncState';
-import { WebPlayer } from './WebPlayer';
 import { Header } from './Header';
 
 // port 1234 is dev server of Parcel, when using it we use the local soundsync server
@@ -14,7 +13,6 @@ export const App = () => (
     options={{ cachePolicy: CachePolicies.NO_CACHE }}
   >
     <SoundSyncProvider>
-      <WebPlayer />
       <Header />
       <SoundState />
     </SoundSyncProvider>

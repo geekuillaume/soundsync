@@ -21,6 +21,7 @@ const soundSyncContext = createContext({
   state: initialState,
   dispatch: (...args) => {},
   audioSourcesSinksManager: getAudioSourcesSinksManager(),
+  peersManagers: getPeersManager(),
 });
 
 const stateUpdate = createAction('stateUpdate');
@@ -60,7 +61,13 @@ export const SoundSyncProvider = ({ children }) => {
   }, []);
 
   return (
-    <soundSyncContext.Provider value={{ state, dispatch, audioSourcesSinksManager: getAudioSourcesSinksManager() }}>
+    <soundSyncContext.Provider value={{
+      state,
+      dispatch,
+      audioSourcesSinksManager: getAudioSourcesSinksManager(),
+      peersManagers: getPeersManager(),
+    }}
+    >
       {children}
     </soundSyncContext.Provider>
   );
@@ -82,7 +89,8 @@ export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter(
 // TODO: fix this
 export const useIsPiped = (uuid) => false;
 
-export const usePeer = (uuid) => getPeersManager().peers[uuid];
+export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
+export const usePeer = (uuid) => usePeers()[uuid];
 
 export const useRegisterForPipe = (type, audioObject) => {
   const { state, dispatch } = useContext(soundSyncContext);

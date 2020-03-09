@@ -3,18 +3,17 @@ import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_si
 import { getPeersManager } from '../serverSrc/communication/peers_manager';
 
 import { registerLocalPeer } from '../serverSrc/communication/local_peer';
-import { ClientCoordinator, getClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
+import { getClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
 import { initConfig, getConfigField } from '../serverSrc/coordinator/config';
-import { waitForFirstTimeSync, attachTimekeeperClient } from '../serverSrc/coordinator/timekeeper';
 
 initConfig();
 registerLocalPeer({
   name: 'Web page',
   uuid: getConfigField('uuid'),
+  capacities: [],
 });
 
-let initializePromise: Promise;
-let clientCoordinator: ClientCoordinator;
+let initializePromise: Promise<void>;
 
 export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
@@ -25,7 +24,7 @@ export const initializeCoordinator = async () => {
     audioSourcesSinksManager.addFromConfig();
     // attachTimekeeperClient(peersManager);
     // await waitForFirstTimeSync();
-    clientCoordinator = getClientCoordinator();
+    getClientCoordinator();
   };
   if (initializePromise) {
     return initializePromise;

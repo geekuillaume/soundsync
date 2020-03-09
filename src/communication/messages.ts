@@ -1,6 +1,6 @@
-import { Peer } from './peer';
+import { Peer, PeerDescriptor } from './peer';
 import {
-  BaseSourceDescriptor,
+  BaseSourceDescriptor, SourceDescriptor,
 } from '../audio/sources/source_type';
 import { BaseSinkDescriptor } from '../audio/sinks/sink_type';
 import { AudioInstance } from '../audio/utils';
@@ -16,6 +16,11 @@ export interface LightMessage extends BaseMessage {
 export interface SourcePatchMessage extends BaseMessage {
   type: 'sourcePatch';
   source: Partial<AudioInstance<BaseSourceDescriptor>>;
+}
+
+export interface SourceCreateMessage extends BaseMessage {
+  type: 'sourceCreate';
+  source: SourceDescriptor;
 }
 
 export interface SinkPatchMessage extends BaseMessage {
@@ -57,12 +62,13 @@ export interface PeerDiscoveryMessage extends BaseMessage {
 
 export interface PeerInfoMessage extends BaseMessage {
   type: 'peerInfo';
-  name: string;
+  peer: PeerDescriptor;
 }
 
 export type ControllerMessage =
   LightMessage |
   SourcePatchMessage |
+  SourceCreateMessage |
   SinkPatchMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
@@ -75,6 +81,7 @@ type ControllerMessageSingleHandler<T extends BaseMessage, Y> = ((type: T['type'
 export type ControllerMessageHandler<T> =
   ControllerMessageSingleHandler<LightMessage, T> &
   ControllerMessageSingleHandler<SourcePatchMessage, T> &
+  ControllerMessageSingleHandler<SourceCreateMessage, T> &
   ControllerMessageSingleHandler<SinkPatchMessage, T> &
   ControllerMessageSingleHandler<PeerConnectionInfoMessage, T> &
   ControllerMessageSingleHandler<TimekeepRequest, T> &

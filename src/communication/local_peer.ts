@@ -1,9 +1,11 @@
 import { ControllerMessage } from './messages';
-import { Peer } from './peer';
+import { Peer, PeerDescriptor } from './peer';
 
 class LocalPeer extends Peer {
-  constructor({ uuid, name }) {
-    super({ uuid, name, host: '127.0.0.1' });
+  constructor({ uuid, name, capacities }: PeerDescriptor) {
+    super({
+      uuid, name, host: '127.0.0.1', capacities,
+    });
     this.state = 'connected';
     this.emit('connected', true);
   }
@@ -14,8 +16,8 @@ class LocalPeer extends Peer {
 }
 
 let localPeer: LocalPeer;
-export const registerLocalPeer = ({ name, uuid }) => {
-  localPeer = new LocalPeer({ name, uuid });
+export const registerLocalPeer = ({ name, uuid, capacities }: PeerDescriptor) => {
+  localPeer = new LocalPeer({ name, uuid, capacities });
 };
 
 export const getLocalPeer = () => {
