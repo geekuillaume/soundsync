@@ -9,7 +9,6 @@
   "dependencies": {
     "@koa/cors": "^3.0.0",
     "audify": "1.5.1",
-    "audio": "^1.2.0",
     "auto-launch": "^5.0.5",
     "bonjour": "^3.5.0",
     "cross-env": "^6.0.3",
@@ -35,6 +34,7 @@
     "yargs": "^15.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.4"
+    "@babel/core": "^7.8.4",
+    "typescript": "^3.8.3"
   }
 }

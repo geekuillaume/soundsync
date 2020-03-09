@@ -22,7 +22,8 @@
     "eslint-plugin-react-hooks": "^1.7.0",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-static-files-copy": "^2.3.1",
-    "sass": "^1.25.0"
+    "sass": "^1.25.0",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "@material-ui/core": "^4.9.0",
@@ -37,6 +38,7 @@
     "react-dom": "^16.12.0",
     "redux-actions": "^2.6.5",
     "res": "^0.4.0",
+    "superagent": "^5.2.2",
     "typeface-roboto": "^0.0.75",
     "use-http": "^0.2.4"
   },
