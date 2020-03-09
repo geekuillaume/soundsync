@@ -23,6 +23,11 @@ export interface SourceCreateMessage extends BaseMessage {
   source: SourceDescriptor;
 }
 
+export interface SourceDeleteMessage extends BaseMessage {
+  type: 'sourceDelete';
+  sourceUuid: string;
+}
+
 export interface SinkPatchMessage extends BaseMessage {
   type: 'sinkPatch';
   sink: Partial<AudioInstance<BaseSinkDescriptor>>;
@@ -69,6 +74,7 @@ export type ControllerMessage =
   LightMessage |
   SourcePatchMessage |
   SourceCreateMessage |
+  SourceDeleteMessage |
   SinkPatchMessage |
   PeerConnectionInfoMessage |
   TimekeepRequest | TimekeepResponse |
@@ -82,6 +88,7 @@ export type ControllerMessageHandler<T> =
   ControllerMessageSingleHandler<LightMessage, T> &
   ControllerMessageSingleHandler<SourcePatchMessage, T> &
   ControllerMessageSingleHandler<SourceCreateMessage, T> &
+  ControllerMessageSingleHandler<SourceDeleteMessage, T> &
   ControllerMessageSingleHandler<SinkPatchMessage, T> &
   ControllerMessageSingleHandler<PeerConnectionInfoMessage, T> &
   ControllerMessageSingleHandler<TimekeepRequest, T> &

@@ -119,6 +119,22 @@ export abstract class AudioSource {
     // but can be changed by other sources like remote_source to stop receiving data
   }
 
+  // can be reimplemented to do more cleaning on source delete
+  protected _stop() {}
+
+  stop() {
+    if (this.encodedAudioStream) {
+      this.encodedAudioStream.destroy();
+    }
+    delete this.encodedAudioStream;
+    delete this.directSourceStream;
+    this.consumersStreams.forEach((consumerStream) => {
+      consumerStream.end();
+    });
+    this.consumersStreams = [];
+    this._stop();
+  }
+
   toObject = () => ({
     name: this.name,
     uuid: this.uuid,

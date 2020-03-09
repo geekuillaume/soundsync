@@ -117,7 +117,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
       log(`Tried to remove unknown source ${uuid}, ignoring`);
       return;
     }
-    // TODO: stop source
+    source.stop();
     log(`Removing source ${source.name} (type: ${source.type} uuid: ${uuid})`);
     this.sources = _.filter(this.sources, (s) => s.uuid !== uuid);
     this.emit('soundstateUpdated');

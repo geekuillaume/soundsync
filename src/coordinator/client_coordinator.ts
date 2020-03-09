@@ -11,6 +11,7 @@ import {
   SourcePatchMessage,
   PeerDiscoveryMessage,
   SourceCreateMessage,
+  SourceDeleteMessage,
 } from '../communication/messages';
 import { WebrtcPeer } from '../communication/wrtc_peer';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
@@ -33,6 +34,7 @@ export class ClientCoordinator {
       .onControllerMessage('sourcePatch', this.handleSourceUpdate)
       .onControllerMessage('peerDiscovery', this.handlePeerDiscoveryMessage)
       .onControllerMessage('sourceCreate', this.handleSourceCreate)
+      .onControllerMessage('sourceDelete', this.handleSourceDelete)
       .on('newConnectedPeer', () => {
         this.announceSoundState();
       });
@@ -165,6 +167,10 @@ export class ClientCoordinator {
 
   private handleSourceCreate = (message: SourceCreateMessage) => {
     getAudioSourcesSinksManager().addSource(message.source);
+  }
+
+  private handleSourceDelete = (message: SourceDeleteMessage) => {
+    getAudioSourcesSinksManager().removeSource(message.sourceUuid);
   }
 }
 

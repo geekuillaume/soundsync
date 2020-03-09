@@ -47,6 +47,11 @@ export class LibrespotSource extends AudioSource {
     return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }
 
+  _stop = () => {
+    this.librespotProcess.kill();
+    delete this.librespotProcess;
+  }
+
   toDescriptor: (() => AudioInstance<LibresportSourceDescriptor>) = () => ({
     type: 'librespot',
     name: this.name,

@@ -88,6 +88,15 @@ export const useEditAudioStreamModal = (type, audioStream) => {
 
   const isPiped = useIsPiped(audioStream.uuid);
 
+  const canBeDeleted = type === 'source' && audioStream.type === 'librespot';
+  const handleDelete = () => {
+    audioStream.peer.sendControllerMessage({
+      type: 'sourceDelete',
+      sourceUuid: audioStream.uuid,
+    });
+    handleClose();
+  };
+
   const modal = (
     <EditPopover
       anchorEl={anchor.current}
@@ -130,6 +139,9 @@ export const useEditAudioStreamModal = (type, audioStream) => {
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
         </>
+      )}
+      {canBeDeleted && (
+        <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>
       )}
     </EditPopover>
   );
