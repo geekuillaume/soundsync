@@ -13,7 +13,7 @@
     "start:electron": "electron app/index.js",
     "pack": "electron-builder",
     "postinstall": "electron-builder install-app-deps",
-    "lint": "eslint --ext .ts src",
+    "lint": "eslint --ignore-pattern node_modules --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src"
   },
   "license": "BSL 1.1",
