@@ -117,13 +117,22 @@ export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigD
   return (c || config.configData)[field];
 };
 
+const fieldsToSanitizeInConfig = ['latency', 'startedAt', 'instanceUuid', 'peerUuid'];
+
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
 export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
 export function updateConfigArrayItem(field: 'sources' | 'sinks', item) {
   setConfig((c) => {
     const existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
+    const itemToAssign = _.clone(item);
+    fieldsToSanitizeInConfig.forEach((f) => {
+      delete itemToAssign[f];
+    });
     if (existingItem) {
       Object.assign(existingItem, item);
+      fieldsToSanitizeInConfig.forEach((f) => {
+        delete existingItem[f];
+      });
     } else {
       c[field] = [...getConfigField(field), item];
     }
