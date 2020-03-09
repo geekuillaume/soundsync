@@ -46,7 +46,8 @@
   "alias": {
     "perf_hooks": "/utils/perf_hooks.js",
     "speex-resampler": "/utils/speex-resampler.js",
-    "audify": "/utils/audify.js"
+    "audify": "/utils/audify.js",
+    "wrtc": "/utils/wrtc.js"
   },
   "staticFiles": {
     "staticPath": "src/static",
