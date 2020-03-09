@@ -40,7 +40,6 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 
 Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-- Allow adding / removing Spotify or Airplay source from Webui
 - Handle precise track synchronization
   - Network latency
   - Received time vs playing time
