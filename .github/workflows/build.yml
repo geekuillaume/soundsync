@@ -27,7 +27,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
       - name: Build webui
-        run: cd webui && yarn && yarn build
+        run: yarn && cd webui && yarn && yarn build
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
