@@ -2,13 +2,14 @@
   <img src="res/logo_transparent.png" width="400">
 </p>
 
-## Virtual cables between any audio source and any speaker in your home
+## Connect virtual cables between any audio source and any audio output
 
-Soundsync is a set of applications that connect every speaker in you home to a single interface where you can plug in virtual cables between any audio source and any number of speakers.
+Soundsync is a web and desktop app to manage every audio source and every audio output in you home from a single interface. Link any audio source to multiple speakers connected to any computers on your home network. Soundsync will keep the music synchronized between all of them.
 
 - 🆓 Free to use
-- 🎶 Compatible with a lot of different audio source (Spotify Connect, Windows system audio and soon Airplay, UPnP)
-- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome only for now) and soon Chromecast and more
+- 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link between them you choose
+- 🎶 Compatible with a lot of different audio source (Spotify Connect with a premium account, Windows system audio and soon Airplay, UPnP)
+- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome only) and soon Chromecast and more
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🎛️ Control everything from a web browser
 - 🔓 Not linked to any external service, works offline, no account creation
@@ -18,12 +19,27 @@ Soundsync is a set of applications that connect every speaker in you home to a s
   <img src="res/screenshot_menu.png" height="400">
 </p>
 
+<!-- ## Download it
+
+<table width="100%" align="center"><tr>
+  <td>
+    <h3>Windows</h3>
+  </td>
+  <td>
+    <h3>MacOS</h3>
+  </td>
+  <td>
+    <h3>Linux</h3>
+  </td>
+  <td>
+    <h3>Raspberry</h3>
+  </td>
+</tr></table> -->
+
 ## Project status
 
 Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-- Handle reconnection with controller
-- Download librespot on host when needed
 - Allow adding / removing Spotify or Airplay source from Webui
 - Handle precise track synchronization
   - Network latency
