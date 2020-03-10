@@ -11,7 +11,7 @@ jobs:
         os:
         - ubuntu-latest
         # - macos-latest
-        # - windows-latest
+        - windows-latest
 
     steps:
       - name: Check out Git repository
