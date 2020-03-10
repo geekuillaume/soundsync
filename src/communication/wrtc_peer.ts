@@ -1,5 +1,5 @@
 import { RTCPeerConnection } from 'wrtc';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import superagent from 'superagent';
 
 import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';

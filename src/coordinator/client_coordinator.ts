@@ -1,6 +1,6 @@
 import debug from 'debug';
 import _ from 'lodash';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import { Peer } from '../communication/peer';
 import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../communication/peers_manager';

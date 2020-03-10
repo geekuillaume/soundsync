@@ -6,7 +6,7 @@ import { resolve } from 'path';
 import { hostname } from 'os';
 import envPaths from 'env-paths';
 import mkdirp from 'mkdirp';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
 import _ from 'lodash';
 import produce from 'immer';
