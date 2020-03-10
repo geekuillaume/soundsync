@@ -1,5 +1,6 @@
 import yargs from 'yargs';
 import debug from 'debug';
+import { attachApi } from './api/api';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
 import { createHttpServer } from './communication/http_server';
 import { getPeersManager } from './communication/peers_manager';
@@ -63,13 +64,10 @@ const main = async () => {
   try {
     const httpServer = await createHttpServer(getConfigField('port'));
     peersManager.attachToSignalingServer(httpServer);
+    attachApi(httpServer);
     publishService(httpServer.port);
   } catch (e) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const apiController = new ApiController(
-  //   httpServer,
-  // );
   getConfigField('peers').forEach((peerHost) => {
     peersManager.joinPeerWithHttpApi(peerHost);
   });

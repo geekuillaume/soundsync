@@ -1,16 +1,24 @@
 // import { Context } from 'koa';
 // import _ from 'lodash';
-// import debug from 'debug';
-// import path from 'path';
-// import koaStatic from 'koa-static';
+import debug from 'debug';
+import path from 'path';
+import koaStatic from 'koa-static';
 
-// import { SoundSyncHttpServer } from '../communication/http_server';
-// import { HostCoordinator } from '../coordinator/host_coordinator';
+import { SoundSyncHttpServer } from '../communication/http_server';
 // import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-// import { getWebrtcServer } from '../communication/wrtc_server';
 // import { getClientCoordinator } from '../coordinator/client_coordinator';
 
-// const log = debug(`soundsync:api`);
+const log = debug(`soundsync:api`);
+
+export const attachApi = (httpServer: SoundSyncHttpServer) => {
+  // this.httpServer.router.get('/state', this.handleStateRoute);
+  // this.httpServer.router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
+  // this.httpServer.router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
+  // this.httpServer.router.put('/source/:sourceUuid', this.handleSourceUpdate);
+  // this.httpServer.router.put('/sink/:sinkUuid', this.handleSinkUpdate);
+  httpServer.app.use(koaStatic(path.join(__dirname, '../../webui/dist')));
+  log(`Regitered API`);
+};
 
 // export class ApiController {
 //   httpServer: SoundSyncHttpServer;
