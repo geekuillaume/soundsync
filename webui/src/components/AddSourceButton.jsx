@@ -3,10 +3,10 @@ import { filter } from 'lodash-es';
 import AddIcon from '@material-ui/icons/Add';
 import Dialog from '@material-ui/core/Dialog';
 import {
-  makeStyles, DialogTitle, DialogContent, Button, Divider, Typography, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, FormControl, InputLabel, Select, MenuItem,
+  makeStyles, DialogTitle, DialogContent, Button, Divider, FormControl, InputLabel, Select, MenuItem,
 } from '@material-ui/core';
 import { usePeers } from '../utils/useSoundSyncState';
-import { Capacity } from '../serverSrc/communication/peer';
+import { Capacity } from '../../../src/communication/peer';
 
 const useStyles = makeStyles((theme) => ({
   openDialogButton: {

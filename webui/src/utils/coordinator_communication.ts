@@ -1,10 +1,10 @@
 import { debounce, map } from 'lodash-es';
-import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
-import { getPeersManager } from '../serverSrc/communication/peers_manager';
+import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
+import { getPeersManager } from '../../../src/communication/peers_manager';
 
-import { registerLocalPeer } from '../serverSrc/communication/local_peer';
-import { getClientCoordinator } from '../serverSrc/coordinator/client_coordinator';
-import { initConfig, getConfigField } from '../serverSrc/coordinator/config';
+import { registerLocalPeer } from '../../../src/communication/local_peer';
+import { getClientCoordinator } from '../../../src/coordinator/client_coordinator';
+import { initConfig, getConfigField } from '../../../src/coordinator/config';
 
 initConfig();
 registerLocalPeer({

@@ -2,14 +2,13 @@ import React, {
   useCallback, useEffect, createContext, useReducer, useContext,
 } from 'react';
 
-import useFetch from 'use-http';
-import { find, some, sortBy } from 'lodash-es';
+import { sortBy } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
-import { getSoundState, onSoundStateChange } from './coordinator_communication';
-import { getAudioSourcesSinksManager } from '../serverSrc/audio/audio_sources_sinks_manager';
-import { getPeersManager } from '../serverSrc/communication/peers_manager';
+import { onSoundStateChange } from './coordinator_communication';
+import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
+import { getPeersManager } from '../../../src/communication/peers_manager';
 
 const initialState = {
   stateVersion: 0,
@@ -36,7 +35,6 @@ export const SoundSyncProvider = ({ children }) => {
       s.stateVersion++;
     }),
     [registerForPipe.toString()]: produce((s, { payload }) => {
-      console.log(payload);
       if (payload.type === 'sink') {
         s.registeringForPipe.selectedSink = payload.audioObject;
       } else {

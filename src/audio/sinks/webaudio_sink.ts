@@ -46,6 +46,7 @@ export class WebAudioSink extends AudioSink {
     }
 
     // this is handled by parcel with the copy static files config
+    // this file needs to be available at the root of the web server
     await this.context.audioWorklet.addModule('/webaudio_sink_processor.audioworklet.js');
     this.workletNode = new RawPcmPlayerWorklet(this.context);
     this.workletNode.connect(this.context.destination);
