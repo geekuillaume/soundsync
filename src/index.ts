@@ -78,7 +78,8 @@ const main = async () => {
     services.forEach((service) => {
       const uuid = service.name.match(/SoundSync @ (.*)/)[1];
       if (!peersManager.peers[uuid]) {
-        peersManager.joinPeerWithHttpApi(`${service.host}:${service.port}`, uuid);
+        // @ts-ignore
+        peersManager.joinPeerWithHttpApi(`${service.addresses[0]}:${service.port}`, uuid);
       }
     });
   });

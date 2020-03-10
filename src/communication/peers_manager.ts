@@ -83,7 +83,7 @@ export class PeersManager extends EventEmitter {
   async joinPeerWithHttpApi(host: string, uuid?: string) {
     const peer = new WebrtcPeer({
       name: 'remote',
-      uuid: uuid || `placeholderForHttpApiJoin:${host}`,
+      uuid: uuid || `placeholderForHttpApiJoin_${host}`,
       host,
     });
     this.peers[peer.uuid] = peer;

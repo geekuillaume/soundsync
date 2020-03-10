@@ -88,6 +88,9 @@ export class WebrtcPeer extends Peer {
     await waitUntilIceGatheringStateComplete(this.connection);
 
     const connect = async () => {
+      if (this.state === 'deleted') {
+        return;
+      }
       try {
         const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${host}/connect_webrtc_peer`)
           .send({
@@ -98,9 +101,12 @@ export class WebrtcPeer extends Peer {
           });
         const existingPeer = getPeersManager().peers[uuid];
         if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
-          // we already connected to this peer, do nothing
-          this.delete();
-          return;
+          if (existingPeer.state === 'connected') {
+            // we already connected to this peer, do nothing
+            this.delete();
+            return;
+          }
+          existingPeer.delete();
         }
         this.setUuid(uuid);
         this.name = coordinatorName;

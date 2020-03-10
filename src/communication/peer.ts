@@ -21,7 +21,7 @@ export abstract class Peer extends EventEmitter {
   uuid: string;
   name: string;
   host: string;
-  state: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
+  state: 'disconnected' | 'connecting' | 'connected' | 'deleted' = 'disconnected';
   timeDelta = 0;
   private _previousTimeDeltas: number[] = [];
   log: Debugger;
@@ -111,6 +111,7 @@ export abstract class Peer extends EventEmitter {
   }
 
   delete = () => {
+    this.state = 'deleted';
     delete getPeersManager().peers[this.uuid];
     this.removeAllListeners();
   }
