@@ -40,7 +40,8 @@
     "res": "^0.4.0",
     "superagent": "^5.2.2",
     "typeface-roboto": "^0.0.75",
-    "use-http": "^0.2.4"
+    "use-http": "^0.2.4",
+    "uuid": "^7.0.2"
   },
   "browserslist": [
     "last 1 Chrome versions"
