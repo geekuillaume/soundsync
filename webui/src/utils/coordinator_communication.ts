@@ -2,7 +2,7 @@ import { debounce, map } from 'lodash-es';
 import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/peers_manager';
 
-import { registerLocalPeer } from '../../../src/communication/local_peer';
+import { registerLocalPeer, getLocalPeer } from '../../../src/communication/local_peer';
 import { getClientCoordinator } from '../../../src/coordinator/client_coordinator';
 import { initConfig, getConfigField } from '../../../src/coordinator/config';
 
@@ -25,18 +25,17 @@ export const initializeCoordinator = async () => {
     // attachTimekeeperClient(peersManager);
     // await waitForFirstTimeSync();
     getClientCoordinator();
+    audioSourcesSinksManager.addSink({
+      type: 'webaudio',
+      name: 'Web Page Output',
+      peerUuid: getLocalPeer().uuid,
+    });
   };
   if (initializePromise) {
     return initializePromise;
   }
   initializePromise = innerInitialize();
   return initializePromise;
-
-  // audioSourcesSinksManager.addSink({
-  //   type: 'webaudio',
-  //   name: 'Web Page Output',
-  //   peerUuid: getLocalPeer().uuid,
-  // });
 };
 
 export const onSoundStateChange = async (listener) => {

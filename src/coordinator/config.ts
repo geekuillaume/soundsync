@@ -36,9 +36,6 @@ const defaultConfig: ConfigData = {
   peers: [],
 };
 
-const defaultPaths = envPaths('soundsync', {
-  suffix: '',
-});
 let config: {
   configDir: string;
   configFilePath: string;
@@ -52,7 +49,7 @@ export const initConfig = (dirOverride?: string) => {
     configData: defaultConfig,
   };
 
-  const configDir = isBrowser ? 'soundsync:config' : (dirOverride || defaultPaths.config);
+  const configDir = isBrowser ? 'soundsync:config' : (dirOverride || envPaths('soundsync', { suffix: '' }).config);
   const configFilePath = isBrowser ? 'soundsync:config' : resolve(configDir, 'config.json');
 
   let configRawData;

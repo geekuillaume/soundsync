@@ -4,7 +4,10 @@ export const onExit = (callback) => {
   callbacks.push(callback);
 };
 
-process.on('SIGINT', async () => {
-  await Promise.all(callbacks.map((callback) => callback()));
-  process.exit(0);
-});
+// @ts-ignore
+if (!process.browser) {
+  process.on('SIGINT', async () => {
+    await Promise.all(callbacks.map((callback) => callback()));
+    process.exit(0);
+  });
+}
