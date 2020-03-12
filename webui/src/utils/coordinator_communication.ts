@@ -18,7 +18,7 @@ let initializePromise: Promise<void>;
 export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
     const peersManager = getPeersManager();
-    await peersManager.joinPeerWithHttpApi('http://127.0.0.1:6512');
+    await peersManager.joinPeerWithHttpApi(`http://${document.location.host}`);
 
     const audioSourcesSinksManager = getAudioSourcesSinksManager();
     audioSourcesSinksManager.addFromConfig();
