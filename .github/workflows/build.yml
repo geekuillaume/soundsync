@@ -3,15 +3,44 @@ name: Build/release
 on: push
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
+  build-webui:
+    name: Build WebUI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
 
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Install shared deps
+        run: yarn
+
+      - name: Install webui deps
+        working-directory: ./webui
+        run: yarn
+
+      - name: Build webui
+        working-directory: ./webui
+        run: yarn build
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: webui-dist
+          path: ./webui/dist
+
+  build-executable:
+    name: Build executable
+    needs: build-webui
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:
         - ubuntu-latest
         # - macos-latest
-        - windows-latest
+        # - windows-latest
 
     steps:
       - name: Check out Git repository
@@ -26,9 +55,11 @@ jobs:
         if: "runner.os == 'Linux'"
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
-      - name: Build webui
-        shell: bash
-        run: yarn && cd webui && yarn && yarn build
+      - name: Download Webui dist
+        uses: actions/download-artifact@v1
+        with:
+          name: webui-dist
+          path: webui/dist
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
