@@ -48,11 +48,13 @@ export abstract class AudioSink {
     this.rate = OPUS_ENCODER_RATE;
     this.uuid = descriptor.uuid || uuidv4();
     this.peerUuid = descriptor.peerUuid;
+    this.pipedFrom = descriptor.pipedFrom;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink of type ${descriptor.type}`);
     this.manager.on('soundstateUpdated', this._syncPipeState);
+    this._syncPipeState();
   }
 
   get peer() {
