@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import open from 'open';
 import { resolve } from 'path';
-import { getPeersManager } from '../communication/peers_manager';
 import {
   isAutolaunchedAtStartup,
   disableAutolaunchAtStartup,
@@ -35,12 +34,12 @@ export const createSystray = () => {
 
         updateMenu = async () => {
           const template: any = _.compact([
-            // getPeersManager().coordinatorPeer && {
-            //   label: 'Open Controller',
-            //   click: () => {
-            //     open(`http://${getPeersManager().coordinatorPeer.host}`);
-            //   },
-            // },
+            {
+              label: 'Open Controller',
+              click: () => {
+                open(`http://localhost:6512`);
+              },
+            },
             {
               id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await isAutolaunchedAtStartup(),
             },
