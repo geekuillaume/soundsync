@@ -107,7 +107,6 @@ export abstract class AudioSink {
       // nothing to do
       return;
     }
-
     this.buffer = {};
     // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
     // is called multiple times before this.pipedSource.start() has finished
@@ -155,10 +154,11 @@ export abstract class AudioSink {
     if (!source) {
       return null;
     }
-    const synchronizedChunkTime = (this.peer.getCurrentTime() - source.startedAt - source.latency) + this.latency;
+    const synchronizedChunkTime = (source.peer.getCurrentTime() - source.startedAt - source.latency) + this.latency;
     const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_CHUNK_DURATION);
     const chunk = this.buffer[correspondingChunkIndex];
-    this.buffer[correspondingChunkIndex] = undefined;
+    // console.log(`- ${correspondingChunkIndex}`);
+    delete this.buffer[correspondingChunkIndex];
     if (!chunk) {
       return null;
     }
