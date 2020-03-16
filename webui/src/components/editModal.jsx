@@ -138,6 +138,7 @@ export const useEditAudioStreamModal = (type, audioStream) => {
           {type === 'sink' && isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
+          {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(audioStream)}>Log info</PopoverButton>}
         </>
       )}
       {canBeDeleted && (
