@@ -65,14 +65,14 @@ export class WebAudioSink extends AudioSink {
         document.addEventListener('click', resumeOnClick);
       });
     }
-    // There is three clocks in game here, the coordinator clock, the webpage performance.now() clock
+    // There is three clocks in game here, the source peer clock, the webpage performance.now() clock
     // and the audio context clock. We use this method to get a common time origin to synchronize the
     // source chunks with the common play time
     this.workletNode.port.postMessage({
       type: 'sourceTimeAtAudioTimeOrigin',
       sourceTimeAtAudioTimeOrigin:
         // current time of the audio context in the coordinator time referential
-        (this.peer.getCurrentTime() - (this.context.currentTime * 1000))
+        (this.pipedSource.peer.getCurrentTime() - (this.context.currentTime * 1000))
         // minus the source time
         - (source.startedAt + source.latency),
     });
