@@ -23,6 +23,7 @@ const config = {
       audify: 'utils/polyfills/audify.ts',
       wrtc: 'utils/polyfills/wrtc.js',
       os: 'utils/polyfills/os.js',
+      buffer_polyfill: 'utils/polyfills/buffer.js',
       stream: 'stream-browserify',
       fs: 'utils/polyfills/empty.js',
       'env-paths': 'utils/polyfills/empty.js',
@@ -50,7 +51,7 @@ const config = {
       template: 'src/index.html',
     }),
     new webpack.ProvidePlugin({
-      Buffer: 'buffer',
+      Buffer: 'buffer_polyfill',
     }),
     new webpack.DefinePlugin({
       'process.browser': JSON.stringify(true),
