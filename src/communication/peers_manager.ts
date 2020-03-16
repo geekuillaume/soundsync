@@ -31,7 +31,7 @@ export class PeersManager extends EventEmitter {
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
       const {
-        name, uuid, sdp, version,
+        name, uuid, sdp, version, forceIfSamePeerUuid,
       } = ctx.request.body;
       if (version !== SOUNDSYNC_VERSION) {
         ctx.throw(`Different version of Soundsync, please the client or the coordinator.\nCoordinator version: ${SOUNDSYNC_VERSION}\nClient version: ${version}`, 400);
@@ -39,7 +39,7 @@ export class PeersManager extends EventEmitter {
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
       const existingPeer = this.peers[uuid];
       if (existingPeer && existingPeer instanceof WebrtcPeer) {
-        if (existingPeer.state === 'connected') {
+        if (!forceIfSamePeerUuid && existingPeer.state === 'connected') {
           return ctx.throw('peer with this uuid is already connected', 409);
         }
         existingPeer.disconnect(true);
@@ -80,14 +80,14 @@ export class PeersManager extends EventEmitter {
     // });
   }
 
-  async joinPeerWithHttpApi(host: string, uuid?: string) {
+  async joinPeerWithHttpApi(host: string, uuid?: string, forceIfSamePeerUuid?: boolean) {
     const peer = new WebrtcPeer({
       name: 'remote',
       uuid: uuid || `placeholderForHttpApiJoin_${host}`,
       host,
     });
     this.peers[peer.uuid] = peer;
-    await peer.connectFromHttpApi(host);
+    await peer.connectFromHttpApi(host, forceIfSamePeerUuid);
   }
 
   broadcastPeersDiscoveryInfo = () => {
