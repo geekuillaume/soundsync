@@ -1,6 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { hostname } from 'os';
-import { createReadStream } from 'fs';
 import { AudioSource } from './audio_source';
 import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
@@ -43,7 +42,6 @@ export class LibrespotSource extends AudioSource {
       this.log('Librespot excited with code:', code);
     });
 
-    // return createAudioEncodedStream(createReadStream('./test.pcm'), this.rate, this.channels);
     return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
   }
 
