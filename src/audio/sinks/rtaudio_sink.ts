@@ -1,9 +1,13 @@
 import {
   RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters, RtAudioApi,
 } from 'audify';
+import _ from 'lodash';
+
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNKS_PER_SECONDS } from '../../utils/constants';
+import {
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_CHUNK_DURATION,
+} from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
@@ -90,12 +94,18 @@ export class RtAudioSink extends AudioSink {
   }
 
   writeNextAudioChunk = () => {
+    if (!this.pipedSource.peer.isTimeSynchronized()) {
+      this.wroteLastTick = false;
+      return;
+    }
     const chunk = this.getAudioChunkAtDelayFromNow();
     if (chunk) {
       if (!this.wroteLastTick) {
-        // the audio padder is used to delay the start of the internal rtaudio buffer read
-        const audioPadder = Buffer.alloc((1 / AUDIO_PADDER_DURATION) * OPUS_ENCODER_RATE * this.channels * 2);
-        this.rtaudio.write(audioPadder);
+        _.times(AUDIO_PADDER_DURATION / OPUS_ENCODER_CHUNK_DURATION, () => {
+          // the audio padder is used to delay the start of the internal rtaudio buffer read
+          const audioPadder = Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2);
+          this.rtaudio.write(audioPadder);
+        });
       }
       this.rtaudio.write(chunk);
       this.wroteLastTick = true;

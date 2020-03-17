@@ -115,12 +115,12 @@ export abstract class Peer extends EventEmitter {
   }
 
   waitForFirstTimeSync = async () => {
-    if (this._previousTimeDeltas.length >= 3) {
+    if (!this.isTimeSynchronized()) {
       return true;
     }
     return new Promise((r) => {
       const timesyncStateUpdatedHandler = () => {
-        if (this._previousTimeDeltas.length >= 3) {
+        if (!this.isTimeSynchronized()) {
           this.off('timesyncStateUpdated', timesyncStateUpdatedHandler);
           r();
         }
@@ -129,6 +129,7 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
+  isTimeSynchronized = () => this._previousTimeDeltas.length >= 3
   getCurrentTime = () => now() + this.timeDelta;
   private _sendTimekeepRequest = () => {
     this.sendControllerMessage({
