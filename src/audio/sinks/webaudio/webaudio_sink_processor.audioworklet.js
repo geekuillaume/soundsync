@@ -56,31 +56,39 @@ class CircularTypedArray {
   }
 }
 
+// const formatNumber = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
 class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
 
     this.port.onmessage = this.handleMessage_.bind(this);
     this.buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
-
+    this.didFirstTimeSync = false;
     this.currentSampleIndex = 0;
     this.chunkBuffer = new Float32Array(128 * CHANNELS);
   }
 
   handleMessage_(event) {
     if (event.data.type === 'chunk') {
+      // console.log(`+ ${event.data.i} - ${formatNumber(event.data.i * SAMPLE_RATE * 0.01)} -> ${formatNumber((event.data.chunk.length / 2) + (event.data.i * SAMPLE_RATE * 0.01))}`);
       this.buffer.set(event.data.chunk, event.data.i * SAMPLE_RATE * 0.01 * 2);
     }
     if (event.data.type === 'sourceTimeAtAudioTimeOrigin') {
+      this.didFirstTimeSync = true;
       this.currentSampleIndex = Math.floor((event.data.sourceTimeAtAudioTimeOrigin * SAMPLE_RATE) / 1000);
     }
   }
 
   process(inputs, outputs) {
+    if (!this.didFirstTimeSync) {
+      return true;
+    }
+    // console.log(`- ${formatNumber(this.currentSampleIndex)} -> ${formatNumber(this.currentSampleIndex + (outputs[0][0].length * 2))}`);
     // we cannot rely on the currentTime property to know which sample needs to be sent because
     // the precision is not high enough so we synchronize once the this.currentSampleIndex from the sourceTimeAtAudioTimeOrigin
     // message and then increase the currentSampleIndex everytime we output samples
-    this.buffer.getInTypedArray(this.chunkBuffer, this.currentSampleIndex * CHANNELS, outputs[0][0].length * CHANNELS);
+    this.buffer.getInTypedArray(this.chunkBuffer, this.currentSampleIndex, outputs[0][0].length * CHANNELS);
 
     for (let sampleIndex = 0; sampleIndex < outputs[0][0].length; sampleIndex++) {
       outputs[0][0][sampleIndex] = this.chunkBuffer[sampleIndex * 2];

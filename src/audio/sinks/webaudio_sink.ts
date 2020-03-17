@@ -65,6 +65,7 @@ export class WebAudioSink extends AudioSink {
         document.addEventListener('click', resumeOnClick);
       });
     }
+    await this.pipedSource.peer.waitForFirstTimeSync();
     // There is three clocks in game here, the source peer clock, the webpage performance.now() clock
     // and the audio context clock. We use this method to get a common time origin to synchronize the
     // source chunks with the common play time
@@ -72,9 +73,8 @@ export class WebAudioSink extends AudioSink {
       type: 'sourceTimeAtAudioTimeOrigin',
       sourceTimeAtAudioTimeOrigin:
         // current time of the audio context in the coordinator time referential
-        (this.pipedSource.peer.getCurrentTime() - (this.context.currentTime * 1000))
-        // minus the source time
-        - (source.startedAt + source.latency),
+        this.pipedSource.peer.getCurrentTime() - source.startedAt - source.latency
+        - (this.context.currentTime * 1000),
     });
     // TODO: handle the source latency change
     // TODO: handle the webaudio latency from this.context.outputLatency
@@ -88,6 +88,10 @@ export class WebAudioSink extends AudioSink {
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
     if (!this.workletNode) {
+      return;
+    }
+    if ((data.i * 10 + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -200) {
+      // we received old chunks, discard them
       return;
     }
     const chunk = new Float32Array(data.chunk);

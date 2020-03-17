@@ -12,6 +12,11 @@ import { now } from '../utils/time';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 
 const TIME_DELTAS_TO_KEEP = 10;
+// if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
+// this is used to not reupdate the sound sinks for every small difference in the timedelta but only if there is too much diff
+const MS_DIFF_TO_UPDATE_TIME_DELTA = 20;
+// we use multiple time requests when starting the connection to prevent having a incorrect value from a network problem at this specific moment
+const TIMESYNC_INIT_REQUEST_COUNT = 3;
 
 export enum Capacity {
   Librespot = 'librespot'
@@ -52,7 +57,12 @@ export abstract class Peer extends EventEmitter {
       const delta = message.respondedAt - receivedByPeerAt;
       this._previousTimeDeltas.unshift(delta);
       this._previousTimeDeltas.splice(TIME_DELTAS_TO_KEEP);
-      this.timeDelta = _.mean(this._previousTimeDeltas);
+      const realTimeDelta = _.mean(this._previousTimeDeltas);
+      if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
+        this.timeDelta = realTimeDelta;
+        this.emit('timedeltaUpdated');
+      }
+      this.emit('timesyncStateUpdated');
       // networkLatency = roundtripTime / 2;
     });
     setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
@@ -70,7 +80,9 @@ export abstract class Peer extends EventEmitter {
         peer: getLocalPeer().toDescriptor(),
       });
       getPeersManager().emit('newConnectedPeer', this);
-      this._sendTimekeepRequest();
+      _.times(TIMESYNC_INIT_REQUEST_COUNT, (i) => {
+        setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
+      });
     });
   }
 
@@ -100,6 +112,21 @@ export abstract class Peer extends EventEmitter {
       return;
     }
     await once(this, 'connected');
+  }
+
+  waitForFirstTimeSync = async () => {
+    if (this._previousTimeDeltas.length >= 3) {
+      return true;
+    }
+    return new Promise((r) => {
+      const timesyncStateUpdatedHandler = () => {
+        if (this._previousTimeDeltas.length >= 3) {
+          this.off('timesyncStateUpdated', timesyncStateUpdatedHandler);
+          r();
+        }
+      };
+      this.on('timesyncStateUpdated', timesyncStateUpdatedHandler);
+    });
   }
 
   getCurrentTime = () => now() + this.timeDelta;
