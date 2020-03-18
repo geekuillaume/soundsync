@@ -115,7 +115,7 @@ export abstract class Peer extends EventEmitter {
   }
 
   waitForFirstTimeSync = async () => {
-    if (!this.isTimeSynchronized()) {
+    if (this.isTimeSynchronized()) {
       return true;
     }
     return new Promise((r) => {
@@ -129,8 +129,8 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  isTimeSynchronized = () => this._previousTimeDeltas.length >= 3
-  getCurrentTime = () => now() + this.timeDelta;
+  isTimeSynchronized = () => this === getLocalPeer() || this._previousTimeDeltas.length >= TIMESYNC_INIT_REQUEST_COUNT
+  getCurrentTime = () => (this === getLocalPeer() ? now() : now() + this.timeDelta);
   private _sendTimekeepRequest = () => {
     this.sendControllerMessage({
       type: 'timekeepRequest',
