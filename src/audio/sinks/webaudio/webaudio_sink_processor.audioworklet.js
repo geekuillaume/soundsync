@@ -6,6 +6,7 @@
 
 const BUFFER_SIZE_IN_SECONDS = 10;
 const SAMPLE_RATE = 48000;
+const CHUNK_DURATION = 10; // 10 ms
 const CHANNELS = 2;
 const BUFFER_SIZE = BUFFER_SIZE_IN_SECONDS * SAMPLE_RATE * CHANNELS;
 
@@ -71,12 +72,13 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
 
   handleMessage_(event) {
     if (event.data.type === 'chunk') {
-      // console.log(`+ ${event.data.i} - ${formatNumber(event.data.i * SAMPLE_RATE * 0.01)} -> ${formatNumber((event.data.chunk.length / 2) + (event.data.i * SAMPLE_RATE * 0.01))}`);
-      this.buffer.set(event.data.chunk, event.data.i * SAMPLE_RATE * 0.01 * 2);
+      const offset = event.data.i * CHUNK_DURATION * (SAMPLE_RATE / 1000) * CHANNELS;
+      this.buffer.set(event.data.chunk, offset);
+      // console.log(`+ ${event.data.i} - ${formatNumber(offset)} -> ${formatNumber(offset + event.data.chunk.length)}`);
     }
-    if (event.data.type === 'sourceTimeAtAudioTimeOrigin') {
+    if (event.data.type === 'currentChunkIndex') {
       this.didFirstTimeSync = true;
-      this.currentSampleIndex = Math.floor((event.data.sourceTimeAtAudioTimeOrigin * SAMPLE_RATE) / 1000);
+      this.currentSampleIndex = Math.floor(event.data.currentChunkIndex * CHUNK_DURATION * (SAMPLE_RATE / 1000) * CHANNELS);
     }
   }
 
@@ -91,9 +93,9 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
     this.buffer.getInTypedArray(this.chunkBuffer, this.currentSampleIndex, outputs[0][0].length * CHANNELS);
 
     for (let sampleIndex = 0; sampleIndex < outputs[0][0].length; sampleIndex++) {
-      outputs[0][0][sampleIndex] = this.chunkBuffer[sampleIndex * 2];
-      outputs[0][1][sampleIndex] = this.chunkBuffer[sampleIndex * 2 + 1];
-      this.currentSampleIndex += 2;
+      outputs[0][0][sampleIndex] = this.chunkBuffer[sampleIndex * CHANNELS];
+      outputs[0][1][sampleIndex] = this.chunkBuffer[sampleIndex * CHANNELS + 1];
+      this.currentSampleIndex += CHANNELS;
     }
 
     return true;

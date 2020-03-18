@@ -66,15 +66,10 @@ export class WebAudioSink extends AudioSink {
       });
     }
     await this.pipedSource.peer.waitForFirstTimeSync();
-    // There is three clocks in game here, the source peer clock, the webpage performance.now() clock
-    // and the audio context clock. We use this method to get a common time origin to synchronize the
-    // source chunks with the common play time
+    this.latency = 1000;
     this.workletNode.port.postMessage({
-      type: 'sourceTimeAtAudioTimeOrigin',
-      sourceTimeAtAudioTimeOrigin:
-        // current time of the audio context in the coordinator time referential
-        this.pipedSource.peer.getCurrentTime() - source.startedAt - source.latency
-        - (this.context.currentTime * 1000),
+      type: 'currentChunkIndex',
+      currentChunkIndex: this.getCurrentChunkIndex(),
     });
     // TODO: handle the source latency change
     // TODO: handle the webaudio latency from this.context.outputLatency
