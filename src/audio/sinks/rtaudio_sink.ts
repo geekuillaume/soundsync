@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_CHUNK_DURATION,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION,
 } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { getAudioDevices } from '../../utils/rtaudio';
@@ -15,7 +15,7 @@ import { AudioInstance } from '../utils';
 
 // used to prevent stream cut if trying to send chunk just in time
 // this adds a latency but is necessary as the nodejs thread is not running in real time
-const AUDIO_PADDER_DURATION = 100;
+const AUDIO_PADDER_DURATION = 30;
 
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';
@@ -24,14 +24,14 @@ export class RtAudioSink extends AudioSink {
 
   rtaudio: RtAudio;
   private cleanStream;
-  private wroteLastTick = false;
+  private nextChunkIndex = -1;
 
   constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceName = descriptor.deviceName;
   }
 
-  _startSink(source: AudioSource) {
+  async _startSink(source: AudioSource) {
     const outputConfig: RtAudioStreamParameters = { nChannels: source.channels };
     if (this.deviceName) {
       outputConfig.deviceId = getAudioDevices().map(({ name }) => name).indexOf(this.deviceName);
@@ -40,6 +40,8 @@ export class RtAudioSink extends AudioSink {
       }
     }
     this.log(`Creating speaker`);
+    await source.peer.waitForFirstTimeSync();
+    this.nextChunkIndex = -1;
     this.rtaudio = new RtAudio();
     const openStream = () => {
       this.rtaudio.openStream(
@@ -50,7 +52,7 @@ export class RtAudioSink extends AudioSink {
         OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
         `soundsync-${source.name}`, // name
         null, // input callback, not used
-        null,
+        this._handleFrameEmitted,
         RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
       );
     };
@@ -67,6 +69,8 @@ export class RtAudioSink extends AudioSink {
       }
     }
     this.rtaudio.start();
+    // write an empty buffer to trigger the _handleFrameEmitted callback
+    this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
     const latencyInterval = setInterval(() => {
       if (!this.rtaudio.isStreamOpen) {
         return;
@@ -75,11 +79,17 @@ export class RtAudioSink extends AudioSink {
       if (Math.abs(newLatency - this.latency) > 5) {
         // TODO: use network latency here too
         this.updateInfo({ latency: newLatency });
+        this.nextChunkIndex = -1;
       }
     }, 2000);
-    const writeInterval = setInterval(this.writeNextAudioChunk, (1000 / OPUS_ENCODER_CHUNKS_PER_SECONDS) / 2);
+    const handleTimedeltaUpdate = () => {
+      this.nextChunkIndex = -1;
+    };
+    this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
     this.cleanStream = () => {
-      clearInterval(writeInterval);
+      if (this.pipedSource.peer) {
+        this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
+      }
       clearInterval(latencyInterval);
       this.rtaudio.closeStream();
       delete this.rtaudio;
@@ -93,22 +103,27 @@ export class RtAudioSink extends AudioSink {
     }
   }
 
-  writeNextAudioChunk = () => {
-    if (!this.pipedSource.peer.isTimeSynchronized()) {
-      this.wroteLastTick = false;
+  _handleFrameEmitted = () => {
+    if (!this.rtaudio) {
+      // the sink is closed, bailing out as we shouldn't write anything
       return;
     }
-    const chunk = this.getAudioChunkAtDelayFromNow();
+    if (this.nextChunkIndex === -1) {
+      this.nextChunkIndex = this.getCurrentChunkIndex();
+      _.times(AUDIO_PADDER_DURATION / OPUS_ENCODER_CHUNK_DURATION, () => {
+        // the audio padder is used to delay the start of the internal rtaudio buffer read
+        this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
+      });
+    }
+    // console.log(`- ${this.nextChunkIndex}`);
+    const chunk = this.buffer[this.nextChunkIndex];
+    delete this.buffer[this.nextChunkIndex];
+    this.nextChunkIndex++;
+
     if (chunk) {
-      if (!this.wroteLastTick) {
-        _.times(AUDIO_PADDER_DURATION / OPUS_ENCODER_CHUNK_DURATION, () => {
-          // the audio padder is used to delay the start of the internal rtaudio buffer read
-          const audioPadder = Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2);
-          this.rtaudio.write(audioPadder);
-        });
-      }
       this.rtaudio.write(chunk);
-      this.wroteLastTick = true;
+    } else {
+      this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
     }
   }
 
