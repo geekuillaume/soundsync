@@ -1,21 +1,19 @@
+import { Worker } from 'worker_threads';
 import {
   RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters, RtAudioApi,
-} from 'audify';
-import _ from 'lodash';
+} from 'audioworklet';
 
+import { resolve } from 'path';
+import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
 } from '../../utils/constants';
 import { RtAudioSinkDescriptor } from './sink_type';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
-
-// used to prevent stream cut if trying to send chunk just in time
-// this adds a latency but is necessary as the nodejs thread is not running in real time
-const AUDIO_PADDER_DURATION = 30;
 
 export class RtAudioSink extends AudioSink {
   type: 'rtaudio' = 'rtaudio';
@@ -23,8 +21,8 @@ export class RtAudioSink extends AudioSink {
   deviceName: string;
 
   rtaudio: RtAudio;
+  private worklet: Worker;
   private cleanStream;
-  private nextChunkIndex = -1;
 
   constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -41,7 +39,6 @@ export class RtAudioSink extends AudioSink {
     }
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
-    this.nextChunkIndex = -1;
     this.rtaudio = new RtAudio();
     const openStream = () => {
       this.rtaudio.openStream(
@@ -51,8 +48,7 @@ export class RtAudioSink extends AudioSink {
         OPUS_ENCODER_RATE, // rate
         OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
         `soundsync-${source.name}`, // name
-        null, // input callback, not used
-        this._handleFrameEmitted,
+        undefined,
         RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
       );
     };
@@ -68,29 +64,34 @@ export class RtAudioSink extends AudioSink {
         throw e;
       }
     }
+    this.worklet = this.rtaudio.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/rtaudio_worklet.js'));
     this.rtaudio.start();
-    // write an empty buffer to trigger the _handleFrameEmitted callback
-    this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
-    const latencyInterval = setInterval(() => {
-      if (!this.rtaudio.isStreamOpen) {
-        return;
-      }
-      const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
-      if (Math.abs(newLatency - this.latency) > 5) {
-        // TODO: use network latency here too
-        this.updateInfo({ latency: newLatency });
-        this.nextChunkIndex = -1;
-      }
-    }, 2000);
+    this.sendStreamTimeToWorklet();
+
+    // const latencyInterval = setInterval(() => {
+    //   if (!this.rtaudio.isStreamOpen) {
+    //     return;
+    //   }
+    //   const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
+    //   if (Math.abs(newLatency - this.latency) > 5) {
+    //     this.log(`Updating sink latency to ${newLatency}`);
+    //     // TODO: use network latency here too
+    //     this.updateInfo({ latency: newLatency });
+    //     this.sendStreamTimeToWorklet();
+    //   }
+    // }, 2000);
+
     const handleTimedeltaUpdate = () => {
-      this.nextChunkIndex = -1;
+      this.log(`Resynchronizing sink after timedelta`);
+      this.sendStreamTimeToWorklet();
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
+
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
-      clearInterval(latencyInterval);
+      // clearInterval(latencyInterval);
       this.rtaudio.closeStream();
       delete this.rtaudio;
     };
@@ -103,28 +104,30 @@ export class RtAudioSink extends AudioSink {
     }
   }
 
-  _handleFrameEmitted = () => {
-    if (!this.rtaudio) {
-      // the sink is closed, bailing out as we shouldn't write anything
+  handleAudioChunk = (data: AudioChunkStreamOutput) => {
+    if (!this.worklet) {
       return;
     }
-    if (this.nextChunkIndex === -1) {
-      this.nextChunkIndex = this.getCurrentChunkIndex();
-      _.times(AUDIO_PADDER_DURATION / OPUS_ENCODER_CHUNK_DURATION, () => {
-        // the audio padder is used to delay the start of the internal rtaudio buffer read
-        this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
-      });
+    if ((data.i * 10 + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -200) {
+      // we received old chunks, discard them
+      return;
     }
-    // console.log(`- ${this.nextChunkIndex}`);
-    const chunk = this.buffer[this.nextChunkIndex];
-    delete this.buffer[this.nextChunkIndex];
-    this.nextChunkIndex++;
+    const chunk = new Int16Array(data.chunk.buffer);
+    this.worklet.postMessage({
+      type: 'chunk',
+      i: data.i,
+      chunk,
+    }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
+  }
 
-    if (chunk) {
-      this.rtaudio.write(chunk);
-    } else {
-      this.rtaudio.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * 2));
+  sendStreamTimeToWorklet = () => {
+    if (!this.worklet) {
+      return;
     }
+    this.worklet.postMessage({
+      type: 'currentChunkIndex',
+      currentChunkIndex: this.getCurrentChunkIndex(),
+    });
   }
 
   toDescriptor: (() => AudioInstance<RtAudioSinkDescriptor>) = () => ({
