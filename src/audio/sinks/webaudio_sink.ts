@@ -66,7 +66,7 @@ export class WebAudioSink extends AudioSink {
       });
     }
     await this.pipedSource.peer.waitForFirstTimeSync();
-    this.latency = 1000;
+    this.latency = this.context.baseLatency * 1000;
     this.workletNode.port.postMessage({
       type: 'currentChunkIndex',
       currentChunkIndex: this.getCurrentChunkIndex(),

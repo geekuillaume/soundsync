@@ -68,18 +68,18 @@ export class RtAudioSink extends AudioSink {
     this.rtaudio.start();
     this.sendStreamTimeToWorklet();
 
-    // const latencyInterval = setInterval(() => {
-    //   if (!this.rtaudio.isStreamOpen) {
-    //     return;
-    //   }
-    //   const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
-    //   if (Math.abs(newLatency - this.latency) > 5) {
-    //     this.log(`Updating sink latency to ${newLatency}`);
-    //     // TODO: use network latency here too
-    //     this.updateInfo({ latency: newLatency });
-    //     this.sendStreamTimeToWorklet();
-    //   }
-    // }, 2000);
+    const latencyInterval = setInterval(() => {
+      if (!this.rtaudio.isStreamOpen) {
+        return;
+      }
+      const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
+      if (Math.abs(newLatency - this.latency) > 5) {
+        this.log(`Updating sink latency to ${newLatency}`);
+        // TODO: use network latency here too
+        this.updateInfo({ latency: newLatency });
+        this.sendStreamTimeToWorklet();
+      }
+    }, 2000);
 
     const handleTimedeltaUpdate = () => {
       this.log(`Resynchronizing sink after timedelta`);
@@ -91,7 +91,7 @@ export class RtAudioSink extends AudioSink {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
-      // clearInterval(latencyInterval);
+      clearInterval(latencyInterval);
       this.rtaudio.closeStream();
       delete this.rtaudio;
     };

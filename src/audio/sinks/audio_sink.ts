@@ -36,7 +36,8 @@ export abstract class AudioSink {
   instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
   protected buffer: {[key: string]: Buffer};
-  latency = 50;
+  lastReceivedChunkIndex = -1;
+  latency = 0;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
@@ -144,6 +145,7 @@ export abstract class AudioSink {
   handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
     // TODO: handle removing previous non read chunks
     this.buffer[chunk.i] = chunk.chunk;
+    this.lastReceivedChunkIndex = chunk.i;
   }
 
   getCurrentChunkIndex = () => {
