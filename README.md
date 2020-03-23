@@ -4,11 +4,11 @@
 
 ## Connect virtual cables between any audio source and any audio output
 
-Soundsync is a web and desktop app to manage every audio source and every audio output in you home from a single interface. Link any audio source to multiple speakers connected to any computers on your home network. Soundsync will keep the music synchronized between all of them.
+Soundsync is a web and desktop app to manage every audio source and every audio output in your home from a single interface. Link any audio source to multiple speakers connected to any computers on your home network. Soundsync will keep the music synchronized between all of them.
 
 - 🆓 Free to use
-- 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link between them you choose
-- 🎶 Compatible with a lot of different audio source (Spotify Connect with a premium account, Windows system audio and soon Airplay, UPnP)
+- 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link of your choosing
+- 🎶 Compatible with a lot of different audio sources (Spotify Connect with a premium account, Windows system audio ; coming soon: Airplay, UPnP)
 - 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome only) and soon Chromecast and more
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🎛️ Control everything from a web browser
@@ -38,12 +38,12 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 
 ## Project status
 
-Soundsync is still in a early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
+Soundsync is still in an early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
 - Handle precise track synchronization
   - Network latency
-  - Received time vs playing time
-  - Handle Unordered chunks (JitterBuffer / Circular Buffer)
+  - Received time vs. playing time
+  - Handle unordered chunks (JitterBuffer / Circular Buffer)
 - Bluetooth on linux
 - Airplay: Shairport-sync
 - UPnP: gmrender-resurrect
@@ -57,7 +57,7 @@ Soundsync is still in a early stage. It's evolving quickly but there is still a 
 
 ## FAQ
 
-- *Is it Open-source ?* Soundsync code is released under the Business Source License. It is not open-source but free to use as long as you don't use it for production work. It means you can use it at home, in your office but you cannot resell it or sell a service/product that directly use it. If you have a special need, [contact me](mailto:guillaume@besson.co) for a licence.
+- *Is it Open-source ?* Soundsync code is released under the Business Source License. It is not open-source but free to use as long as you don't use it for production work. It means you can use it at home, in your office but you cannot resell it or sell a service/product that directly use it. If you have special needs, [contact me](mailto:guillaume@besson.co) for a licence.
 
 ## Attributions
 
