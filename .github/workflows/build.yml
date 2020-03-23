@@ -51,10 +51,6 @@ jobs:
         with:
           node-version: 12
 
-      - name: Install Alsa lib
-        if: "runner.os == 'Linux'"
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
-
       - name: Download Webui dist
         uses: actions/download-artifact@v1
         with:
@@ -88,8 +84,16 @@ jobs:
   #   - name: Check out Git repository
   #     uses: actions/checkout@v1
 
+  #   - name: Download Webui dist
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name: webui-dist
+  #       path: webui/dist
+
   #   - name: Build for raspberrypi
   #     shell: bash
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #     run: ./scripts/compile_for_raspberrypi.sh
 
   #   - name: Clean build directory
