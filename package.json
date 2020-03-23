@@ -21,6 +21,7 @@
     "@types/auto-launch": "^5.0.1",
     "@types/bonjour": "^3.5.5",
     "@types/debug": "^4.1.5",
+    "@types/emscripten": "^1.39.3",
     "@types/koa": "^2.11.0",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.0.42",

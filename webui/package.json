@@ -10,7 +10,6 @@
     "lint": "eslint --ext .jsx,.js --fix src"
   },
   "devDependencies": {
-    "@types/emscripten": "^1.39.2",
     "clean-webpack-plugin": "^3.0.0",
     "cross-env": "^7.0.2",
     "css-loader": "^3.4.2",
