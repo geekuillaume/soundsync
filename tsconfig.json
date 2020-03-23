@@ -6,6 +6,7 @@
       "target": "ES2019",
       "noImplicitAny": false,
       "moduleResolution": "node",
+      "allowJs": true,
       "sourceMap": true,
       "outDir": "app",
       "baseUrl": "src",

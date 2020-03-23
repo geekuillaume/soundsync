@@ -47,5 +47,7 @@ module.exports = {
     "no-empty": ["error", { "allowEmptyCatch": true }],
     "no-constant-condition": 0,
     "prefer-destructuring": 0,
+    "spaced-comment": 0,
+    "no-useless-constructor": 0,
   },
 };

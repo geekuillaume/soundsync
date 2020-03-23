@@ -34,7 +34,8 @@
     "webpack": "4",
     "webpack-bundle-analyzer": "^3.6.1",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.10.3",
+    "worklet-loader": "^1.0.0"
   },
   "dependencies": {
     "@material-ui/core": "^4.9.0",
@@ -60,7 +61,6 @@
   "alias": {
     "perf_hooks": "/utils/perf_hooks.js",
     "speex-resampler": "/utils/speex-resampler.js",
-    "audify": "/utils/audify.js",
     "wrtc": "/utils/wrtc.js"
   },
   "staticFiles": {

@@ -3,7 +3,7 @@ import { hostname } from 'os';
 import { AudioSource } from './audio_source';
 import { LibresportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioEncodedStream } from '../opus_streams';
+import { createAudioEncodedStream } from '../../utils/opus_streams';
 import { ensureDep } from '../../utils/deps_downloader';
 import { AudioInstance } from '../utils';
 

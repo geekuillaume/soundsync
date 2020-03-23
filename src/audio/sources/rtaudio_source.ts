@@ -1,13 +1,13 @@
 import { PassThrough } from 'stream';
 import {
   RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
-} from 'audify';
+} from 'audioworklet';
 
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT } from '../../utils/constants';
 import { AudioSource } from './audio_source';
 import { RtAudioSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioEncodedStream } from '../opus_streams';
+import { createAudioEncodedStream } from '../../utils/opus_streams';
 import { getAudioDevices } from '../../utils/rtaudio';
 import { AudioInstance } from '../utils';
 
@@ -45,10 +45,9 @@ export class RtAudioSource extends AudioSource {
       OPUS_ENCODER_RATE, // rate
       OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
       `soundsync`, // name
-      (chunk) => {
-        inputStream.push(chunk);
+      (input) => {
+        inputStream.push(input[0]);
       }, // input callback
-      null,
       RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
     );
     this.rtaudio.start();

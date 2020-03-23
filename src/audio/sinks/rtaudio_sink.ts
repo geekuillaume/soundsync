@@ -44,7 +44,7 @@ export class RtAudioSink extends AudioSink {
       this.rtaudio.openStream(
         outputConfig, // output stream
         null, // input stream
-        RtAudioFormat.RTAUDIO_SINT16, // format
+        RtAudioFormat.RTAUDIO_FLOAT32, // format
         OPUS_ENCODER_RATE, // rate
         OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
         `soundsync-${source.name}`, // name
@@ -112,7 +112,7 @@ export class RtAudioSink extends AudioSink {
       // we received old chunks, discard them
       return;
     }
-    const chunk = new Int16Array(data.chunk.buffer);
+    const chunk = new Float32Array(data.chunk.buffer);
     this.worklet.postMessage({
       type: 'chunk',
       i: data.i,

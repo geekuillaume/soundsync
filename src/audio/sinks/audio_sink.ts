@@ -9,7 +9,7 @@ import { AudioSource } from '../sources/audio_source';
 import {
   SinkDescriptor, SinkType, BaseSinkDescriptor, SinkUUID,
 } from './sink_type';
-import { createAudioDecodedStream } from '../opus_streams';
+import { createAudioDecodedStream } from '../../utils/opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/peers_manager';

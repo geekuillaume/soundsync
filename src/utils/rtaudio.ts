@@ -1,4 +1,4 @@
-import { RtAudio } from 'audify';
+import { RtAudio } from 'audioworklet';
 
 let rtAudio: RtAudio;
 

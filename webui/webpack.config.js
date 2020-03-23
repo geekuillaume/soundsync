@@ -20,7 +20,6 @@ const config = {
     alias: {
       perf_hooks: 'utils/polyfills/perf_hooks.js',
       'speex-resampler': 'utils/polyfills/speex-resampler.js',
-      audify: 'utils/polyfills/audify.ts',
       wrtc: 'utils/polyfills/wrtc.js',
       os: 'utils/polyfills/os.js',
       buffer_polyfill: 'utils/polyfills/buffer.js',
@@ -63,11 +62,19 @@ const config = {
       {
         oneOf: [
           {
-            test: [/.audioworklet.js$/i],
-            loader: 'file-loader',
-            options: {
-              name: '[name]-[contenthash].[ext]',
-            },
+            test: [/\.audioworklet\.(js|ts)$/i],
+            use: [{
+              loader: 'worklet-loader',
+              // options: {
+              //   name: '[name]-[contenthash].[ext]',
+              // },
+            }, {
+              loader: 'ts-loader',
+              options: {
+                transpileOnly: true,
+                experimentalWatchApi: true,
+              },
+            }],
           },
           {
             test: [/\.tsx?$/i, /.jsx?$/i],

@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import { createReadStream, exists } from 'fs';
 import { promisify } from 'util';
 import { AudioSource } from './audio_source';
-import { createAudioEncodedStream } from '../opus_streams';
+import { createAudioEncodedStream } from '../../utils/opus_streams';
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
 
 export class NullSource extends AudioSource {
