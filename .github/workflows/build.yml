@@ -79,6 +79,8 @@ jobs:
           path: bin
 
   crosscompile:
+    name: Build executable for ARM
+    needs: build-webui
     runs-on: ubuntu-latest
     steps:
     - name: Check out Git repository
