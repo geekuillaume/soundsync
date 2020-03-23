@@ -13,6 +13,3 @@ RUN gem install fpm -v 1.10.2
 ENV USE_SYSTEM_FPM="true"
 
 WORKDIR /workspace
-ADD package.json yarn.lock /tmp/workspace/
-ADD app/package.json app/yarn.lock /tmp/workspace/app/
-RUN bash -c "cd /tmp/workspace && npm_config_arch=armv7l yarn"
