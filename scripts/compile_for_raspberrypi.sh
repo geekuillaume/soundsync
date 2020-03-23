@@ -13,6 +13,7 @@ docker run -it --rm --workdir /workspace \
   -v `realpath ../res`:/workspace/res \
   -v `realpath ../bin`:/workspace/bin \
   -v `realpath ../scripts`:/workspace/scripts \
+  -e GITHUB_TOKEN=$GITHUB_TOKEN \
   multiarch bash -c "cp -R app_tmp app && \
    rm -rf app/node_modules && \
    mv /tmp/workspace/app/node_modules app/node_modules && \

@@ -78,29 +78,29 @@ jobs:
           name: soundsync-${{ runner.os }}
           path: bin
 
-  # crosscompile:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Check out Git repository
-  #     uses: actions/checkout@v1
+  crosscompile:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v1
 
-  #   - name: Download Webui dist
-  #     uses: actions/download-artifact@v1
-  #     with:
-  #       name: webui-dist
-  #       path: webui/dist
+    - name: Download Webui dist
+      uses: actions/download-artifact@v1
+      with:
+        name: webui-dist
+        path: webui/dist
 
-  #   - name: Build for raspberrypi
-  #     shell: bash
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     run: ./scripts/compile_for_raspberrypi.sh
+    - name: Build for raspberrypi
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: ./scripts/compile_for_raspberrypi.sh
 
-  #   - name: Clean build directory
-  #     run: rm -rf linux-*-unpacked builder-effective-config.yaml
+    - name: Clean build directory
+      run: rm -rf linux-*-unpacked builder-effective-config.yaml
 
-  #   - name: Upload build artifacts
-  #     uses: actions/upload-artifact@v1
-  #     with:
-  #       name: soundsync-linux-armv7l
-  #       path: bin/
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: soundsync-linux-armv7l
+        path: bin/
