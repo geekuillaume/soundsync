@@ -28,9 +28,13 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
       this.buffer.set(event.data.chunk, offset);
       // console.log(`+ ${event.data.i} - ${formatNumber(offset)} -> ${formatNumber(offset + event.data.chunk.length)}`);
     }
-    if (event.data.type === 'currentChunkIndex') {
+    if (event.data.type === 'currentStreamTime') {
       this.didFirstTimeSync = true;
-      this.currentSampleIndex = Math.floor(event.data.currentChunkIndex * OPUS_ENCODER_CHUNK_DURATION * (OPUS_ENCODER_RATE / 1000) * CHANNELS);
+      this.currentSampleIndex = Math.floor(
+        event.data.currentStreamTime
+        * (OPUS_ENCODER_RATE / 1000)
+        * CHANNELS,
+      );
     }
   }
 

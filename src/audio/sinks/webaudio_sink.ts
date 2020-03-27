@@ -68,8 +68,8 @@ export class WebAudioSink extends AudioSink {
     await this.pipedSource.peer.waitForFirstTimeSync();
     this.latency = this.context.baseLatency * 1000;
     this.workletNode.port.postMessage({
-      type: 'currentChunkIndex',
-      currentChunkIndex: this.getCurrentChunkIndex(),
+      type: 'currentStreamTime',
+      currentStreamTime: this.getCurrentStreamTime(),
     });
     // TODO: handle the source latency change
     // TODO: handle the webaudio latency from this.context.outputLatency

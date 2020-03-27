@@ -28,13 +28,25 @@ export class CircularTypedArray<T extends TypedArray> {
     this.set(data.subarray(data.length - overflow), realOffset + (data.length - overflow));
   }
 
+  fill(offset: number, length: number, data: number) {
+    const realOffset = offset % this.buffer.length;
+    const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
+    if (!overflow) {
+      this.buffer.fill(data, realOffset, realOffset + length);
+      return;
+    }
+    this.buffer.fill(data, realOffset, this.buffer.length);
+    this.buffer.fill(data, 0, overflow);
+  }
+
   get(offset: number, length: number): T {
     // TODO: implement a way to reset read samples to 0 to prevent outputting the same sample
     // again if the buffer runs too low and we don't have the new chunk from the source
     const realOffset = offset % this.buffer.length;
     const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
     if (!overflow) {
-      return new this.TypedArrayConstructor(this.buffer.subarray(realOffset, realOffset + length));
+      // @ts-ignore
+      return this.buffer.subarray(realOffset, realOffset + length);
     }
     const output = new this.TypedArrayConstructor(length);
     output.set(this.buffer.subarray(realOffset, this.buffer.length - overflow), 0);

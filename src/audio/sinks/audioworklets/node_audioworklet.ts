@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { AudioWorkletProcessor } from 'audioworklet';
 import { CircularTypedArray } from './circularTypedArray';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../../utils/constants';
@@ -7,7 +8,7 @@ const CHANNELS = 2;
 const BUFFER_SIZE = BUFFER_SIZE_IN_SECONDS * OPUS_ENCODER_RATE * CHANNELS;
 
 // const formatNumber = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-class RtAudioWorklet extends AudioWorkletProcessor {
+class NodeAudioworklet extends AudioWorkletProcessor {
   buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
   didFirstTimeSync = false;
   currentSampleIndex = 0;
@@ -24,32 +25,38 @@ class RtAudioWorklet extends AudioWorkletProcessor {
       this.buffer.set(event.data.chunk, offset);
       // console.log(`+ ${event.data.i} - ${formatNumber(offset)} -> ${formatNumber(offset + event.data.chunk.length)}`);
     }
-    if (event.data.type === 'currentChunkIndex') {
+    if (event.data.type === 'currentStreamTime') {
       this.didFirstTimeSync = true;
       this.currentSampleIndex = Math.floor(
-        event.data.currentChunkIndex
-        * OPUS_ENCODER_CHUNK_DURATION
+        event.data.currentStreamTime
         * (OPUS_ENCODER_RATE / 1000)
         * CHANNELS,
       );
     }
   }
 
-  process(inputs: Buffer[], outputs: Buffer[]) {
+  process(channels: Float32Array[]) {
     if (!this.didFirstTimeSync) {
       return true;
     }
     // console.log(`- ${formatNumber(this.currentSampleIndex)} -> ${formatNumber(this.currentSampleIndex + (outputs[0].length))}`);
-    const typedOutputBuffer = new Float32Array(outputs[0].buffer);
-
     // we cannot rely on the currentTime property to know which sample needs to be sent because
     // the precision is not high enough so we synchronize once the this.currentSampleIndex from the sourceTimeAtAudioTimeOrigin
     // message and then increase the currentSampleIndex everytime we output samples
-    this.buffer.getInTypedArray(typedOutputBuffer, this.currentSampleIndex, typedOutputBuffer.length);
-    this.currentSampleIndex += typedOutputBuffer.length;
+    const samplesForCurrentFrame = this.buffer.get(this.currentSampleIndex, _.sum(channels.map((c) => c.length)));
+    let currentSampleIndexForCurrentFrame = 0;
+
+    for (let sampleIndex = 0; sampleIndex < channels[0].length; sampleIndex++) {
+      for (let channelIndex = 0; channelIndex < channels.length; channelIndex++) {
+        channels[channelIndex][sampleIndex] = samplesForCurrentFrame[currentSampleIndexForCurrentFrame];
+        currentSampleIndexForCurrentFrame++;
+      }
+    }
+    this.buffer.fill(this.currentSampleIndex, samplesForCurrentFrame.length, 0);
+    this.currentSampleIndex += currentSampleIndexForCurrentFrame;
 
     return true;
   }
 }
 
-export default RtAudioWorklet;
+export default NodeAudioworklet;

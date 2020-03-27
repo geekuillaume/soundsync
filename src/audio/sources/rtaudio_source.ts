@@ -1,6 +1,6 @@
-import { PassThrough } from 'stream';
+import { PassThrough, Readable } from 'stream';
 import {
-  RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters,
+  Soundio,
 } from 'audioworklet';
 
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT } from '../../utils/constants';
@@ -8,7 +8,7 @@ import { AudioSource } from './audio_source';
 import { RtAudioSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { createAudioEncodedStream } from '../../utils/opus_streams';
-import { getAudioDevices } from '../../utils/rtaudio';
+import { getAudioDevices } from '../../utils/soundio';
 import { AudioInstance } from '../utils';
 
 export class RtAudioSource extends AudioSource {
@@ -18,7 +18,7 @@ export class RtAudioSource extends AudioSource {
 
   deviceName: string;
 
-  private rtaudio: RtAudio;
+  private soundio: Soundio;
   private cleanStream: () => any;
 
   constructor(descriptor: RtAudioSourceDescriptor, manager: AudioSourcesSinksManager) {
@@ -27,38 +27,52 @@ export class RtAudioSource extends AudioSource {
   }
 
   _getAudioEncodedStream() {
-    const inputConfig: RtAudioStreamParameters = { nChannels: 2 };
-    if (this.deviceName) {
-      inputConfig.deviceId = getAudioDevices().map(({ name }) => name).indexOf(this.deviceName);
-      if (inputConfig.deviceId === -1) {
-        delete inputConfig.deviceId;
-      }
-    }
-    this.log(`Creating loopback for ${this.deviceName}`);
-    const inputStream = new PassThrough();
+    // const inputConfig: RtAudioStreamParameters = { nChannels: 2 };
+    // if (this.deviceName) {
+    //   inputConfig.deviceId = getAudioDevices().map(({ name }) => name).indexOf(this.deviceName);
+    //   if (inputConfig.deviceId === -1) {
+    //     delete inputConfig.deviceId;
+    //   }
+    // }
+    // this.log(`Creating loopback for ${this.deviceName}`);
+    // const inputStream = new PassThrough();
 
-    this.rtaudio = new RtAudio();
-    this.rtaudio.openStream(
-      null, // input stream
-      inputConfig, // output stream
-      RtAudioFormat.RTAUDIO_SINT16, // format
-      OPUS_ENCODER_RATE, // rate
-      OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
-      `soundsync`, // name
-      (input) => {
-        inputStream.push(input[0]);
-      }, // input callback
-      RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
-    );
-    this.rtaudio.start();
+    // this.soundio = new RtAudio();
+    // this.soundio.openStream(
+    //   null, // input stream
+    //   inputConfig, // output stream
+    //   RtAudioFormat.RTAUDIO_SINT16, // format
+    //   OPUS_ENCODER_RATE, // rate
+    //   OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
+    //   `soundsync`, // name
+    //   (input) => {
+    //     inputStream.push(input[0]);
+    //   }, // input callback
+    //   RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
+    // );
+    // this.soundio.start();
 
-    this.cleanStream = () => {
-      this.rtaudio.closeStream();
-      delete this.rtaudio;
-    };
+    // this.cleanStream = () => {
+    //   this.soundio.closeStream();
+    //   delete this.soundio;
+    // };
 
-    const stream = createAudioEncodedStream(inputStream, OPUS_ENCODER_RATE, 2);
+    // const stream = createAudioEncodedStream(inputStream, OPUS_ENCODER_RATE, 2);
+    // return stream;
+
+    const nullStream = new Readable({
+      read() {
+        while (true) {
+          const res = this.push(Buffer.alloc(44100));
+          if (!res) {
+            return;
+          }
+        }
+      },
+    });
+    const stream = createAudioEncodedStream(nullStream, OPUS_ENCODER_RATE, 2);
     return stream;
+
     // TODO: handle closing source
   }
 

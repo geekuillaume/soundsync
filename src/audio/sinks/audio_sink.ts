@@ -148,11 +148,10 @@ export abstract class AudioSink {
     this.lastReceivedChunkIndex = chunk.i;
   }
 
-  getCurrentChunkIndex = () => {
-    const synchronizedChunkTime = this.pipedSource.peer.getCurrentTime() - this.pipedSource.startedAt - this.pipedSource.latency - this.latency;
-    const correspondingChunkIndex = Math.floor(synchronizedChunkTime / OPUS_ENCODER_CHUNK_DURATION);
-    return correspondingChunkIndex;
-  }
+  getCurrentStreamTime = () => this.pipedSource.peer.getCurrentTime()
+      - this.pipedSource.startedAt
+      - this.pipedSource.latency
+      - this.latency
 
   toObject = () => ({
     name: this.name,

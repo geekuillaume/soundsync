@@ -10,10 +10,10 @@ import { SourceDescriptor, SourceUUID } from './sources/source_type';
 import { RemoteSource } from './sources/remote_source';
 import { AudioSink } from './sinks/audio_sink';
 import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
-import { RtAudioSink } from './sinks/rtaudio_sink';
+import { LocalDeviceSink } from './sinks/localdevice_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices, audioApiSupportsLoopback } from '../utils/rtaudio';
+import { getAudioDevices, audioApiSupportsLoopback } from '../utils/soundio';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
@@ -46,23 +46,21 @@ export class AudioSourcesSinksManager extends EventEmitter {
 
   autodetectDevices = () => {
     log(`Detecting local audio devices`);
-    getAudioDevices().forEach((device) => {
-      if (device.outputChannels > 0) { // filter microphones, useful for windows / osx
-        this.addSink({
-          type: 'rtaudio',
-          deviceName: device.name,
-          name: device.name,
-          peerUuid: getLocalPeer().uuid,
-        });
-        if (audioApiSupportsLoopback()) {
-          this.addSource({
-            type: 'rtaudio',
-            deviceName: device.name,
-            name: `Output of ${device.name}`,
-            peerUuid: getLocalPeer().uuid,
-          });
-        }
-      }
+    getAudioDevices().outputDevices.forEach((device) => {
+      this.addSink({
+        type: 'localdevice',
+        deviceId: device.id,
+        name: device.name,
+        peerUuid: getLocalPeer().uuid,
+      });
+      // if (audioApiSupportsLoopback()) {
+      //   this.addSource({
+      //     type: 'rtaudio',
+      //     deviceName: device.name,
+      //     name: `Output of ${device.name}`,
+      //     peerUuid: getLocalPeer().uuid,
+      //   });
+      // }
     });
   }
 
@@ -131,12 +129,12 @@ export class AudioSourcesSinksManager extends EventEmitter {
       this.getSinkByUuid(sinkDescriptor.uuid).updateInfo(sinkDescriptor);
       return;
     }
-    if (sinkDescriptor.type === 'rtaudio' && sinkDescriptor.peerUuid === getLocalPeer().uuid) {
-      // when auto detecting rtaudio devices on local host, we cannot compare with the uuid
+    if (sinkDescriptor.type === 'localdevice' && sinkDescriptor.peerUuid === getLocalPeer().uuid) {
+      // when auto detecting localdevice devices on local host, we cannot compare with the uuid
       // so we need to compare with the device name to see if we need to update the existing
       // or add a new Sink
-      const existingSink = _.find(this.sinks, (sink) => sink instanceof RtAudioSink
-        && sink.deviceName === sinkDescriptor.deviceName
+      const existingSink = _.find(this.sinks, (sink) => sink instanceof LocalDeviceSink
+        && sink.deviceId === sinkDescriptor.deviceId
         && sink.peerUuid === sinkDescriptor.peerUuid);
       if (existingSink) {
         existingSink.updateInfo(sinkDescriptor);
@@ -158,8 +156,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
     const isLocal = !sinkDescriptor.peerUuid || sinkDescriptor.peerUuid === getLocalPeer().uuid;
     if (!isLocal) {
       sink = new RemoteSink(sinkDescriptor, this);
-    } else if (sinkDescriptor.type === 'rtaudio') {
-      sink = new RtAudioSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'localdevice') {
+      sink = new LocalDeviceSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'null') {
       sink = new NullSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'webaudio') {

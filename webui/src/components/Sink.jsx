@@ -13,7 +13,7 @@ import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 import { HiddenIndicator } from './utils/HiddenIndicator';
 
 const logos = {
-  rtaudio: speaker,
+  localdevice: speaker,
   null: nullSinkLogo,
   webaudio: browserIcon,
 };

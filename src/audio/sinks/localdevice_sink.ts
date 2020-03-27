@@ -1,6 +1,6 @@
 import { Worker } from 'worker_threads';
 import {
-  RtAudio, RtAudioFormat, RtAudioStreamFlags, RtAudioStreamParameters, RtAudioApi,
+  Soundio,
 } from 'audioworklet';
 
 import { resolve } from 'path';
@@ -8,72 +8,54 @@ import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MIN_SKEW_TO_RESYNC_AUDIO,
 } from '../../utils/constants';
-import { RtAudioSinkDescriptor } from './sink_type';
-import { getAudioDevices } from '../../utils/rtaudio';
+import { LocalDeviceSinkDescriptor } from './sink_type';
+import { getOutputDeviceIndexFromId } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 
-export class RtAudioSink extends AudioSink {
-  type: 'rtaudio' = 'rtaudio';
+export class LocalDeviceSink extends AudioSink {
+  type: 'localdevice' = 'localdevice';
   local: true = true;
-  deviceName: string;
+  deviceId: string;
 
-  rtaudio: RtAudio;
+  soundio: Soundio;
   private worklet: Worker;
   private cleanStream;
 
-  constructor(descriptor: RtAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
+  constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.deviceName = descriptor.deviceName;
+    this.deviceId = descriptor.deviceId;
   }
 
   async _startSink(source: AudioSource) {
-    const outputConfig: RtAudioStreamParameters = { nChannels: source.channels };
-    if (this.deviceName) {
-      outputConfig.deviceId = getAudioDevices().map(({ name }) => name).indexOf(this.deviceName);
-      if (outputConfig.deviceId === -1) {
-        delete outputConfig.deviceId;
-      }
-    }
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
-    this.rtaudio = new RtAudio();
+    this.soundio = new Soundio();
     const openStream = () => {
-      this.rtaudio.openStream(
-        outputConfig, // output stream
-        null, // input stream
-        RtAudioFormat.RTAUDIO_FLOAT32, // format
-        OPUS_ENCODER_RATE, // rate
-        OPUS_ENCODER_CHUNK_SAMPLES_COUNT, // samples per frame
-        `soundsync-${source.name}`, // name
-        undefined,
-        RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY, // stream flags
-      );
+      this.soundio.openOutputStream({
+        deviceId: this.deviceId ? getOutputDeviceIndexFromId(this.deviceId) : undefined,
+        sampleRate: OPUS_ENCODER_RATE,
+        frameSize: OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+        name: `${source.name}`,
+        format: Soundio.SoundIoFormatFloat32LE,
+        bufferDuration: 0.1,
+      });
+      this.soundio.startOutputStream();
     };
-    try {
-      openStream();
-    } catch (e) {
-      // if we are running in headless, pulse probably isn't started, so we fallback to alsa
-      if (e.message === 'RtApiPulse::probeDeviceOpen: error connecting output to PulseAudio server.') {
-        this.rtaudio = new RtAudio(RtAudioApi.LINUX_ALSA);
-        delete outputConfig.deviceId;
-        openStream();
-      } else {
-        throw e;
-      }
-    }
-    this.worklet = this.rtaudio.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/rtaudio_worklet.js'));
-    this.rtaudio.start();
+    openStream();
+
+    this.updateInfo({ latency: this.soundio.getStreamLatency() * 1000 });
+    this.worklet = this.soundio.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
     this.sendStreamTimeToWorklet();
 
     const latencyInterval = setInterval(() => {
-      if (!this.rtaudio.isStreamOpen) {
+      if (!this.soundio.isOutputStreamOpen()) {
         return;
       }
-      const newLatency = (this.rtaudio.getStreamLatency() / OPUS_ENCODER_RATE) * 1000;
-      if (Math.abs(newLatency - this.latency) > 5) {
+      const newLatency = this.soundio.getStreamLatency() * 1000;
+      if (Math.abs(newLatency - this.latency) > MIN_SKEW_TO_RESYNC_AUDIO) {
         this.log(`Updating sink latency to ${newLatency}`);
         // TODO: use network latency here too
         this.updateInfo({ latency: newLatency });
@@ -92,8 +74,8 @@ export class RtAudioSink extends AudioSink {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
       clearInterval(latencyInterval);
-      this.rtaudio.closeStream();
-      delete this.rtaudio;
+      this.soundio.closeOutputStream();
+      delete this.soundio;
     };
   }
 
@@ -125,16 +107,16 @@ export class RtAudioSink extends AudioSink {
       return;
     }
     this.worklet.postMessage({
-      type: 'currentChunkIndex',
-      currentChunkIndex: this.getCurrentChunkIndex(),
+      type: 'currentStreamTime',
+      currentStreamTime: this.getCurrentStreamTime(),
     });
   }
 
-  toDescriptor: (() => AudioInstance<RtAudioSinkDescriptor>) = () => ({
-    type: 'rtaudio',
+  toDescriptor: (() => AudioInstance<LocalDeviceSinkDescriptor>) = () => ({
+    type: this.type,
     name: this.name,
     uuid: this.uuid,
-    deviceName: this.deviceName,
+    deviceId: this.deviceId,
     peerUuid: this.peerUuid,
     instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,

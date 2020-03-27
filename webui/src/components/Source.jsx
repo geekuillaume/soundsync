@@ -15,7 +15,7 @@ import { HiddenIndicator } from './utils/HiddenIndicator';
 const logos = {
   librespot: SpotifyLogo,
   null: nullSinkLogo,
-  rtaudio: computerIcon,
+  localdevice: computerIcon,
 };
 
 export const Source = ({ source }) => {
