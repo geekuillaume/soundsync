@@ -7,7 +7,7 @@ cd $DIR
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 docker build ../ --file ./Dockerfile_crossarch --tag multiarch
 
-docker run -it --rm --workdir /workspace \
+docker run --rm --workdir /workspace \
   -v `realpath ../`:/workspace \
   -e GITHUB_TOKEN=$GITHUB_TOKEN \
   multiarch bash -c "yarn && \
