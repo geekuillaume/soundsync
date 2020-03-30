@@ -10,5 +10,5 @@ docker build ../ --file ./Dockerfile_crossarch --tag multiarch
 docker run --rm --workdir /workspace \
   -v `realpath ../`:/workspace \
   -e GITHUB_TOKEN=$GITHUB_TOKEN \
-  multiarch bash -c "yarn && \
+  multiarch bash -c "yarn && yarn build && \
    yarn run pack -l deb --armv7l"
