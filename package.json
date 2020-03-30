@@ -12,7 +12,7 @@
     "start": "node -r source-map-support/register app/index.js",
     "start:electron": "electron app/index.js",
     "pack": "electron-builder",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "cd app && npm install",
     "lint": "eslint --ignore-pattern node_modules --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src"
   },
