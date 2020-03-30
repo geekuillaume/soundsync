@@ -6,3 +6,4 @@ bin
 app
 tmp*
 test.pcm
+test.sh
