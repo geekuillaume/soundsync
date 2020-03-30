@@ -24,6 +24,7 @@ interface ConfigData {
   autoDetectAudioDevices: boolean;
   port: number;
   peers: string[];
+  detectPeersOnLocalNetwork: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -34,6 +35,7 @@ const defaultConfig: ConfigData = {
   autoDetectAudioDevices: true,
   port: 6512,
   peers: [],
+  detectPeersOnLocalNetwork: true,
 };
 
 let config: {

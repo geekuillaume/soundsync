@@ -65,22 +65,26 @@ const main = async () => {
     const httpServer = await createHttpServer(getConfigField('port'));
     peersManager.attachToSignalingServer(httpServer);
     attachApi(httpServer);
-    publishService(httpServer.port);
+    if (getConfigField('detectPeersOnLocalNetwork')) {
+      publishService(httpServer.port);
+    }
   } catch (e) {}
 
   getConfigField('peers').forEach((peerHost) => {
     peersManager.joinPeerWithHttpApi(peerHost);
   });
 
-  onDetectionChange((services) => {
-    services.forEach((service) => {
-      const uuid = service.name.match(/SoundSync @ (.*)/)[1];
-      if (!peersManager.peers[uuid]) {
-        // @ts-ignore
-        peersManager.joinPeerWithHttpApi(`${service.addresses[0]}:${service.port}`, uuid);
-      }
+  if (getConfigField('detectPeersOnLocalNetwork')) {
+    onDetectionChange((services) => {
+      services.forEach((service) => {
+        const uuid = service.name.match(/SoundSync @ (.*)/)[1];
+        if (!peersManager.peers[uuid]) {
+          // @ts-ignore
+          peersManager.joinPeerWithHttpApi(`${service.addresses[0]}:${service.port}`, uuid);
+        }
+      });
     });
-  });
+  }
 
   getClientCoordinator();
 };
