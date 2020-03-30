@@ -1,12 +1,13 @@
 {
   "name": "soundsync",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
   "homepage": "https://github.com/geekuillaume/soundsync",
   "main": "app/index.js",
   "bin": "app/index.js",
   "scripts": {
+    "test": "echo Not implemented yet",
     "build": "tsc -b",
     "build:watch": "tsc -w",
     "start": "node -r source-map-support/register app/index.js",
@@ -14,7 +15,8 @@
     "pack": "electron-builder",
     "postinstall": "cd app && yarn",
     "lint": "eslint --ignore-pattern node_modules --ext .ts src",
-    "lint:fix": "eslint --fix --ext .ts src"
+    "lint:fix": "eslint --fix --ext .ts src",
+    "deploy": "np"
   },
   "license": "BSL 1.1",
   "devDependencies": {
@@ -37,9 +39,13 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
+    "np": "^6.2.0",
     "source-map-support": "^0.5.16",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
+  },
+  "np": {
+    "publish": false
   },
   "build": {
     "appId": "geekuillaume.soundsync",
