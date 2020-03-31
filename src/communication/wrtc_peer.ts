@@ -48,7 +48,7 @@ export class WebrtcPeer extends Peer {
 
     this.connection = new RTCPeerConnection({
       iceServers: [
-        { urls: 'stuns:stun.l.google.com:19302' },
+        { urls: 'stun:stun.l.google.com:19302' },
       ],
     });
     this.controllerChannel = this.connection.createDataChannel('controller', {
@@ -75,7 +75,11 @@ export class WebrtcPeer extends Peer {
   connectFromOtherPeers = async () => {
     const offer = await this.connection.createOffer();
     await this.connection.setLocalDescription(offer);
-    await waitUntilIceGatheringStateComplete(this.connection);
+    try {
+      await waitUntilIceGatheringStateComplete(this.connection);
+    } catch (e) {
+      this.log(`Could not get gather ice candidate, trying with what's currently available`, e);
+    }
     getPeersManager().broadcast({
       type: 'peerConnectionInfo',
       peerUuid: this.uuid,
@@ -90,7 +94,11 @@ export class WebrtcPeer extends Peer {
   connectFromHttpApi = async (host: string, forceIfSamePeerUuid?: boolean) => {
     const offer = await this.connection.createOffer();
     await this.connection.setLocalDescription(offer);
-    await waitUntilIceGatheringStateComplete(this.connection);
+    try {
+      await waitUntilIceGatheringStateComplete(this.connection);
+    } catch (e) {
+      this.log(`Could not get gather ice candidate, trying with what's currently available`, e);
+    }
 
     const connect = async () => {
       if (this.state === 'deleted') {

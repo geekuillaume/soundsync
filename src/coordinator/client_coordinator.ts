@@ -110,7 +110,7 @@ export class ClientCoordinator {
         type: 'peerConnectionInfo',
         peerUuid: requesterPeer.uuid,
         requesterUuid: getLocalPeer().uuid,
-        offer: requesterPeer.connection.localDescription,
+        offer: answer,
         isAnswer: true,
         uuid: uuidv4(),
       });
