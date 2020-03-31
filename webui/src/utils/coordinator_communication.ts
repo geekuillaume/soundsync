@@ -27,11 +27,13 @@ export const initializeCoordinator = async () => {
     // attachTimekeeperClient(peersManager);
     // await waitForFirstTimeSync();
     getClientCoordinator();
-    audioSourcesSinksManager.addSink({
-      type: 'webaudio',
-      name: 'Web Page Output',
-      peerUuid: getLocalPeer().uuid,
-    });
+    if (!audioSourcesSinksManager.sinks.filter((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio').length) {
+      audioSourcesSinksManager.addSink({
+        type: 'webaudio',
+        name: 'Web Page Output',
+        peerUuid: getLocalPeer().uuid,
+      });
+    }
   };
   if (initializePromise) {
     return initializePromise;
