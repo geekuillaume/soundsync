@@ -46,7 +46,11 @@ export class WebrtcPeer extends Peer {
     delete this.connection;
     delete this.controllerChannel;
 
-    this.connection = new RTCPeerConnection();
+    this.connection = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stuns:stun.l.google.com:19302' },
+      ],
+    });
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
       id: CONTROLLER_CHANNEL_ID,
