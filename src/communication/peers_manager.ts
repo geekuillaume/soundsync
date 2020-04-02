@@ -31,36 +31,33 @@ export class PeersManager extends EventEmitter {
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
     httpServer.router.post('/connect_webrtc_peer', async (ctx) => {
       const {
-        name, uuid, sdp, version, forceIfSamePeerUuid,
+        name, uuid, description, version, instanceUuid,
       } = ctx.request.body;
       if (version !== SOUNDSYNC_VERSION) {
-        ctx.throw(`Different version of Soundsync, please the client or the coordinator.\nCoordinator version: ${SOUNDSYNC_VERSION}\nClient version: ${version}`, 400);
+        ctx.throw(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${version}`, 400);
       }
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
       const existingPeer = this.peers[uuid];
-      if (existingPeer && existingPeer instanceof WebrtcPeer) {
-        if (!forceIfSamePeerUuid && existingPeer.state === 'connected') {
-          return ctx.throw('peer with this uuid is already connected', 409);
-        }
+      if (existingPeer && existingPeer instanceof WebrtcPeer && existingPeer.instanceUuid !== instanceUuid) {
         existingPeer.disconnect(true);
       }
       const peer = new WebrtcPeer({
         uuid,
         name,
         host: ctx.request.ip,
+        instanceUuid,
       });
 
       this.peers[uuid] = peer;
-      await peer.connection.setRemoteDescription(sdp);
-      const answer = await peer.connection.createAnswer();
+      const responseDescription = await peer.handlePeerConnectionMessage({ description });
 
-      peer.connection.setLocalDescription(answer);
       peer.log(`Responding with offer`);
       ctx.body = {
         status: 'ok',
-        sdp: peer.connection.localDescription,
+        description: responseDescription,
         uuid: getLocalPeer().uuid,
-        coordinatorName: getLocalPeer().name,
+        name: getLocalPeer().name,
+        instanceUuid: getLocalPeer().instanceUuid,
       };
       this.broadcastPeersDiscoveryInfo();
     });
@@ -85,6 +82,7 @@ export class PeersManager extends EventEmitter {
       name: 'remote',
       uuid: uuid || `placeholderForHttpApiJoin_${host}`,
       host,
+      instanceUuid: 'placeholder',
     });
     this.peers[peer.uuid] = peer;
     await peer.connectFromHttpApi(host, forceIfSamePeerUuid);
@@ -113,6 +111,7 @@ export class PeersManager extends EventEmitter {
         uuid,
         name: 'remote',
         host: 'unknown',
+        instanceUuid: 'placeholder',
       });
       this.peers[uuid] = peer;
       peer.connectFromOtherPeers();

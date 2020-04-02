@@ -19,7 +19,6 @@ import { getLocalPeer } from '../communication/local_peer';
 
 export class ClientCoordinator {
   log: debug.Debugger;
-  private _alreadyReceivedMessage: string[] = [];
 
   constructor() {
     this.log = debug(`soundsync:clientCoordinator`);
@@ -75,52 +74,45 @@ export class ClientCoordinator {
   }
 
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage, transmitter: Peer) => {
-    if (this._alreadyReceivedMessage.includes(message.uuid)) {
-      return;
-    }
-    this._alreadyReceivedMessage.push(message.uuid);
-    if (message.peerUuid !== getLocalPeer().uuid) {
+    if (message.targetUuid !== getLocalPeer().uuid) {
       // we received this message but it's not for us, let's retransmit it to the correct peer
-      const destinationPeer = getPeersManager().peers[message.peerUuid];
+      const destinationPeer = getPeersManager().peers[message.targetUuid];
       if (destinationPeer) {
         destinationPeer.sendControllerMessage(message);
       }
       return;
     }
-    const requesterPeer = getPeersManager().getPeerByUuid(message.requesterUuid);
+
+    let requesterPeer = getPeersManager().getPeerByUuid(message.senderUuid) as WebrtcPeer;
     if (!(requesterPeer instanceof WebrtcPeer)) {
       return;
     }
+    if (!requesterPeer.instanceUuid) {
+      requesterPeer.instanceUuid = message.senderInstanceUuid;
+    }
+    // this is coming from a new peer with the same uuid, disconnect previous
+    if (requesterPeer.instanceUuid !== message.senderInstanceUuid) {
+      requesterPeer.disconnect(true);
+    }
+    requesterPeer = new WebrtcPeer({
+      uuid: message.senderUuid,
+      instanceUuid: message.senderInstanceUuid,
+      name: 'placeholder',
+      host: 'placeholder',
+    });
 
-    if (message.offer) {
-      if (message.isAnswer) {
-        await requesterPeer.connection.setRemoteDescription(message.offer);
-        return;
-      }
-      // we received an offer while waiting for a response, it usually means that the two peers are trying to connect at the same time, it this is the case, ONLY ONE the two peer need to reset its connection and accept the offer. To determine which peer needs to do that, we use the UUID of the remote peer and if it is higher than our own UUID we reset our connection. The remote peer will just ignore the message.
-      if (requesterPeer.connection.signalingState === 'have-local-offer' && requesterPeer.uuid < getLocalPeer().uuid) {
-        return;
-      }
-      requesterPeer.initWebrtc();
-      await requesterPeer.connection.setRemoteDescription(message.offer);
-      const answer = await requesterPeer.connection.createAnswer();
-      requesterPeer.connection.setLocalDescription(answer);
+    getPeersManager().peers[message.senderUuid] = requesterPeer;
 
+    const responseDescription = await requesterPeer.handlePeerConnectionMessage({ description: message.description, candidate: message.candidate });
+    if (responseDescription) {
       transmitter.sendControllerMessage({
         type: 'peerConnectionInfo',
-        peerUuid: requesterPeer.uuid,
-        requesterUuid: getLocalPeer().uuid,
-        offer: answer,
-        isAnswer: true,
-        uuid: uuidv4(),
+        targetUuid: requesterPeer.uuid,
+        senderUuid: getLocalPeer().uuid,
+        senderInstanceUuid: getLocalPeer().instanceUuid,
+        description: responseDescription,
       });
     }
-    // if (message.iceCandidates) {
-    //   for (const iceCandidate of message.iceCandidates) {
-    //     // @ts-ignore
-    //     await peer.connection.addIceCandidate(new RTCIceCandidate({ candidate: iceCandidate }));
-    //   }
-    // }
   }
 
   private handleNewSourceChannel = async ({ sourceUuid, stream }: {sourceUuid: string; stream: NodeJS.WritableStream}) => {

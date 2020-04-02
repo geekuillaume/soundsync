@@ -1,8 +1,6 @@
 import { RTCPeerConnection } from 'wrtc';
-import { v4 as uuidv4 } from 'uuid';
 import superagent from 'superagent';
 
-import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
 import { onExit } from '../utils/on_exit';
@@ -13,18 +11,21 @@ import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
+import { once } from '../utils/misc';
 
 export class WebrtcPeer extends Peer {
   connection: RTCPeerConnection;
   controllerChannel: RTCDataChannel;
+  hasSentOffer = false;
+  shouldIgnoreOffer = false;
   private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
 
   constructor({
-    uuid, name, host,
+    uuid, name, host, instanceUuid,
   }) {
     super({
-      uuid, name, host,
+      uuid, name, host, instanceUuid,
     });
     // this.connection.onicecandidate = (e) => {
     //   if (e.candidate) {
@@ -40,6 +41,8 @@ export class WebrtcPeer extends Peer {
   }
 
   initWebrtc = () => {
+    this.hasSentOffer = false;
+    this.shouldIgnoreOffer = false;
     if (this.connection) {
       this.connection.close();
     }
@@ -47,9 +50,9 @@ export class WebrtcPeer extends Peer {
     delete this.controllerChannel;
 
     this.connection = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-      ],
+      // iceServers: [
+      //   { urls: 'stun:stun.l.google.com:19302' },
+      // ],
     });
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
@@ -72,44 +75,72 @@ export class WebrtcPeer extends Peer {
     });
   }
 
-  connectFromOtherPeers = async () => {
-    const offer = await this.connection.createOffer();
-    await this.connection.setLocalDescription(offer);
-    try {
-      await waitUntilIceGatheringStateComplete(this.connection);
-    } catch (e) {
-      this.log(`Could not get gather ice candidate, trying with what's currently available`, e);
+  initiateConnection = async (): Promise<RTCSessionDescription> => {
+    await once(this.connection, 'negotiationneeded');
+    await this.connection.setLocalDescription(await this.connection.createOffer());
+    this.hasSentOffer = true;
+
+    return this.connection.localDescription;
+  }
+
+  // will return response description if needed
+  handlePeerConnectionMessage = async ({ description, candidate }: {description?: RTCSessionDescription; candidate?: RTCIceCandidate}) => {
+    if (description) {
+      const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
+      this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > this.uuid;
+
+      if (this.shouldIgnoreOffer) {
+        return null;
+      }
+      await this.connection.setRemoteDescription(description);
+      if (description.type === 'offer') {
+        const localDescription: any = {
+          type: this.connection.signalingState === 'stable'
+          || this.connection.signalingState === 'have-local-offer'
+          || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
+          sdp: (await this.connection.createAnswer()).sdp,
+        };
+        await this.connection.setLocalDescription(localDescription);
+        return this.connection.localDescription;
+      }
+    } else if (candidate) {
+      try {
+        await this.connection.addIceCandidate(candidate);
+      } catch (err) {
+        if (!this.shouldIgnoreOffer) {
+          throw err; // Suppress ignored offer's candidates
+        }
+      }
     }
+  }
+
+  connectFromOtherPeers = async () => {
     getPeersManager().broadcast({
       type: 'peerConnectionInfo',
-      peerUuid: this.uuid,
-      requesterUuid: getLocalPeer().uuid,
-      offer: this.connection.localDescription,
-      isAnswer: false,
-      uuid: uuidv4(),
+      targetUuid: this.uuid,
+      senderUuid: getLocalPeer().uuid,
+      senderInstanceUuid: getLocalPeer().instanceUuid,
+      description: await this.initiateConnection(),
     });
   }
 
   // the forceIfSamePeerUuid is used by the webui to force reconnection on page reload to prevent having to wait for the connection timeout before being able to reconnect
   connectFromHttpApi = async (host: string, forceIfSamePeerUuid?: boolean) => {
-    const offer = await this.connection.createOffer();
-    await this.connection.setLocalDescription(offer);
-    try {
-      await waitUntilIceGatheringStateComplete(this.connection);
-    } catch (e) {
-      this.log(`Could not get gather ice candidate, trying with what's currently available`, e);
-    }
-
+    const localDescription = await this.initiateConnection();
     const connect = async () => {
-      if (this.state === 'deleted') {
+      if (this.state === 'deleted' || this.state === 'connected') {
         return;
       }
       try {
-        const { body: { sdp, uuid, coordinatorName } } = await superagent.post(`${host}/connect_webrtc_peer`)
+        const {
+          body: {
+            description, uuid, name, instanceUuid,
+          },
+        } = await superagent.post(`${host}/connect_webrtc_peer`)
           .send({
             name: getLocalPeer().name,
             uuid: getLocalPeer().uuid,
-            sdp: this.connection.localDescription,
+            description: localDescription,
             version: SOUNDSYNC_VERSION,
             forceIfSamePeerUuid: forceIfSamePeerUuid || false,
           });
@@ -123,9 +154,10 @@ export class WebrtcPeer extends Peer {
           existingPeer.delete();
         }
         this.setUuid(uuid);
-        this.name = coordinatorName;
+        this.instanceUuid = instanceUuid;
+        this.name = name;
         this.log(`Got response from other peer http server`);
-        await this.connection.setRemoteDescription(sdp);
+        await this.handlePeerConnectionMessage({ description });
       } catch (e) {
         if (e.status === 409) {
           // we are already connected to this peer, bail out

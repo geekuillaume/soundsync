@@ -24,6 +24,7 @@ export enum Capacity {
 
 export abstract class Peer extends EventEmitter {
   uuid: string;
+  instanceUuid: string;
   name: string;
   host: string;
   state: 'disconnected' | 'connecting' | 'connected' | 'deleted' = 'disconnected';
@@ -33,13 +34,14 @@ export abstract class Peer extends EventEmitter {
   capacities: Capacity[] ;
 
   constructor({
-    uuid, name, capacities, host,
+    uuid, name, capacities, host, instanceUuid,
   }: PeerDescriptor) {
     super();
     this.setMaxListeners(1000);
     this.name = name;
     this.uuid = uuid;
     this.host = host;
+    this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
     this.log = debug(`soundsync:peer:${uuid}`);
     this.log(`Created new peer`);
@@ -147,12 +149,15 @@ export abstract class Peer extends EventEmitter {
   toDescriptor = (): PeerDescriptor => ({
     uuid: this.uuid,
     name: this.name,
+    instanceUuid: this.instanceUuid,
     capacities: this.capacities,
   })
 }
 
 export interface PeerDescriptor {
   uuid: string;
+  // the instanceUuid changes between restarts
+  instanceUuid: string;
   name: string;
   host?: string;
   capacities?: Capacity[];

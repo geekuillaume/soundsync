@@ -35,12 +35,11 @@ export interface SinkPatchMessage extends BaseMessage {
 
 export interface PeerConnectionInfoMessage extends BaseMessage {
   type: 'peerConnectionInfo';
-  peerUuid: string;
-  requesterUuid: string;
-  offer?: string;
-  iceCandidates?: string[];
-  isAnswer: boolean;
-  uuid: string;
+  targetUuid: string;
+  senderUuid: string;
+  senderInstanceUuid: string;
+  description?: RTCSessionDescription;
+  candidate?: RTCIceCandidate;
 }
 
 export interface TimekeepRequest extends BaseMessage {
