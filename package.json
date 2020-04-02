@@ -56,18 +56,35 @@
     "afterPack": "./scripts/electronpack-hook.js",
     "extraResources": [
       "webui/dist",
-      "res/**/*"
+      "res/**/*",
+      "node_modules/audioworklet/src/worker_init.js",
+      "src/audio/sinks/audioworklets/*.js"
     ],
     "asarUnpack": [
       "**/*.node",
-      "**/*.so*"
+      "**/*.so*",
+      "node_modules/audioworklet/src/worker_init.js",
+      "src/audio/sinks/audioworklets/*.js"
     ],
     "win": {
       "asar": false
     },
     "linux": {
       "target": [
-        "deb"
+        "deb",
+        "pacman"
+      ]
+    },
+    "pacman": {
+      "fpm": [
+        "--after-install=scripts/package_extra/install.sh"
+      ],
+      "depends": [
+        "libnotify",
+        "libxss",
+        "nspr",
+        "nss",
+        "pulseaudio"
       ]
     },
     "deb": {
