@@ -83,25 +83,25 @@ export class ClientCoordinator {
       return;
     }
 
-    let requesterPeer = getPeersManager().getPeerByUuid(message.senderUuid) as WebrtcPeer;
+    let requesterPeer = getPeersManager().getPeerByUuid(message.senderUuid, false) as WebrtcPeer;
     if (!(requesterPeer instanceof WebrtcPeer)) {
       return;
     }
-    if (!requesterPeer.instanceUuid) {
+    if (!requesterPeer.instanceUuid || requesterPeer.instanceUuid === 'placeholder') {
       requesterPeer.instanceUuid = message.senderInstanceUuid;
     }
     // this is coming from a new peer with the same uuid, disconnect previous
     if (requesterPeer.instanceUuid !== message.senderInstanceUuid) {
       requesterPeer.disconnect(true);
-    }
-    requesterPeer = new WebrtcPeer({
-      uuid: message.senderUuid,
-      instanceUuid: message.senderInstanceUuid,
-      name: 'placeholder',
-      host: 'placeholder',
-    });
+      requesterPeer = new WebrtcPeer({
+        uuid: message.senderUuid,
+        instanceUuid: message.senderInstanceUuid,
+        name: 'placeholder',
+        host: 'placeholder',
+      });
 
-    getPeersManager().peers[message.senderUuid] = requesterPeer;
+      getPeersManager().peers[message.senderUuid] = requesterPeer;
+    }
 
     const responseDescription = await requesterPeer.handlePeerConnectionMessage({ description: message.description, candidate: message.candidate });
     if (responseDescription) {

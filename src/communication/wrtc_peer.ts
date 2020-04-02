@@ -14,8 +14,8 @@ import { now } from '../utils/time';
 import { once } from '../utils/misc';
 
 export class WebrtcPeer extends Peer {
-  connection: RTCPeerConnection;
-  controllerChannel: RTCDataChannel;
+  private connection: RTCPeerConnection;
+  private controllerChannel: RTCDataChannel;
   hasSentOffer = false;
   shouldIgnoreOffer = false;
   private heartbeatInterval;
@@ -77,8 +77,8 @@ export class WebrtcPeer extends Peer {
 
   initiateConnection = async (): Promise<RTCSessionDescription> => {
     await once(this.connection, 'negotiationneeded');
-    await this.connection.setLocalDescription(await this.connection.createOffer());
     this.hasSentOffer = true;
+    await this.connection.setLocalDescription(await this.connection.createOffer());
 
     return this.connection.localDescription;
   }
@@ -88,9 +88,12 @@ export class WebrtcPeer extends Peer {
     if (description) {
       const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
       this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > this.uuid;
-
       if (this.shouldIgnoreOffer) {
         return null;
+      }
+      if (offerCollision) {
+        // Rolling back, this should be done automatically in a next version of wrtc lib
+        this.initWebrtc();
       }
       await this.connection.setRemoteDescription(description);
       if (description.type === 'offer') {

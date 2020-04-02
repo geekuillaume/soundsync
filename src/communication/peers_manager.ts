@@ -25,7 +25,12 @@ export class PeersManager extends EventEmitter {
     }
     log(`Creating peer manager with peer uuid ${getLocalPeer().uuid}`);
     this.peers[getLocalPeer().uuid] = getLocalPeer();
-    this.on('newConnectedPeer', this.broadcastPeersDiscoveryInfo);
+    this.on('newConnectedPeer', (peer) => {
+      peer.sendControllerMessage({
+        type: 'peerDiscovery',
+        peersUuid: _.map(_.filter(this.peers, (p) => p.state === 'connected'), (p) => p.uuid),
+      });
+    });
   }
 
   attachToSignalingServer(httpServer: SoundSyncHttpServer) {
@@ -59,7 +64,6 @@ export class PeersManager extends EventEmitter {
         name: getLocalPeer().name,
         instanceUuid: getLocalPeer().instanceUuid,
       };
-      this.broadcastPeersDiscoveryInfo();
     });
 
     // httpServer.router.post('/ice_candidate', async (ctx) => {
@@ -105,7 +109,7 @@ export class PeersManager extends EventEmitter {
     await Promise.all(_.map(this.peers, sendToPeer));
   }
 
-  getPeerByUuid = (uuid: string) => {
+  getPeerByUuid = (uuid: string, autoConnect = true) => {
     if (!this.peers[uuid]) {
       const peer = new WebrtcPeer({
         uuid,
@@ -114,7 +118,9 @@ export class PeersManager extends EventEmitter {
         instanceUuid: 'placeholder',
       });
       this.peers[uuid] = peer;
-      peer.connectFromOtherPeers();
+      if (autoConnect) {
+        peer.connectFromOtherPeers();
+      }
     }
     return this.peers[uuid];
   }
