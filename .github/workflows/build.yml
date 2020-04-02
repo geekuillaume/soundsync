@@ -100,7 +100,8 @@ jobs:
       run: ./scripts/compile_for_raspberrypi.sh
 
     - name: Clean build directory
-      run: rm -rf linux-*-unpacked builder-effective-config.yaml
+      shell: bash
+      run: ./scripts/clean_build.sh
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v1
