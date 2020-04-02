@@ -101,7 +101,7 @@ jobs:
 
     - name: Clean build directory
       shell: bash
-      run: ./scripts/clean_build.sh
+      run: sudo ./scripts/clean_build.sh
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v1
