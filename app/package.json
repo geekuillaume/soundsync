@@ -8,7 +8,7 @@
   "license": "BSL 1.1",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "audioworklet": "1.1.2",
+    "audioworklet": "1.1.5",
     "auto-launch": "^5.0.5",
     "bonjour": "^3.5.0",
     "cross-env": "^6.0.3",

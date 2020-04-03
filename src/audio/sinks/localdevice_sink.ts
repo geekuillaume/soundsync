@@ -37,7 +37,6 @@ export class LocalDeviceSink extends AudioSink {
       this.soundio.openOutputStream({
         deviceId: this.deviceId ? getOutputDeviceIndexFromId(this.deviceId) : undefined,
         sampleRate: OPUS_ENCODER_RATE,
-        frameSize: OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
         name: `${source.name}`,
         format: Soundio.SoundIoFormatFloat32LE,
         bufferDuration: 0.1,
