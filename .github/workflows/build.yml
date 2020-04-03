@@ -58,6 +58,7 @@ jobs:
           path: webui/dist
 
       - name: Install requirements
+        if: "runner.os == 'Linux'"
         run: sudo apt-get -y install bsdtar
 
       - name: Build/release Electron app
