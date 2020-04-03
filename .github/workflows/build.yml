@@ -57,6 +57,9 @@ jobs:
           name: webui-dist
           path: webui/dist
 
+      - name: Install requirements
+        run: apt-get -y install bsdtar
+
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
         with:
