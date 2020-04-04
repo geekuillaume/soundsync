@@ -10,7 +10,7 @@ exports.default = async function (context) {
 DIR="$( dirname "$( readlink -f "$0" )")"
 if [ -z "$DISPLAY" ]
 then
-  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron $DIR/resources/app.asar/index.js "$@"
+  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron $DIR/resources/app/index.js "$@"
 else
   $DIR/soundsync_electron
 fi`);

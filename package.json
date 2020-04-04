@@ -56,15 +56,7 @@
     "afterPack": "./scripts/electronpack-hook.js",
     "extraResources": [
       "webui/dist",
-      "res/**/*",
-      "node_modules/audioworklet/src/worker_init.js",
-      "src/audio/sinks/audioworklets/*.js"
-    ],
-    "asarUnpack": [
-      "**/*.node",
-      "**/*.so*",
-      "node_modules/audioworklet/src/worker_init.js",
-      "src/audio/sinks/audioworklets/*.js"
+      "res/**/*"
     ],
     "win": {
       "asar": false
