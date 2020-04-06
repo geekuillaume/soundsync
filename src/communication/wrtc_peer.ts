@@ -65,11 +65,11 @@ export class WebrtcPeer extends Peer {
       this.log('Connected');
       this.emit('connected');
       this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
-      this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
+      this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
     });
 
-    this.controllerChannel.addEventListener('close', () => this.disconnect());
-    onExit(() => this.disconnect(true));
+    this.controllerChannel.addEventListener('close', () => this.disconnect(false, 'controller channel is closed'));
+    onExit(() => this.disconnect(true, 'exciting process'));
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
@@ -174,11 +174,11 @@ export class WebrtcPeer extends Peer {
     connect();
   }
 
-  disconnect = async (advertiseDisconnect = false) => {
+  disconnect = async (advertiseDisconnect = false, cause = 'unknown') => {
     if (this.state === 'disconnected') {
       return;
     }
-    this.log('Connection closed');
+    this.log(`Connection closed, cause: ${cause}`);
     this.state = 'disconnected';
     this.emit('disconnected');
 
@@ -202,10 +202,14 @@ export class WebrtcPeer extends Peer {
       return;
     }
     if (message.type === 'disconnect') {
-      this.disconnect();
+      this.disconnect(false, 'received disconnect message from peer');
       return;
     }
     this._onReceivedMessage(message);
+  }
+
+  private handleNoHeartbeat = () => {
+    this.disconnect(false, 'no heartbeat received');
   }
 
   sendControllerMessage(message: ControllerMessage) {
@@ -229,7 +233,7 @@ export class WebrtcPeer extends Peer {
     if (receivedPing) {
       this.sendControllerMessage({ type: 'pong' });
     }
-    this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
+    this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
   }
 
   private sendHeartbeat = () => {
@@ -237,7 +241,7 @@ export class WebrtcPeer extends Peer {
       return;
     }
     if (!this.missingPeerResponseTimeout) {
-      this.missingPeerResponseTimeout = setTimeout(this.disconnect, NO_RESPONSE_TIMEOUT);
+      this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
     }
     this.sendControllerMessage({ type: 'ping' });
   }
