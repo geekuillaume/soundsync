@@ -8,18 +8,21 @@ import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MIN_SKEW_TO_RESYNC_AUDIO,
+  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_DURATION,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceIndexFromId } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
-import { now } from '../../utils/time';
+import { CircularTypedArray } from './audioworklets/circularTypedArray';
+
+const BUFFER_DURATION = 10000;
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
   local: true = true;
   deviceId: string;
+  buffer: CircularTypedArray<Float32Array>;
 
   soundio: Soundio;
   private worklet: Worker;
@@ -46,9 +49,18 @@ export class LocalDeviceSink extends AudioSink {
     };
     openStream();
 
+    const bufferSize = (BUFFER_DURATION / 1000) * OPUS_ENCODER_RATE * this.channels * Float32Array.BYTES_PER_ELEMENT;
+    const bufferData = new SharedArrayBuffer(bufferSize);
+    this.buffer = new CircularTypedArray(Float32Array, bufferData);
+
     this.updateInfo({ latency: this.soundio.getStreamLatency() * 1000 });
     this.worklet = this.soundio.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
-    this.sendStreamTimeToWorklet();
+    this.setStreamTimeForWorklet();
+    this.worklet.postMessage({
+      type: 'buffer',
+      buffer: bufferData,
+      pointersBuffer: this.buffer.getPointersBuffer(),
+    });
 
     const latencyInterval = setInterval(() => {
       if (!this.soundio.isOutputStreamOpen()) {
@@ -59,13 +71,13 @@ export class LocalDeviceSink extends AudioSink {
         this.log(`Updating sink latency to ${newLatency}`);
         // TODO: use network latency here too
         this.updateInfo({ latency: newLatency });
-        this.sendStreamTimeToWorklet();
+        this.setStreamTimeForWorklet();
       }
     }, 2000);
 
     const handleTimedeltaUpdate = () => {
       this.log(`Resynchronizing sink after timedelta`);
-      this.sendStreamTimeToWorklet();
+      this.setStreamTimeForWorklet();
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
 
@@ -99,21 +111,17 @@ export class LocalDeviceSink extends AudioSink {
       return;
     }
     const chunk = new Float32Array(data.chunk.buffer);
-    this.worklet.postMessage({
-      type: 'chunk',
-      i: data.i,
-      chunk,
-    }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
+    const offset = data.i * OPUS_ENCODER_CHUNK_DURATION * (OPUS_ENCODER_RATE / 1000) * this.channels;
+    this.buffer.set(chunk, offset);
   }
 
-  sendStreamTimeToWorklet = () => {
-    if (!this.worklet) {
+  setStreamTimeForWorklet = () => {
+    if (!this.buffer) {
       return;
     }
-    this.worklet.postMessage({
-      type: 'currentStreamTime',
-      currentStreamTime: this.getCurrentStreamTime() - now(),
-    });
+    this.buffer.setReaderPointer(this.getCurrentStreamTime()
+      * (OPUS_ENCODER_RATE / 1000)
+      * this.channels);
   }
 
   toDescriptor: (() => AudioInstance<LocalDeviceSinkDescriptor>) = () => ({

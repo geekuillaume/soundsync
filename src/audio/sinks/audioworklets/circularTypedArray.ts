@@ -11,13 +11,30 @@ type TypedArray = Int8Array |
 export class CircularTypedArray<T extends TypedArray> {
   TypedArrayConstructor: new (...args) => T;
   buffer: T;
+  pointersBuffer: SharedArrayBuffer;
+  pointersTypedBuffer: Uint32Array;
 
-  constructor(TypedArrayConstructor: new (...args) => T, length: number) {
+  constructor(TypedArrayConstructor: new (...args) => T, lengthOrSharedArrayBuffer: number | SharedArrayBuffer) {
     this.TypedArrayConstructor = TypedArrayConstructor;
-    this.buffer = new TypedArrayConstructor(length);
+    this.buffer = new TypedArrayConstructor(lengthOrSharedArrayBuffer);
+
+    this.pointersBuffer = new SharedArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+    this.pointersTypedBuffer = new Uint32Array(this.pointersBuffer);
   }
 
-  set(data: Buffer, offset: number) {
+  getPointersBuffer = () => this.pointersBuffer
+  setPointersBuffer = (pointersBuffer: SharedArrayBuffer) => {
+    this.pointersBuffer = pointersBuffer;
+    this.pointersTypedBuffer = new Uint32Array(this.pointersBuffer);
+  }
+
+  setReaderPointer = (value: number) => {
+    Atomics.store(this.pointersTypedBuffer, 1, value);
+  }
+  getReaderPointer = () => Atomics.load(this.pointersTypedBuffer, 1)
+  advanceReaderPointer = (value: number) => Atomics.add(this.pointersTypedBuffer, 1, value)
+
+  set(data: T, offset: number) {
     const realOffset = offset % this.buffer.length;
     const overflow = Math.max(0, (realOffset + data.length) - this.buffer.length);
     if (!overflow) {
@@ -25,7 +42,7 @@ export class CircularTypedArray<T extends TypedArray> {
       return;
     }
     this.buffer.set(data.subarray(0, data.length - overflow), realOffset);
-    this.set(data.subarray(data.length - overflow), realOffset + (data.length - overflow));
+    this.set(data.subarray(data.length - overflow) as T, realOffset + (data.length - overflow));
   }
 
   fill(offset: number, length: number, data: number) {
@@ -42,6 +59,20 @@ export class CircularTypedArray<T extends TypedArray> {
   get(offset: number, length: number): T {
     // TODO: implement a way to reset read samples to 0 to prevent outputting the same sample
     // again if the buffer runs too low and we don't have the new chunk from the source
+    const realOffset = offset % this.buffer.length;
+    const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
+    if (!overflow) {
+      // @ts-ignore
+      return this.buffer.subarray(realOffset, realOffset + length);
+    }
+    const output = new this.TypedArrayConstructor(length);
+    output.set(this.buffer.subarray(realOffset, this.buffer.length - overflow), 0);
+    output.set(this.buffer.subarray(0, overflow), length - overflow);
+    return output;
+  }
+
+  getAtReaderPointer(length: number): T {
+    const offset = this.advanceReaderPointer(length);
     const realOffset = offset % this.buffer.length;
     const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
     if (!overflow) {
