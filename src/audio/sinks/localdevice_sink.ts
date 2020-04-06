@@ -23,7 +23,7 @@ export class LocalDeviceSink extends AudioSink {
   local: true = true;
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
-
+  lastReceivedChunk = -1;
   soundio: Soundio;
   private worklet: Worker;
   private cleanStream;
@@ -110,9 +110,13 @@ export class LocalDeviceSink extends AudioSink {
       // we received old chunks, discard them
       return;
     }
+    if (this.lastReceivedChunk !== -1 && data.i !== this.lastReceivedChunk + 1) {
+      this.log(`Received out-of-order chunk, received chunk index: ${data.i}, last chunk index: ${this.lastReceivedChunk}`);
+    }
     const chunk = new Float32Array(data.chunk.buffer);
     const offset = data.i * OPUS_ENCODER_CHUNK_DURATION * (OPUS_ENCODER_RATE / 1000) * this.channels;
     this.buffer.set(chunk, offset);
+    this.lastReceivedChunk = data.i;
   }
 
   setStreamTimeForWorklet = () => {
