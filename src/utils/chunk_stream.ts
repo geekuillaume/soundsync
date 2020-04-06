@@ -34,7 +34,7 @@ export class AudioChunkStream extends Readable {
   now = () => now() - this.creationTime;
 
   _pushNecessaryChunks = () => {
-    const chunksToEmit = Math.floor((this.now() - this.lastEmitTime) / this.interval);
+    const chunksToEmit = Math.ceil((this.now() - this.lastEmitTime) / this.interval);
     for (let i = 0; i < chunksToEmit; i++) {
       const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
       let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
