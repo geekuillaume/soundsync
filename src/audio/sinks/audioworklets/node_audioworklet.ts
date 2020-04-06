@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { AudioWorkletProcessor } from 'audioworklet';
 import { CircularTypedArray } from './circularTypedArray';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../../utils/constants';
+import { now } from '../../../utils/time';
 
 const BUFFER_SIZE_IN_SECONDS = 10;
 const CHANNELS = 2;
@@ -28,7 +29,7 @@ class NodeAudioworklet extends AudioWorkletProcessor {
     if (event.data.type === 'currentStreamTime') {
       this.didFirstTimeSync = true;
       this.currentSampleIndex = Math.floor(
-        event.data.currentStreamTime
+        (event.data.currentStreamTime + now())
         * (OPUS_ENCODER_RATE / 1000)
         * CHANNELS,
       );

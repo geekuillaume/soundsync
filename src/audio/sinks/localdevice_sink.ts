@@ -14,6 +14,7 @@ import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceIndexFromId } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
+import { now } from '../../utils/time';
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
@@ -107,7 +108,7 @@ export class LocalDeviceSink extends AudioSink {
     }
     this.worklet.postMessage({
       type: 'currentStreamTime',
-      currentStreamTime: this.getCurrentStreamTime(),
+      currentStreamTime: this.getCurrentStreamTime() - now(),
     });
   }
 
