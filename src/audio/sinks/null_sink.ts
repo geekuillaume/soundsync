@@ -8,4 +8,5 @@ export class NullSink extends AudioSink {
   }
   _stopSink() {
   }
+  handleAudioChunk() {}
 }

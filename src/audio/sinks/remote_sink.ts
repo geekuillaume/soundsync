@@ -18,8 +18,7 @@ export class RemoteSink extends AudioSink {
     });
   }
 
-  _startSink() {
-  }
-  _stopSink() {
-  }
+  _startSink() {}
+  _stopSink() {}
+  handleAudioChunk() {}
 }

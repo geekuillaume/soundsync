@@ -35,8 +35,6 @@ export abstract class AudioSink {
   decodedStream: ReturnType<typeof createAudioDecodedStream>;
   instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
-  protected buffer: {[key: string]: Buffer};
-  lastReceivedChunkIndex = -1;
   latency = 0;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
@@ -108,7 +106,6 @@ export abstract class AudioSink {
       // nothing to do
       return;
     }
-    this.buffer = {};
     // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
     // is called multiple times before this.pipedSource.start() has finished
     this.pipedSource = sourceToPipeFrom;
@@ -139,14 +136,9 @@ export abstract class AudioSink {
     this.decodedStream.off('data', this.handleAudioChunk);
     this.decodedStream.destroy();
     delete this.decodedStream;
-    this.buffer = {};
   }
 
-  handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
-    // TODO: handle removing previous non read chunks
-    this.buffer[chunk.i] = chunk.chunk;
-    this.lastReceivedChunkIndex = chunk.i;
-  }
+  abstract handleAudioChunk(chunk: AudioChunkStreamOutput);
 
   getCurrentStreamTime = () => this.pipedSource.peer.getCurrentTime()
       - this.pipedSource.startedAt
