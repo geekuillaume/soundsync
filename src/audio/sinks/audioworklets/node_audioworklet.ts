@@ -25,7 +25,7 @@ class NodeAudioworklet extends AudioWorkletProcessor {
     // we cannot rely on the currentTime property to know which sample needs to be sent because
     // the precision is not high enough so we synchronize once the this.currentSampleIndex from the sourceTimeAtAudioTimeOrigin
     // message and then increase the currentSampleIndex everytime we output samples
-    const samplesForCurrentFrame = this.buffer.getAtReaderPointer(_.sum(channels.map((c) => c.length)));
+    const [samplesForCurrentFrame, offset] = this.buffer.getAtReaderPointer(_.sum(channels.map((c) => c.length)));
     let currentSampleIndexForCurrentFrame = 0;
 
     for (let sampleIndex = 0; sampleIndex < channels[0].length; sampleIndex++) {
@@ -34,7 +34,7 @@ class NodeAudioworklet extends AudioWorkletProcessor {
         currentSampleIndexForCurrentFrame++;
       }
     }
-    // this.buffer.fill(this.currentSampleIndex, samplesForCurrentFrame.length, 0);
+    this.buffer.fill(offset, samplesForCurrentFrame.length, 0);
 
     return true;
   }
