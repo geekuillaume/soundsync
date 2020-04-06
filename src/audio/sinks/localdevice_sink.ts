@@ -90,6 +90,10 @@ export class LocalDeviceSink extends AudioSink {
     if (!this.worklet) {
       return;
     }
+    if (!this.pipedSource || !this.pipedSource.peer) {
+      this.log(`Received a chunk for a not piped sink, ignoring`);
+      return;
+    }
     if ((data.i * 10 + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -200) {
       // we received old chunks, discard them
       return;
