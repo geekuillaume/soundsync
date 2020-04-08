@@ -1,7 +1,8 @@
 import React from 'react';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {
-  useSinks, useSources, usePipes,
+  useSinks, useSources, usePipes, useIsConnected,
 } from '../utils/useSoundSyncState';
 import { Source } from './Source';
 import { Sink } from './Sink';
@@ -13,6 +14,7 @@ export const SoundState = () => {
   const pipes = usePipes();
   const sinks = useSinks();
   const sources = useSources();
+  const isConnected = useIsConnected();
 
   return (
     <div className="container">
@@ -21,15 +23,21 @@ export const SoundState = () => {
         <div className="sinks-title">
           Speakers
         </div>
-        {sinks && (
-          <>
-            <SourcesList sources={sources} />
-            <PipesList pipes={pipes} />
-            <SinksList sinks={sinks} />
-          </>
-        )}
-        <AddSourceButton />
-        <AddSinkButton />
+        {isConnected
+          ? (
+            <>
+              <SourcesList sources={sources} />
+              <PipesList pipes={pipes} />
+              <SinksList sinks={sinks} />
+              <AddSourceButton />
+              <AddSinkButton />
+            </>
+          ) : (
+            <div className="connecting-message">
+              <CircularProgress />
+              <p>Connecting...</p>
+            </div>
+          )}
       </div>
     </div>
   );

@@ -2,13 +2,14 @@ import React, {
   useCallback, useEffect, createContext, useReducer, useContext,
 } from 'react';
 
-import { sortBy } from 'lodash-es';
+import { sortBy, some } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
-import { onSoundStateChange } from './coordinator_communication';
+import { onSoundStateChange, onPeersChange } from './coordinator_communication';
 import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/peers_manager';
+import { getLocalPeer } from '../../../src/communication/local_peer';
 
 const initialState = {
   stateVersion: 0,
@@ -56,6 +57,7 @@ export const SoundSyncProvider = ({ children }) => {
   useEffect(() => {
     refreshData();
     onSoundStateChange(refreshData);
+    onPeersChange(refreshData);
   }, []);
 
   return (
@@ -71,8 +73,10 @@ export const SoundSyncProvider = ({ children }) => {
   );
 };
 
+export const useIsConnected = () => some(useContext(soundSyncContext).peersManagers.peers, (peer) => !peer.isLocal && peer.state === 'connected');
+
 const audioSourceSinkGetter = (collection, withHidden) => {
-  const orderedCollection = sortBy(collection, ({ name }) => (isHidden(name) ? 10 : 0));
+  const orderedCollection = sortBy(collection, ({ name }) => (isHidden(name) ? 10 : 0)).filter((s) => s.peer && s.peer.state === 'connected');
   if (!withHidden) {
     return orderedCollection.filter(({ name }) => !isHidden(name));
   }

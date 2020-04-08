@@ -48,6 +48,12 @@ export const onSoundStateChange = async (listener) => {
   getAudioSourcesSinksManager().on('soundstateUpdated', debouncedListener);
 };
 
+export const onPeersChange = async (listener) => {
+  await initializeCoordinator();
+  const debouncedListener = debounce(listener);
+  getPeersManager().on('peerChange', debouncedListener);
+};
+
 export const getSoundState = async () => {
   await initializeCoordinator();
 
