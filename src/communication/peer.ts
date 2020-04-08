@@ -31,13 +31,15 @@ export abstract class Peer extends EventEmitter {
   timeDelta = 0;
   private _previousTimeDeltas: number[] = [];
   log: Debugger;
-  capacities: Capacity[] ;
+  capacities: Capacity[];
+  isLocal: boolean;
 
   constructor({
     uuid, name, capacities, host, instanceUuid,
   }: PeerDescriptor) {
     super();
     this.setMaxListeners(1000);
+    this.isLocal = false;
     this.name = name;
     this.uuid = uuid;
     this.host = host;
@@ -73,8 +75,11 @@ export abstract class Peer extends EventEmitter {
       this.name = message.peer.name;
       this.capacities = message.peer.capacities;
     });
-    this.on('connected', (shouldIgnore) => {
-      if (shouldIgnore) {
+    this.on('stateChange', () => {
+      if (this.state !== 'connected') {
+        return;
+      }
+      if (this.isLocal) {
         return;
       }
       this.sendControllerMessage({
@@ -85,6 +90,18 @@ export abstract class Peer extends EventEmitter {
       _.times(TIMESYNC_INIT_REQUEST_COUNT, (i) => {
         setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
       });
+    });
+  }
+
+  setState = (state: 'disconnected' | 'connecting' | 'connected' | 'deleted') => {
+    if (this.state === state) {
+      return;
+    }
+    // setImmediate is necessary to force same async behavior even for peer that are connected at start like local peer
+    setImmediate(() => {
+      this.state = state;
+      this.emit('stateChange', this);
+      getPeersManager().emit('peerChange', this);
     });
   }
 
@@ -111,9 +128,18 @@ export abstract class Peer extends EventEmitter {
 
   waitForConnected = async () => {
     if (this.state === 'connected') {
-      return;
+      return Promise.resolve();
     }
-    await once(this, 'connected');
+    return new Promise((resolve) => {
+      const listener = () => {
+        if (this.state === 'connected') {
+          return;
+        }
+        this.removeListener('stateChange', listener);
+        resolve();
+      };
+      this.addListener('stateChange', listener);
+    });
   }
 
   waitForFirstTimeSync = async () => {

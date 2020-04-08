@@ -61,9 +61,8 @@ export class WebrtcPeer extends Peer {
     this.connection.ondatachannel = this.handleRequestedAudioSourceChannel;
 
     this.controllerChannel.addEventListener('open', () => {
-      this.state = 'connected';
+      this.setState('connected');
       this.log('Connected');
-      this.emit('connected');
       this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
       this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
     });
@@ -179,8 +178,7 @@ export class WebrtcPeer extends Peer {
       return;
     }
     this.log(`Connection closed, cause: ${cause}`);
-    this.state = 'disconnected';
-    this.emit('disconnected');
+    this.setState('disconnected');
 
     if (advertiseDisconnect) {
       await this.sendControllerMessage({ type: 'disconnect' });

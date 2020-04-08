@@ -13,8 +13,8 @@ class LocalPeer extends Peer {
       capacities,
       instanceUuid,
     });
-    this.state = 'connected';
-    this.emit('connected', true);
+    this.isLocal = true;
+    this.setState('connected');
   }
 
   sendControllerMessage(message: ControllerMessage) {
