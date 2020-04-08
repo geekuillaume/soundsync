@@ -66,13 +66,15 @@ export class WebAudioSink extends AudioSink {
       });
     }
     await this.pipedSource.peer.waitForFirstTimeSync();
-    this.latency = this.context.baseLatency * 1000;
+    this.updateInfo({
+      latency: this.context.baseLatency * 1000,
+    });
+    // Todo: use this.context.getOutputTimestamp() as time reference to prevent time shift between sending and receiving the message in the audio thread
     this.workletNode.port.postMessage({
       type: 'currentStreamTime',
       currentStreamTime: this.getCurrentStreamTime(),
     });
     // TODO: handle the source latency change
-    // TODO: handle the webaudio latency from this.context.outputLatency
   }
 
   _stopSink() {
