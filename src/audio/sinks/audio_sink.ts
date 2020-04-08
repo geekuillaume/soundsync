@@ -149,7 +149,7 @@ export abstract class AudioSink {
   getCurrentStreamTime = () => this.pipedSource.peer.getCurrentTime()
       - this.pipedSource.startedAt
       - this.pipedSource.latency
-      - this.latency
+      + this.latency
 
   toObject = () => ({
     name: this.name,
