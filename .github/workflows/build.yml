@@ -63,6 +63,8 @@ jobs:
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
+        env:
+          USE_HARD_LINKS: false # because of https://github.com/electron-userland/electron-builder/issues/3179
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
