@@ -53,6 +53,7 @@ export abstract class AudioSink {
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink of type ${descriptor.type}`);
     this.manager.on('soundstateUpdated', this._syncPipeState);
+    getPeersManager().on('peerChange', this._syncPipeState);
     this._syncPipeState();
   }
 
@@ -100,6 +101,11 @@ export abstract class AudioSink {
     if (this.pipedSource && sourceToPipeFrom !== this.pipedSource) {
       // already piped but to the wrong source
       this.unlinkSource();
+    }
+
+    if (!sourceToPipeFrom.peer || sourceToPipeFrom.peer.state !== 'connected') {
+      this.unlinkSource();
+      return;
     }
 
     if (this.pipedSource && sourceToPipeFrom === this.pipedSource) {
