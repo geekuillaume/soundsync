@@ -9,11 +9,12 @@ export interface BaseSinkDescriptor {
   peerUuid: string;
   latency?: number;
   pipedFrom?: SourceUUID;
+  available?: boolean;
 }
 
 export interface LocalDeviceSinkDescriptor extends BaseSinkDescriptor {
   type: 'localdevice';
-  deviceId?: string; // Use default device if not set
+  deviceId: string;
 }
 
 export interface NullSinkDescriptor extends BaseSinkDescriptor {

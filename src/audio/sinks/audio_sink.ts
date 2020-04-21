@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { PassThrough } from 'stream';
 import eos from 'end-of-stream';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
+import { OPUS_ENCODER_RATE } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
   SinkDescriptor, SinkType, BaseSinkDescriptor, SinkUUID,
@@ -27,6 +27,7 @@ export abstract class AudioSink {
   peerUuid: string;
   pipedFrom?: SourceUUID;
   pipedSource?: AudioSource;
+  available: boolean;
 
   manager: AudioSourcesSinksManager;
   decoder: NodeJS.ReadWriteStream;
@@ -48,6 +49,7 @@ export abstract class AudioSink {
     this.uuid = descriptor.uuid || uuidv4();
     this.peerUuid = descriptor.peerUuid;
     this.pipedFrom = descriptor.pipedFrom;
+    this.available = descriptor.available ?? true;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
@@ -92,7 +94,7 @@ export abstract class AudioSink {
       return;
     }
     const sourceToPipeFrom = this.pipedFrom && this.manager.getSourceByUuid(this.pipedFrom);
-    if (!sourceToPipeFrom) {
+    if (!sourceToPipeFrom || !this.available) {
       // should not be piped from something, unlinking if it is
       this.unlinkSource();
       return;
@@ -169,5 +171,6 @@ export abstract class AudioSink {
     peerUuid: this.peerUuid,
     instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
+    available: this.available,
   })
 }

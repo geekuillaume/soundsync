@@ -31,23 +31,26 @@ export class LocalDeviceSink extends AudioSink {
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceId = descriptor.deviceId;
+    this.available = this.isDeviceAvailable();
+    setInterval(() => { // this should be changed to use events from soundio instead
+      this.updateInfo({ available: this.isDeviceAvailable() });
+    }, 5000);
   }
+
+  isDeviceAvailable = () => getOutputDeviceIndexFromId(this.deviceId) !== -1
 
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
     this.soundio = new Soundio();
-    const openStream = () => {
-      this.soundio.openOutputStream({
-        deviceId: this.deviceId ? getOutputDeviceIndexFromId(this.deviceId) : undefined,
-        sampleRate: OPUS_ENCODER_RATE,
-        name: `${source.name}`,
-        format: Soundio.SoundIoFormatFloat32LE,
-        bufferDuration: 0.1,
-      });
-      this.soundio.startOutputStream();
-    };
-    openStream();
+    this.soundio.openOutputStream({
+      deviceId: getOutputDeviceIndexFromId(this.deviceId),
+      sampleRate: OPUS_ENCODER_RATE,
+      name: `${source.name}`,
+      format: Soundio.SoundIoFormatFloat32LE,
+      bufferDuration: 0.1,
+    });
+    this.soundio.startOutputStream();
 
     const bufferSize = (BUFFER_DURATION / 1000) * OPUS_ENCODER_RATE * this.channels * Float32Array.BYTES_PER_ELEMENT;
     const bufferData = new SharedArrayBuffer(bufferSize);
@@ -137,5 +140,6 @@ export class LocalDeviceSink extends AudioSink {
     instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
     latency: this.latency,
+    available: this.available,
   })
 }
