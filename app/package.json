@@ -24,7 +24,7 @@
     "mkdirp": "^0.5.1",
     "open": "^7.0.0",
     "perf_hooks": "^0.0.1",
-    "speex-resampler": "1.0.10",
+    "speex-resampler": "1.0.13",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
     "uuid": "^3.3.3",
