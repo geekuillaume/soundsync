@@ -1,11 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # This file will be used by the systemd service to start soundsync, it allows soundsync to start without graphical interface
 # and will try to start pulseaudio if run as root and no pulseaudio process is found
 
-if [ -z "$PULSE_COOKIE" ] && [ -z "$(ps x | grep pulse | grep -v grep)" ] && [ "$(whoami)" == "root" ]
+CURRENT_USER="$(whoami)"
+
+if [ -z "$PULSE_COOKIE" ] && [ -z "$(ps x | grep pulse | grep -v grep)" ] && [ "$CURRENT_USER" == "root" ]
 then
-  pulseaudio --system 2> /dev/null &
+  pulseaudio 2> /dev/null &
 fi
 
 DIR="$( dirname "$( readlink -f "$0" )")"
