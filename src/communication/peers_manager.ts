@@ -81,7 +81,7 @@ export class PeersManager extends EventEmitter {
     // });
   }
 
-  async joinPeerWithHttpApi(host: string, uuid?: string, forceIfSamePeerUuid?: boolean) {
+  async joinPeerWithHttpApi(host: string, uuid?: string) {
     const peer = new WebrtcPeer({
       name: 'remote',
       uuid: uuid || `placeholderForHttpApiJoin_${host}`,
@@ -89,7 +89,7 @@ export class PeersManager extends EventEmitter {
       instanceUuid: 'placeholder',
     });
     this.peers[peer.uuid] = peer;
-    await peer.connectFromHttpApi(host, forceIfSamePeerUuid);
+    await peer.connectFromHttpApi(host);
   }
 
   broadcastPeersDiscoveryInfo = () => {

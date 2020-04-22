@@ -126,8 +126,7 @@ export class WebrtcPeer extends Peer {
     });
   }
 
-  // the forceIfSamePeerUuid is used by the webui to force reconnection on page reload to prevent having to wait for the connection timeout before being able to reconnect
-  connectFromHttpApi = async (host: string, forceIfSamePeerUuid?: boolean) => {
+  connectFromHttpApi = async (host: string) => {
     const localDescription = await this.initiateConnection();
     const connect = async () => {
       if (this.state === 'deleted' || this.state === 'connected') {
@@ -144,7 +143,6 @@ export class WebrtcPeer extends Peer {
             uuid: getLocalPeer().uuid,
             description: localDescription,
             version: SOUNDSYNC_VERSION,
-            forceIfSamePeerUuid: forceIfSamePeerUuid || false,
           });
         const existingPeer = getPeersManager().peers[uuid];
         if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {

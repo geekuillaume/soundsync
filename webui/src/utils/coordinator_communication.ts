@@ -20,7 +20,7 @@ export const initializeCoordinator = async () => {
     const peersManager = getPeersManager();
 
     const peerHost = document.location.port === '8080' ? `http://${document.location.hostname}:6512` : `http://${document.location.host}`;
-    await peersManager.joinPeerWithHttpApi(peerHost, undefined, true);
+    await peersManager.joinPeerWithHttpApi(peerHost);
 
     const audioSourcesSinksManager = getAudioSourcesSinksManager();
     audioSourcesSinksManager.addFromConfig();
