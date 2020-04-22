@@ -40,14 +40,14 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 
 Soundsync is still in an early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-- Handle precise track synchronization
-  - Network latency
-  - Received time vs. playing time
-  - Handle unordered chunks (JitterBuffer / Circular Buffer)
 - Bluetooth on linux
 - Airplay: Shairport-sync
 - UPnP: gmrender-resurrect
-- Sink volume with hardware control
+- Sink volume with libsoundio
+- Reconnection when registered with IP instead of Bonjour
+- Setting for Spotify sink in Webui
+- Initiate WebRTC connection between peers from a web server with an Auth Token as an alternative to Bonjour and to prevent issue with AudioWorklet not being available on http pages
+- Allow changing the name of a peer from the webui
 - Group of sinks
 - Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
 - Integration media info on webui
