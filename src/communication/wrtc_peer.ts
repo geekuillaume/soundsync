@@ -13,6 +13,8 @@ import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 import { once } from '../utils/misc';
 
+const HTTP_CONNECTION_RETRY_INTERVAL = 1000 * 10;
+
 export class WebrtcPeer extends Peer {
   private connection: RTCPeerConnection;
   private controllerChannel: RTCDataChannel;
@@ -75,6 +77,9 @@ export class WebrtcPeer extends Peer {
   }
 
   initiateConnection = async (): Promise<RTCSessionDescription> => {
+    if (this.hasSentOffer) {
+      return this.connection.localDescription;
+    }
     await once(this.connection, 'negotiationneeded');
     this.hasSentOffer = true;
     await this.connection.setLocalDescription(await this.connection.createOffer());
@@ -127,12 +132,12 @@ export class WebrtcPeer extends Peer {
   }
 
   connectFromHttpApi = async (host: string) => {
-    const localDescription = await this.initiateConnection();
-    const connect = async () => {
+    this.connect = async () => {
       if (this.state === 'deleted' || this.state === 'connected') {
         return;
       }
       try {
+        const localDescription = await this.initiateConnection();
         const {
           body: {
             description, uuid, name, instanceUuid,
@@ -143,6 +148,7 @@ export class WebrtcPeer extends Peer {
             uuid: getLocalPeer().uuid,
             description: localDescription,
             version: SOUNDSYNC_VERSION,
+            instanceUuid: getLocalPeer().instanceUuid,
           });
         const existingPeer = getPeersManager().peers[uuid];
         if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
@@ -165,10 +171,14 @@ export class WebrtcPeer extends Peer {
           return;
         }
         this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
-        setTimeout(connect, 10 * 1000);
+        setTimeout(this.connect, HTTP_CONNECTION_RETRY_INTERVAL);
       }
     };
-    connect();
+    this.connect();
+  }
+
+  connect = () => {
+    // nothing to do by default if no connection method as been set
   }
 
   disconnect = async (advertiseDisconnect = false, cause = 'unknown') => {
@@ -190,6 +200,8 @@ export class WebrtcPeer extends Peer {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
+    // retry connection to this peer in 10 seconds
+    setTimeout(this.connect, HTTP_CONNECTION_RETRY_INTERVAL);
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {

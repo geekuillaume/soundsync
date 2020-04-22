@@ -13,6 +13,7 @@ class LocalPeer extends Peer {
       capacities,
       instanceUuid,
     });
+    this.log(`Registering local peer with instaceUuid: ${this.instanceUuid}`);
     this.isLocal = true;
     this.setState('connected');
   }

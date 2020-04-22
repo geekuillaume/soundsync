@@ -92,7 +92,7 @@ export class ClientCoordinator {
     }
     // this is coming from a new peer with the same uuid, disconnect previous
     if (requesterPeer.instanceUuid !== message.senderInstanceUuid) {
-      requesterPeer.disconnect(true);
+      requesterPeer.disconnect(true, 'got peer connection info of new peer with same uuid');
       requesterPeer = new WebrtcPeer({
         uuid: message.senderUuid,
         instanceUuid: message.senderInstanceUuid,
