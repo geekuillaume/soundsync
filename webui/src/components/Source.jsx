@@ -7,8 +7,8 @@ import {
 import { useEditAudioStreamModal } from './editModal';
 
 import SpotifyLogo from '../res/spotify.svg';
-import nullSinkLogo from '../res/null.svg';
 import computerIcon from '../res/computer.svg';
+import nullSinkLogo from '../res/null.svg';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 import { HiddenIndicator } from './utils/HiddenIndicator';
 
@@ -48,7 +48,7 @@ export const Source = ({ source }) => {
           onClick={registerForPipe}
         />
         <div className="box source-box" onClick={handleOpen}>
-          <img src={sourceLogo} className="source-logo" />
+          <img src={sourceLogo} alt="" className="source-logo" />
           <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
           <p className="peer-name">{peer.name}</p>
           {hidden && <HiddenIndicator />}
