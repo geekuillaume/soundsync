@@ -141,7 +141,6 @@ export class AudioSourcesSinksManager extends EventEmitter {
         && sink.deviceId === sinkDescriptor.deviceId
         && sink.peerUuid === sinkDescriptor.peerUuid);
       if (existingSink) {
-        existingSink.updateInfo(sinkDescriptor);
         return;
       }
     }
