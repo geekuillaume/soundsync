@@ -23,4 +23,5 @@ npm_config_arch=armv7l yarn install
 ```
 sudo dpkg -i soundsync.deb
 sudo apt-get -f install
+sudo systemctl enable --now soundsync.service
 ```
