@@ -43,9 +43,8 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Bluetooth on linux
 - Airplay: Shairport-sync
 - UPnP: gmrender-resurrect
-- Sink volume with libsoundio
 - Reconnection when registered with IP instead of Bonjour
-- Setting for Spotify sink in Webui
+- Updating info for Spotify sink from WebUI
 - Initiate WebRTC connection between peers from a web server with an Auth Token as an alternative to Bonjour and to prevent issue with AudioWorklet not being available on http pages
 - Allow changing the name of a peer from the webui
 - Group of sinks
