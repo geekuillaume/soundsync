@@ -8,7 +8,7 @@ export const HEARTBEAT_INTERVAL = 300; // send a heartbeat every 300 ms
 export const HEARTBEAT_JITTER = 100; // randomize heartbeat sending interval between peers
 export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
   ordered: false,
-  maxPacketLifeTime: 10,
+  maxPacketLifeTime: 500,
 };
 export const ICE_GATHERING_TIMEOUT = 20000;
 
