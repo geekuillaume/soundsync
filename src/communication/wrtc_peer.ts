@@ -13,7 +13,7 @@ import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 import { once } from '../utils/misc';
 
-const HTTP_CONNECTION_RETRY_INTERVAL = 1000 * 10;
+const HTTP_CONNECTION_RETRY_INTERVAL = 1000 * 2;
 
 export class WebrtcPeer extends Peer {
   private connection: RTCPeerConnection;
@@ -29,27 +29,13 @@ export class WebrtcPeer extends Peer {
     super({
       uuid, name, host, instanceUuid,
     });
-    // this.connection.onicecandidate = (e) => {
-    //   if (e.candidate) {
-    //     this.webrtcServer.coordinatorPeer.sendControllerMessage({
-    //       type: 'peerConnectionInfo',
-    //       peerUuid: this.uuid,
-    //       iceCandidates: [e.candidate.candidate],
-    //     })
-    //   }
-    // }
-
-    this.initWebrtc();
+    onExit(() => this.disconnect(true, 'exiting process'));
   }
 
-  initWebrtc = () => {
-    this.hasSentOffer = false;
-    this.shouldIgnoreOffer = false;
+  initWebrtcIfNeeded = () => {
     if (this.connection) {
-      this.connection.close();
+      return;
     }
-    delete this.connection;
-    delete this.controllerChannel;
 
     this.connection = new RTCPeerConnection({
       // iceServers: [
@@ -70,13 +56,31 @@ export class WebrtcPeer extends Peer {
     });
 
     this.controllerChannel.addEventListener('close', () => this.disconnect(false, 'controller channel is closed'));
-    onExit(() => this.disconnect(true, 'exciting process'));
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
   }
 
+  cleanWebrtcState = () => {
+    this.hasSentOffer = false;
+    this.shouldIgnoreOffer = false;
+    if (this.connection) {
+      this.connection.close();
+    }
+    delete this.connection;
+    delete this.controllerChannel;
+    if (this.missingPeerResponseTimeout) {
+      clearTimeout(this.missingPeerResponseTimeout);
+      delete this.missingPeerResponseTimeout;
+    }
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      delete this.heartbeatInterval;
+    }
+  }
+
   initiateConnection = async (): Promise<RTCSessionDescription> => {
+    this.initWebrtcIfNeeded();
     if (this.hasSentOffer) {
       return this.connection.localDescription;
     }
@@ -89,6 +93,7 @@ export class WebrtcPeer extends Peer {
 
   // will return response description if needed
   handlePeerConnectionMessage = async ({ description, candidate }: {description?: RTCSessionDescription; candidate?: RTCIceCandidate}) => {
+    this.initWebrtcIfNeeded();
     if (description) {
       const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
       this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > this.uuid;
@@ -97,17 +102,18 @@ export class WebrtcPeer extends Peer {
       }
       if (offerCollision) {
         // Rolling back, this should be done automatically in a next version of wrtc lib
-        this.initWebrtc();
+        this.cleanWebrtcState();
+        this.initWebrtcIfNeeded();
       }
       await this.connection.setRemoteDescription(description);
       if (description.type === 'offer') {
-        const localDescription: any = {
-          type: this.connection.signalingState === 'stable'
-          || this.connection.signalingState === 'have-local-offer'
-          || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
-          sdp: (await this.connection.createAnswer()).sdp,
-        };
-        await this.connection.setLocalDescription(localDescription);
+        // const localDescription: any = {
+        //   type: this.connection.signalingState === 'stable'
+        //   || this.connection.signalingState === 'have-local-offer'
+        //   || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
+        //   sdp: (await this.connection.createAnswer()).sdp,
+        // };
+        await this.connection.setLocalDescription(await this.connection.createAnswer());
         return this.connection.localDescription;
       }
     } else if (candidate) {
@@ -132,7 +138,7 @@ export class WebrtcPeer extends Peer {
   }
 
   connectFromHttpApi = async (host: string) => {
-    this.connect = async () => {
+    this.connect = async (isRetry = false) => {
       if (this.state === 'deleted' || this.state === 'connected') {
         return;
       }
@@ -170,14 +176,17 @@ export class WebrtcPeer extends Peer {
           this.delete();
           return;
         }
-        this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
-        setTimeout(this.connect, HTTP_CONNECTION_RETRY_INTERVAL);
+        if (!isRetry) {
+          this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
+        }
+        setTimeout(() => this.connect(true), HTTP_CONNECTION_RETRY_INTERVAL);
       }
     };
     this.connect();
   }
 
-  connect = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  connect = (isRetry?: boolean) => {
     // nothing to do by default if no connection method as been set
   }
 
@@ -192,14 +201,7 @@ export class WebrtcPeer extends Peer {
       await this.sendControllerMessage({ type: 'disconnect' });
     }
 
-    if (this.missingPeerResponseTimeout) {
-      clearTimeout(this.missingPeerResponseTimeout);
-      this.missingPeerResponseTimeout = null;
-    }
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
+    this.cleanWebrtcState();
     // retry connection to this peer in 10 seconds
     setTimeout(this.connect, HTTP_CONNECTION_RETRY_INTERVAL);
   }
@@ -221,7 +223,7 @@ export class WebrtcPeer extends Peer {
   }
 
   sendControllerMessage(message: ControllerMessage) {
-    if (this.controllerChannel.readyState !== 'open') {
+    if (!this.controllerChannel || this.controllerChannel.readyState !== 'open') {
       return Promise.resolve(false);
     }
     if (message.type !== 'ping' && message.type !== 'pong') {
