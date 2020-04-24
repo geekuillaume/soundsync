@@ -78,9 +78,14 @@ export class WebAudioSink extends AudioSink {
   }
 
   _stopSink() {
-    this.context.suspend();
-    this.workletNode.disconnect();
-    delete this.workletNode;
+    if (this.context) {
+      this.context.suspend();
+      delete this.context;
+    }
+    if (this.workletNode) {
+      this.workletNode.disconnect();
+      delete this.workletNode;
+    }
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
