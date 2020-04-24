@@ -12,7 +12,7 @@ export class AudioChunkStream extends Readable {
   sourceStream: NodeJS.ReadableStream;
   readInterval: NodeJS.Timeout;
   creationTime: number = now();
-  lastEmitTime: number;
+  lastEmittedChunkIndex: number;
 
   constructor(sourceStream: NodeJS.ReadableStream, interval: number, sampleSize: number) {
     super({
@@ -21,24 +21,31 @@ export class AudioChunkStream extends Readable {
     this.sourceStream = sourceStream;
     this.interval = interval;
     this.sampleSize = sampleSize;
+    this.lastEmittedChunkIndex = -1;
   }
 
   _read() {
     if (this.readInterval) {
       return;
     }
-    this.lastEmitTime = this.now();
     this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
   }
 
   now = () => now() - this.creationTime;
 
   _pushNecessaryChunks = () => {
-    const chunksToEmit = Math.ceil((this.now() - this.lastEmitTime) / this.interval);
-    for (let i = 0; i < chunksToEmit; i++) {
-      const chunkGlobalIndex = Math.floor((this.lastEmitTime / this.interval) + 1);
+    while (true) {
+      let currentChunkIndex = this.lastEmittedChunkIndex + 1;
+      if (this.lastEmittedChunkIndex === -1) { // the stream was interrupted because source couldn't be read, restart a sequence
+        currentChunkIndex = Math.floor(this.now() / this.interval);
+      }
+      const currentChunkLatency = this.now() - (currentChunkIndex * this.interval);
+      if (currentChunkLatency < 0) { // this chunk is in the future, do nothing and wait for next tick
+        break;
+      }
       let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
-      if (chunk === null) {
+      if (chunk === null) { // nothing to read from source, we need to compute the next chunk from time instead of the sequence
+        this.lastEmittedChunkIndex = -1;
         break;
       }
       if (chunk.length !== this.sampleSize) {
@@ -49,17 +56,11 @@ export class AudioChunkStream extends Readable {
         chunk.set(incompleteChunk);
       }
       const chunkOutput: AudioChunkStreamOutput = {
-        i: chunkGlobalIndex,
+        i: currentChunkIndex,
         chunk,
       };
-      const canPush = this.push(chunkOutput);
-      this.lastEmitTime = this.interval * chunkGlobalIndex;
-      // we should always be pushing to consume the audio source at the same speed and not block it
-      // if (!canPush) {
-      //   clearInterval(this.readInterval);
-      //   this.readInterval = null;
-      //   break;
-      // }
+      this.push(chunkOutput);
+      this.lastEmittedChunkIndex = currentChunkIndex;
     }
   }
 }
