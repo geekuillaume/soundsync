@@ -116,7 +116,6 @@ export const SinkContextMenu = ({
   );
 
   const handleVolumeChange = (e, newValue) => {
-    console.log(newValue);
     sink.patch({
       volume: newValue,
     });
