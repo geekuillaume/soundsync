@@ -32,6 +32,9 @@ export const initializeCoordinator = async () => {
         type: 'webaudio',
         name: 'Web Page Output',
         peerUuid: getLocalPeer().uuid,
+        volume: 1,
+        available: true,
+        pipedFrom: null,
       });
     }
   };
