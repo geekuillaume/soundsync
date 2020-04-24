@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 import { PassThrough } from 'stream';
 import eos from 'end-of-stream';
+import { EventEmitter } from 'events';
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
@@ -17,7 +18,7 @@ import { SourceUUID } from '../sources/source_type';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
-export abstract class AudioSink {
+export abstract class AudioSink extends EventEmitter {
   uuid: SinkUUID;
   name: string;
   type: SinkType;
@@ -28,6 +29,7 @@ export abstract class AudioSink {
   pipedFrom?: SourceUUID;
   pipedSource?: AudioSource;
   available: boolean;
+  volume: number;
 
   manager: AudioSourcesSinksManager;
   decoder: NodeJS.ReadWriteStream;
@@ -42,6 +44,7 @@ export abstract class AudioSink {
   abstract _stopSink(): Promise<void> | void;
 
   constructor(descriptor: MaybeAudioInstance<SinkDescriptor>, manager: AudioSourcesSinksManager) {
+    super();
     this.manager = manager;
     this.name = descriptor.name;
     this.type = descriptor.type;
@@ -50,6 +53,7 @@ export abstract class AudioSink {
     this.peerUuid = descriptor.peerUuid;
     this.pipedFrom = descriptor.pipedFrom;
     this.available = descriptor.available ?? true;
+    this.volume = descriptor.volume ?? 1;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
@@ -67,6 +71,9 @@ export abstract class AudioSink {
     return this.updateInfo(descriptor);
   }
 
+  on: (type: 'update', listener: (...args: any[]) => void) => this;
+  emit: (type: 'update', ...args: any[]) => boolean;
+
   updateInfo(descriptor: Partial<AudioInstance<SinkDescriptor>>) {
     if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
       this.log('Received update for a different instance of the sink, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
@@ -82,6 +89,7 @@ export abstract class AudioSink {
     if (hasChanged) {
       this.manager.emit('sinkUpdate', this);
       this.manager.emit('soundstateUpdated');
+      this.emit('update');
       if (this.local) {
         this.manager.emit('localSoundStateUpdated');
       }
@@ -161,6 +169,7 @@ export abstract class AudioSink {
     rate: this.rate,
     peerUuid: this.peerUuid,
     latency: this.latency,
+    volume: this.volume,
   })
 
   toDescriptor: () => AudioInstance<BaseSinkDescriptor> = () => ({
@@ -172,5 +181,6 @@ export abstract class AudioSink {
     instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
     available: this.available,
+    volume: this.volume,
   })
 }

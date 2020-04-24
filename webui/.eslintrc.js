@@ -5,7 +5,8 @@ module.exports = {
   },
   extends: [
     'plugin:react/recommended',
-    'airbnb',
+    "airbnb-base",
+    "airbnb/rules/react"
   ],
   globals: {
     Atomics: 'readonly',
@@ -48,5 +49,6 @@ module.exports = {
     "arrow-body-style": 0,
     "jsx-filename-extension": 0,
     "no-nested-ternary": 0,
+    "jsx-a11y/*": 0,
   },
 };

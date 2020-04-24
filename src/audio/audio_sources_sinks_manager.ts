@@ -13,7 +13,7 @@ import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
 import { LocalDeviceSink } from './sinks/localdevice_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem, deleteConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices, audioApiSupportsLoopback } from '../utils/soundio';
+import { getAudioDevices } from '../utils/soundio';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
@@ -52,6 +52,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
         deviceId: device.id,
         name: device.name,
         peerUuid: getLocalPeer().uuid,
+        volume: 1,
+        pipedFrom: null,
+        available: true,
       });
       // if (audioApiSupportsLoopback()) {
       //   this.addSource({

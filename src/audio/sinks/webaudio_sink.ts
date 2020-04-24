@@ -108,5 +108,6 @@ export class WebAudioSink extends AudioSink {
     pipedFrom: this.pipedFrom,
     latency: this.latency,
     available: this.available,
+    volume: this.volume,
   })
 }

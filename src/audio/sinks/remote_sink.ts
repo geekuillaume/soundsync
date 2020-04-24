@@ -11,9 +11,7 @@ export class RemoteSink extends AudioSink {
       sink: {
         uuid: this.uuid,
         instanceUuid: this.instanceUuid,
-        latency: descriptor.latency || this.latency,
-        name: descriptor.name || this.name,
-        pipedFrom: descriptor.pipedFrom !== undefined ? descriptor.pipedFrom : this.pipedFrom,
+        ...descriptor,
       },
     });
   }

@@ -8,8 +8,9 @@ export interface BaseSinkDescriptor {
   uuid?: SinkUUID;
   peerUuid: string;
   latency?: number;
-  pipedFrom?: SourceUUID;
-  available?: boolean;
+  pipedFrom: SourceUUID | null;
+  available: boolean;
+  volume: number;
 }
 
 export interface LocalDeviceSinkDescriptor extends BaseSinkDescriptor {

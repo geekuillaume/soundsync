@@ -83,11 +83,16 @@ export class LocalDeviceSink extends AudioSink {
       this.setStreamTimeForWorklet();
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
+    const syncDeviceVolume = () => {
+      this.soundio.setOutputVolume(this.volume);
+    };
+    this.on('update', syncDeviceVolume);
 
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
+      this.off('update', syncDeviceVolume);
       clearInterval(latencyInterval);
       this.soundio.closeOutputStream();
       delete this.soundio;
@@ -141,5 +146,6 @@ export class LocalDeviceSink extends AudioSink {
     pipedFrom: this.pipedFrom,
     latency: this.latency,
     available: this.available,
+    volume: this.volume,
   })
 }
