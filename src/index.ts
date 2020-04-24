@@ -78,6 +78,10 @@ const main = async () => {
     onDetectionChange((services) => {
       services.forEach((service) => {
         const uuid = service.name.match(/SoundSync @ (.*)/)[1];
+        // @ts-ignore
+        if (service.addresses.length === 0) {
+          return;
+        }
         if (!peersManager.peers[uuid]) {
           // @ts-ignore
           peersManager.joinPeerWithHttpApi(`${service.addresses[0]}:${service.port}`, uuid);
