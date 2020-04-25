@@ -10,7 +10,7 @@ export class AudioChunkStream extends Readable {
   interval: number;
   sampleSize: number;
   sourceStream: NodeJS.ReadableStream;
-  readInterval: NodeJS.Timeout;
+  private readInterval: NodeJS.Timeout;
   creationTime: number = now();
   lastEmittedChunkIndex: number;
 
@@ -22,13 +22,26 @@ export class AudioChunkStream extends Readable {
     this.interval = interval;
     this.sampleSize = sampleSize;
     this.lastEmittedChunkIndex = -1;
+    this.sourceStream.on('readable', this.startReadLoop);
   }
 
-  _read() {
+  private startReadLoop = () => {
     if (this.readInterval) {
       return;
     }
+    this._pushNecessaryChunks();
     this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
+  }
+
+  private stopReadLoop = () => {
+    if (this.readInterval) {
+      clearInterval(this.readInterval);
+      delete this.readInterval;
+    }
+  }
+
+  _read() {
+    this.startReadLoop();
   }
 
   now = () => now() - this.creationTime;
@@ -46,6 +59,7 @@ export class AudioChunkStream extends Readable {
       let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
       if (chunk === null) { // nothing to read from source, we need to compute the next chunk from time instead of the sequence
         this.lastEmittedChunkIndex = -1;
+        this.stopReadLoop();
         break;
       }
       if (chunk.length !== this.sampleSize) {
