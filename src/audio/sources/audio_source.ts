@@ -30,7 +30,7 @@ export abstract class AudioSource {
   protected directSourceStream: NodeJS.ReadableStream; // internal stream from the source
   startedAt: number;
   private consumersStreams: PassThrough[] = [];
-  latency = 2000;
+  latency: number;
 
   protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
