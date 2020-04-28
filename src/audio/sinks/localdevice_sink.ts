@@ -1,6 +1,8 @@
 import { Worker } from 'worker_threads';
 import {
   Soundio,
+  SoundioDevice,
+  SoundioOutputStream,
 } from 'audioworklet';
 
 import { resolve } from 'path';
@@ -11,7 +13,7 @@ import {
   OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_DURATION,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
-import { getOutputDeviceIndexFromId } from '../../utils/soundio';
+import { getOutputDeviceFromId } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from './audioworklets/circularTypedArray';
@@ -24,9 +26,11 @@ export class LocalDeviceSink extends AudioSink {
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
   lastReceivedChunk = -1;
-  soundio: Soundio;
+
   private worklet: Worker;
   private cleanStream;
+  private soundioDevice: SoundioDevice;
+  private soundioOutputStream: SoundioOutputStream;
 
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -37,27 +41,26 @@ export class LocalDeviceSink extends AudioSink {
     }, 5000);
   }
 
-  isDeviceAvailable = () => getOutputDeviceIndexFromId(this.deviceId) !== -1
+  isDeviceAvailable = () => !!getOutputDeviceFromId(this.deviceId)
 
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
-    this.soundio = new Soundio();
-    this.soundio.openOutputStream({
-      deviceId: getOutputDeviceIndexFromId(this.deviceId),
+    this.soundioDevice = getOutputDeviceFromId(this.deviceId);
+    this.soundioOutputStream = this.soundioDevice.openOutputStream({
       sampleRate: OPUS_ENCODER_RATE,
       name: `${source.name}`,
       format: Soundio.SoundIoFormatFloat32LE,
       bufferDuration: 0.1,
     });
-    this.soundio.startOutputStream();
+    this.worklet = this.soundioOutputStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
+    this.soundioOutputStream.start();
 
     const bufferSize = (BUFFER_DURATION / 1000) * OPUS_ENCODER_RATE * this.channels * Float32Array.BYTES_PER_ELEMENT;
     const bufferData = new SharedArrayBuffer(bufferSize);
     this.buffer = new CircularTypedArray(Float32Array, bufferData);
 
-    this.updateInfo({ latency: this.soundio.getStreamLatency() * 1000 });
-    this.worklet = this.soundio.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
+    this.updateInfo({ latency: this.soundioOutputStream.getLatency() * 1000 });
     this.setStreamTimeForWorklet();
     this.worklet.postMessage({
       type: 'buffer',
@@ -66,10 +69,10 @@ export class LocalDeviceSink extends AudioSink {
     });
 
     const latencyInterval = setInterval(() => {
-      if (!this.soundio.isOutputStreamOpen()) {
+      if (!this.soundioOutputStream.isOpen()) {
         return;
       }
-      const newLatency = this.soundio.getStreamLatency() * 1000;
+      const newLatency = this.soundioOutputStream.getLatency() * 1000;
       if (Math.abs(newLatency - this.latency) > MIN_SKEW_TO_RESYNC_AUDIO) {
         this.log(`Updating sink latency to ${newLatency}`);
         // TODO: use network latency here too
@@ -84,7 +87,7 @@ export class LocalDeviceSink extends AudioSink {
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
     const syncDeviceVolume = () => {
-      this.soundio.setOutputVolume(this.volume);
+      this.soundioOutputStream.setVolume(this.volume);
     };
     this.on('update', syncDeviceVolume);
 
@@ -94,8 +97,9 @@ export class LocalDeviceSink extends AudioSink {
       }
       this.off('update', syncDeviceVolume);
       clearInterval(latencyInterval);
-      this.soundio.closeOutputStream();
-      delete this.soundio;
+      this.soundioOutputStream.close();
+      delete this.soundioOutputStream;
+      delete this.soundioDevice;
     };
   }
 

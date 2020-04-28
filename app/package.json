@@ -8,7 +8,7 @@
   "license": "BSL 1.1",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "audioworklet": "1.1.5",
+    "audioworklet": "2.0.1",
     "auto-launch": "^5.0.5",
     "bonjour": "^3.5.0",
     "cross-env": "^6.0.3",
@@ -24,7 +24,7 @@
     "mkdirp": "^0.5.1",
     "open": "^7.0.0",
     "perf_hooks": "^0.0.1",
-    "speex-resampler": "1.0.13",
+    "speex-resampler": "1.0.14",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
     "uuid": "^3.3.3",

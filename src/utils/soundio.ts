@@ -11,10 +11,9 @@ export const getSoundio = () => {
 
 export const getAudioDevices = () => getSoundio().getDevices();
 export const audioApiSupportsLoopback = () => getSoundio().getApi() === 'WASAPI';
-export const getOutputDeviceIndexFromId = (deviceId: string) => {
+export const getOutputDeviceFromId = (deviceId: string) => {
   if (!deviceId) {
-    return -1;
+    return null;
   }
-  const deviceIndex = getAudioDevices().outputDevices.map(({ id }) => id).indexOf(deviceId);
-  return deviceIndex;
+  return getAudioDevices().outputDevices.find((device) => device.id === deviceId);
 };
