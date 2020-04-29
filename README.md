@@ -41,7 +41,6 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 Soundsync is still in an early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
 - Bluetooth on linux
-- Airplay: Shairport-sync
 - UPnP: gmrender-resurrect
 - Reconnection when registered with IP instead of Bonjour
 - Updating info for Spotify sink from WebUI
@@ -77,3 +76,4 @@ emcc -o opus_wasm.js -s EXPORT_ES6=1 -s MODULARIZE=1 -s SINGLE_FILE=1 -s EXPORT_
 - Slashed zero by Rflor from the Noun Project
 - web browser by Iconstock from the Noun Project
 - Computer by iconcheese from the Noun Project
+- AirPlay by Michiel Willemsen from the Noun Project

@@ -27,12 +27,14 @@
     "speex-resampler": "1.0.14",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
+    "unzipper": "^0.10.11",
     "uuid": "^3.3.3",
     "wrtc": "^0.4.3",
     "yargs": "^15.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
+    "@types/unzipper": "^0.10.3",
     "typescript": "^3.8.3"
   }
 }

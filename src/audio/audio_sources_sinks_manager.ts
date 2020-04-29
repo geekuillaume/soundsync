@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
 
+import { ShairportSource } from './sources/shairport_souce';
 import { WebAudioSink } from './sinks/webaudio_sink';
 import { RtAudioSource } from './sources/rtaudio_source';
 import { AudioSource } from './sources/audio_source';
@@ -99,6 +100,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       source = new NullSource(sourceDescriptor, this);
     } else if (sourceDescriptor.type === 'rtaudio') {
       source = new RtAudioSource(sourceDescriptor, this);
+    } else if (sourceDescriptor.type === 'shairport') {
+      source = new ShairportSource(sourceDescriptor, this);
     } else {
       // @ts-ignore
       throw new Error(`Unknown source type ${sourceDescriptor.type}`);

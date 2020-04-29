@@ -20,6 +20,15 @@ export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
   };
 }
 
+export interface ShairportSourceDescriptor extends BaseSourceDescriptor {
+  type: 'shairport';
+  shairportOptions: {
+    name?: string;
+    password?: string;
+    debug?: boolean;
+  };
+}
+
 export interface NullSourceDescriptor extends BaseSourceDescriptor {
   type: 'null';
 }
@@ -29,5 +38,5 @@ export interface RtAudioSourceDescriptor extends BaseSourceDescriptor {
   deviceName: string;
 }
 
-export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | RtAudioSourceDescriptor;
+export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | RtAudioSourceDescriptor | ShairportSourceDescriptor;
 export type SourceType = SourceDescriptor['type'];

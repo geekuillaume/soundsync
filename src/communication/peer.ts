@@ -19,7 +19,8 @@ const MS_DIFF_TO_UPDATE_TIME_DELTA = 20;
 const TIMESYNC_INIT_REQUEST_COUNT = 3;
 
 export enum Capacity {
-  Librespot = 'librespot'
+  Librespot = 'librespot',
+  Shairport = 'shairport',
 }
 
 export abstract class Peer extends EventEmitter {

@@ -7,6 +7,7 @@ import {
 import { SourceTypeSelection } from './SourceTypeSelection';
 import { AddLibrespotSource } from './AddLibrespotSource';
 import { AddLocalDeviceSource } from './AddLocalDeviceSource';
+import { AddShairportSource } from './AddShairportSource';
 
 const useStyles = makeStyles(() => ({
   openDialogButton: {
@@ -39,6 +40,7 @@ export const AddSourceButton = () => {
         {dialogOpen === true && <SourceTypeSelection onTypeSelected={setDialogOpen} />}
         {dialogOpen === 'librespot' && <AddLibrespotSource onDialogClose={handleClose} />}
         {dialogOpen === 'localDevice' && <AddLocalDeviceSource onDialogClose={handleClose} />}
+        {dialogOpen === 'shairport' && <AddShairportSource onDialogClose={handleClose} />}
       </Dialog>
     </>
   );

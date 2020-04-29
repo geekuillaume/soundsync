@@ -40,7 +40,7 @@ const main = async () => {
   registerLocalPeer({
     name: getConfigField('name'),
     uuid: getConfigField('uuid'),
-    capacities: [Capacity.Librespot],
+    capacities: [Capacity.Librespot, Capacity.Shairport],
   });
 
   const peersManager = getPeersManager();

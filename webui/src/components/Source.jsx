@@ -9,6 +9,7 @@ import { useEditAudioStreamModal } from './editModal';
 import SpotifyLogo from '../res/spotify.svg';
 import computerIcon from '../res/computer.svg';
 import nullSinkLogo from '../res/null.svg';
+import airplayIcon from '../res/airplay.svg';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 import { HiddenIndicator } from './utils/HiddenIndicator';
 
@@ -16,6 +17,7 @@ const logos = {
   librespot: SpotifyLogo,
   null: nullSinkLogo,
   localdevice: computerIcon,
+  shairport: airplayIcon,
 };
 
 export const Source = ({ source }) => {

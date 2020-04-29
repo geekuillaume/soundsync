@@ -88,7 +88,7 @@ export const useEditAudioStreamModal = (type, audioStream) => {
 
   const isPiped = useIsPiped(audioStream.uuid);
 
-  const canBeDeleted = type === 'source' && audioStream.type === 'librespot';
+  const canBeDeleted = type === 'source' && (audioStream.type === 'librespot' || audioStream.type === 'shairport');
   const handleDelete = () => {
     audioStream.peer.sendControllerMessage({
       type: 'sourceDelete',

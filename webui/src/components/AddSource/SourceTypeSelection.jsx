@@ -4,6 +4,7 @@ import {
 } from '@material-ui/core';
 import spotifyIcon from '../../res/spotify.svg';
 import computerIcon from '../../res/computer.svg';
+import airplayIcon from '../../res/airplay.svg';
 
 const useStyles = makeStyles(() => ({
   typeButton: {
@@ -42,6 +43,10 @@ export const SourceTypeSelection = ({ onTypeSelected }) => {
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('librespot')}>
           <img src={spotifyIcon} alt="" className={styles.sourceTypeLogo} />
           <span>Add a Spotify player</span>
+        </Button>
+        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('shairport')}>
+          <img src={airplayIcon} alt="" className={styles.sourceTypeLogo} />
+          <span>Create an Airplay receiver</span>
         </Button>
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('localDevice')}>
           <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />
