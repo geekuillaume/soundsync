@@ -125,6 +125,15 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: artifacts
+        name: soundsync-Linux
+    - uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+        name: soundsync-linux-armv7l
+    - uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+        name: soundsync-Windows
 
     - uses: svenstaro/upload-release-action@v1-release
       env:
