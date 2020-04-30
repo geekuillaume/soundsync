@@ -83,6 +83,14 @@ jobs:
         with:
           name: soundsync-${{ runner.os }}
           path: bin
+      - uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true
+          file_glob: true
+          tag: bleeding-edge
+          file: bin/*
+
 
   crosscompile:
     name: Build executable for ARM
@@ -115,32 +123,10 @@ jobs:
         name: soundsync-linux-armv7l
         path: bin/
 
-  publish-pre-release:
-    name: Publish pre release
-    needs:
-    - crosscompile
-    - build-executable
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-        name: soundsync-Linux
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-        name: soundsync-linux-armv7l
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-        name: soundsync-Windows
-
     - uses: svenstaro/upload-release-action@v1-release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         overwrite: true
         file_glob: true
         tag: bleeding-edge
-        file: artifacts/*
+        file: bin/*
