@@ -43,12 +43,14 @@ export class PeersManager extends EventEmitter {
         ctx.throw(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${version}`, 400);
       }
       const existingPeer = this.peers[uuid];
-      if (existingPeer && existingPeer instanceof WebrtcPeer) {
+      if (existingPeer) {
         if (existingPeer.instanceUuid === instanceUuid) {
           log('Received new connection request from HTTP for a already existing peer, responding with an error');
-          ctx.throw('peer with same uuid and instanceUuid already exist', 409);
+          ctx.throw(409, 'peer with same uuid and instanceUuid already exist');
         }
-        existingPeer.disconnect(true, 'new peer with same uuid connecting');
+        if (existingPeer instanceof WebrtcPeer) {
+          existingPeer.disconnect(true, 'new peer with same uuid but different instanceUuid connecting');
+        }
       }
       log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
       const peer = new WebrtcPeer({
