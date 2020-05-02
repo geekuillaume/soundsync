@@ -49,5 +49,6 @@ module.exports = {
     "prefer-destructuring": 0,
     "spaced-comment": 0,
     "no-useless-constructor": 0,
+    "no-return-await": 0,
   },
 };
