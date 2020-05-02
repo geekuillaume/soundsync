@@ -172,6 +172,7 @@ export class WebrtcPeer extends Peer {
         await this.handlePeerConnectionMessage({ description });
       } catch (e) {
         if (e.status === 409) {
+          this.log(`Already connecting to this peer, bailing out`);
           // we are already connected to this peer, bail out
           this.delete();
           return;
