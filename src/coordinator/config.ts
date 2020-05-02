@@ -25,6 +25,7 @@ interface ConfigData {
   port: number;
   peers: string[];
   detectPeersOnLocalNetwork: boolean;
+  enableRendezvousService: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -36,6 +37,7 @@ const defaultConfig: ConfigData = {
   port: 6512,
   peers: [],
   detectPeersOnLocalNetwork: true,
+  enableRendezvousService: true,
 };
 
 let config: {
@@ -91,7 +93,6 @@ export const initConfig = (dirOverride?: string) => {
 
 export const getConfigDir = () => config.configDir;
 export const getConfigPath = () => config.configFilePath;
-export const getConfig = () => config.configData;
 
 export const setConfig = (setter: (config: ConfigData) => any) => {
   const newConfig = produce(config.configData, setter);
@@ -109,14 +110,12 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
 export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigData) => {
   const configData = c || config.configData;
   if (configData[field] === undefined) {
-    setConfig((data) => {
-      data[field] = defaultConfig[field];
-    });
+    return defaultConfig[field];
   }
   return (c || config.configData)[field];
 };
 
-const fieldsToSanitizeInConfig = ['latency', 'startedAt', 'instanceUuid', 'peerUuid'];
+const fieldsToSanitizeInConfig = ['latency', 'startedAt', 'instanceUuid', 'peerUuid', 'available'];
 
 export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
 export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
