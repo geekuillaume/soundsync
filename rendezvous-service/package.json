@@ -1,0 +1,51 @@
+{
+  "name": "soundsync-rendezvous-service",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
+    "build:watch": "tsc -w",
+    "start": "node -r source-map-support/register app/index.js",
+    "start:watch": "nodemon app/index.js"
+  },
+  "author": "Guillaume Besson",
+  "license": "BSL 1.1",
+  "devDependencies": {
+    "@types/koa": "^2.11.0",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-router": "^7.0.42",
+    "@types/koa__cors": "^3.0.1",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^12.0.0",
+    "@types/yargs": "^13.0.4",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "@types/ioredis": "^4.14.9",
+    "@types/config": "^0.0.36",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1",
+    "source-map-support": "^0.5.16",
+    "typescript": "^3.7.4",
+    "nodemon": "^2.0.3"
+  },
+  "dependencies": {
+    "@koa/cors": "^3.0.0",
+    "ioredis": "^4.16.2",
+    "config": "^3.3.1",
+    "debug": "^4.1.1",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^7.4.0",
+    "lodash": "^4.17.15",
+    "uuid": "^3.3.3"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "app"
+    ]
+  }
+}
