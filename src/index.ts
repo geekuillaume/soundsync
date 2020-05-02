@@ -14,6 +14,7 @@ import {
 } from './communication/bonjour';
 import { registerLocalPeer } from './communication/local_peer';
 import { Capacity } from './communication/peer';
+import { enableRendezvousServiceRegister, enableRendezvousServicePeersDetection } from './communication/rendezvous_service';
 
 
 if (!process.env.DEBUG) {
@@ -68,6 +69,9 @@ const main = async () => {
     if (getConfigField('detectPeersOnLocalNetwork')) {
       publishService(httpServer.port);
     }
+    if (getConfigField('enableRendezvousService')) {
+      enableRendezvousServiceRegister(httpServer.port);
+    }
   } catch (e) {}
 
   getConfigField('peers').forEach((peerHost) => {
@@ -88,6 +92,9 @@ const main = async () => {
         }
       });
     });
+  }
+  if (getConfigField('enableRendezvousService')) {
+    enableRendezvousServicePeersDetection();
   }
 
   getClientCoordinator();

@@ -18,3 +18,6 @@ export const SOUNDSYNC_VERSION = '0.1.0';
 
 // if more than 10ms between real position and emitted position than resync stream, this will emit an audible glitch
 export const MIN_SKEW_TO_RESYNC_AUDIO = 10;
+
+export const RENDEZVOUS_SERVICE_URL = 'http://127.0.0.1:6612';
+export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every 4 hours
