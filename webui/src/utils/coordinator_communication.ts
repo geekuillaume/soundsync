@@ -1,6 +1,7 @@
 import { debounce, map } from 'lodash-es';
 import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/peers_manager';
+import { enableRendezvousServicePeersDetection } from '../../../src/communication/rendezvous_service';
 
 import { registerLocalPeer, getLocalPeer } from '../../../src/communication/local_peer';
 import { getClientCoordinator } from '../../../src/coordinator/client_coordinator';
@@ -37,6 +38,7 @@ export const initializeCoordinator = async () => {
         pipedFrom: null,
       });
     }
+    enableRendezvousServicePeersDetection();
   };
   if (initializePromise) {
     return initializePromise;

@@ -36,5 +36,5 @@ const getKnownRendezvousIps = async () => {
 export const enableRendezvousServicePeersDetection = async () => {
   const ips = await getKnownRendezvousIps();
   const peersManager = getPeersManager();
-  ips.forEach((ip) => peersManager.joinPeerWithHttpApi(ip));
+  ips.forEach((ip) => peersManager.joinPeerWithHttpApi(`http://${ip}`));
 };
