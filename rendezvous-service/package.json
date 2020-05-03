@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -b",
     "build:watch": "tsc -w",
-    "start": "node -r source-map-support/register app/index.js",
+    "start": "node app/index.js",
     "start:watch": "nodemon app/index.js"
   },
   "author": "Guillaume Besson",
@@ -28,7 +28,6 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
     "nodemon": "^2.0.3",
-    "source-map-support": "^0.5.16",
     "typescript": "^3.7.4"
   },
   "dependencies": {

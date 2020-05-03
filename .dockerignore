@@ -1,5 +1,16 @@
 node_modules
 app/node_modules
-webui
+src/node_modules
 bin
 .github
+webui/node_modules
+webui/dist
+rendezvous-service/node_modules
+rendezvous-service/app
+tmp
+tmp2
+tmp3
+./res
+test.pcm
+.git
+rendezvous-service/config/local.js
