@@ -8,4 +8,5 @@ module.exports = {
   enableCluster: true,
   ipAddressRegistryExpireTime: 6 * 60 * 60, // 6 hours
   conversationExpireTime: 5 * 60, // 5 minutes
+  proxyTarget: false,
 };

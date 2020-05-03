@@ -1,23 +1,24 @@
 import config from 'config';
-import Router from 'koa-router';
+import Router, { url } from 'koa-router';
 import { DefaultState, Context } from 'koa';
+import cors from '@koa/cors';
 import { redis } from '../lib/redis';
-// import cors from '@koa/cors';
 
 const SECONDS_IN_DAY = 24 * 60 * 60;
 const getDayTimestamp = () => Math.floor(new Date().getTime() / 1000 / SECONDS_IN_DAY);
 
 const router = new Router<DefaultState, Context>();
 
-// const allowedOrigins = ['https://twitch.com'];
-// router.use(cors({
-//   origin: (ctx) => {
-//     if (allowedOrigins.includes(ctx.origin)) {
-//       return ctx.origin;
-//     }
-//     return null;
-//   }
-// }))
+const allowedOriginsHostnames = ['localhost', '127.0.0.1'];
+router.use(cors({
+  origin: (ctx) => {
+    const hostname = new URL(ctx.origin).hostname;
+    if (allowedOriginsHostnames.includes(hostname)) {
+      return ctx.origin;
+    }
+    return null;
+  },
+}));
 
 router.post(`/api/ip_registry/register`, async (ctx) => {
   ctx.assert(typeof ctx.request.body === 'string', 400, 'body should be a string');

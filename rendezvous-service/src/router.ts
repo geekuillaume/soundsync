@@ -3,7 +3,10 @@ import config from 'config';
 import Koa from 'koa';
 import logger from 'koa-logger';
 import bodyParser from 'koa-bodyparser';
+import koaStatic from 'koa-static';
+import send from 'koa-send';
 
+import { resolve } from 'path';
 import internalAddressRouter from './routes/internalAddress';
 import wrtcMessengerRouter from './routes/wrtc_messenger';
 
@@ -16,6 +19,19 @@ export const initHttpServer = () => {
   }
 
   // app.proxy = true;
+
+  if (!config.get('proxyTarget')) {
+    const staticWebuiPath = resolve(__dirname, '../../webui/dist');
+    app.use(koaStatic(staticWebuiPath, {
+      maxage: 1000 * 60 * 60, // 1 hour cache
+    }));
+    app.use(async (ctx, next) => {
+      await next();
+      if (ctx.status === 404) {
+        await send(ctx, `index.html`, { root: staticWebuiPath });
+      }
+    });
+  }
 
   app.use(async (ctx, next) => {
     try {
@@ -37,6 +53,21 @@ export const initHttpServer = () => {
     .use(internalAddressRouter.routes());
   app.use(wrtcMessengerRouter.allowedMethods())
     .use(wrtcMessengerRouter.routes());
+
+  if (config.get('proxyTarget')) {
+    // eslint-disable-next-line
+    const proxy = require('koa-proxies'); // requiring it here to only load it when necessary and push koa-proxies in devDependencies
+
+    // used for dev work when working on the backoffice with create-react-app
+    console.log('Setting proxy to', config.get('proxyTarget'));
+    app.use(proxy('/', {
+      target: config.get('proxyTarget'),
+    }));
+    server.on('upgrade', (req, res) => { // used for websockets proxy as create-react-app use WS to reload the page when necessary
+      // @ts-ignore
+      proxy.proxy.ws(req, res, { changeOrigin: true, target: config.get('proxyTarget') });
+    });
+  }
 
   server.listen(config.get('port'));
   console.log(`Server listening on ${config.get('port')}`);
