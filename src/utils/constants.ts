@@ -21,3 +21,4 @@ export const MIN_SKEW_TO_RESYNC_AUDIO = 10;
 
 export const RENDEZVOUS_SERVICE_URL = 'http://127.0.0.1:6612';
 export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every 4 hours
+export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64');

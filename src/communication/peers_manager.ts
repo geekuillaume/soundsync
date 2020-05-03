@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import _ from 'lodash';
 import debug from 'debug';
 
-import { SOUNDSYNC_VERSION } from '../utils/constants';
+import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../utils/constants';
 import { SoundSyncHttpServer } from './http_server';
 import { WebrtcPeer } from './wrtc_peer';
 import { getLocalPeer } from './local_peer';
@@ -11,6 +11,7 @@ import {
   ControllerMessageHandler,
 } from './messages';
 import { Peer } from './peer';
+import { fetchRendezvousMessages, postRendezvousMessage } from './rendezvous_service';
 
 const log = debug('soundsync:wrtc');
 let peersManager: PeersManager;
@@ -73,6 +74,48 @@ export class PeersManager extends EventEmitter {
       };
     });
 
+    httpServer.router.get('/rendezvous_message_notify', async (ctx) => {
+      const { conversionUuid } = ctx.request.query;
+      const [message] = await fetchRendezvousMessages(conversionUuid, false);
+      const {
+        name, uuid, instanceUuid, version, description,
+      } = message;
+      ctx.assert(!!name && !!uuid && !!instanceUuid, 400, 'name, uuid and instanceUuid should be set');
+      if (version !== SOUNDSYNC_VERSION) {
+        ctx.throw(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${version}`, 400);
+      }
+      const existingPeer = this.peers[uuid];
+      if (existingPeer) {
+        if (existingPeer.instanceUuid === instanceUuid) {
+          log('Received new connection request from HTTP for a already existing peer, responding with an error');
+          ctx.throw(409, 'peer with same uuid and instanceUuid already exist');
+        }
+        if (existingPeer instanceof WebrtcPeer) {
+          existingPeer.disconnect(true, 'new peer with same uuid but different instanceUuid connecting');
+        }
+      }
+      log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
+      const peer = new WebrtcPeer({
+        uuid,
+        name,
+        host: ctx.request.ip,
+        instanceUuid,
+      });
+
+      this.peers[uuid] = peer;
+      const responseDescription = await peer.handlePeerConnectionMessage({ description });
+      await postRendezvousMessage(conversionUuid, {
+        description: responseDescription,
+        uuid: getLocalPeer().uuid,
+        name: getLocalPeer().name,
+        instanceUuid: getLocalPeer().instanceUuid,
+      }, false);
+
+      ctx.body = EMPTY_IMAGE;
+      ctx.set('Content-type', 'image/png');
+      ctx.status = 200;
+    });
+
     // httpServer.router.post('/ice_candidate', async (ctx) => {
     //   const { uuid, iceCandidates } = ctx.request.body;
     //   if (iceCandidates) {
@@ -97,6 +140,17 @@ export class PeersManager extends EventEmitter {
     });
     this.peers[peer.uuid] = peer;
     await peer.connectFromHttpApi(host);
+  }
+
+  joinPeerWithRendezvousApi = async (host: string) => {
+    const peer = new WebrtcPeer({
+      name: 'remote',
+      uuid: `placeholderForRendezvousJoin_${host}`,
+      host,
+      instanceUuid: 'placeholder',
+    });
+    this.peers[peer.uuid] = peer;
+    await peer.connectFromRendezvousService(host);
   }
 
   broadcastPeersDiscoveryInfo = () => {

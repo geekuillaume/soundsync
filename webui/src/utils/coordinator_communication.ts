@@ -38,7 +38,7 @@ export const initializeCoordinator = async () => {
         pipedFrom: null,
       });
     }
-    enableRendezvousServicePeersDetection();
+    enableRendezvousServicePeersDetection(true);
   };
   if (initializePromise) {
     return initializePromise;

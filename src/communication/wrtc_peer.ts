@@ -1,17 +1,19 @@
 import { RTCPeerConnection } from 'wrtc';
 import superagent from 'superagent';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './peers_manager';
 import { onExit } from '../utils/on_exit';
 import {
-  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS, SOUNDSYNC_VERSION,
+  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS, SOUNDSYNC_VERSION, RENDEZVOUS_SERVICE_URL,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 import { once } from '../utils/misc';
+import { postRendezvousMessage, notifyPeerOfRendezvousMessage, fetchRendezvousMessages } from './rendezvous_service';
 
 const HTTP_CONNECTION_RETRY_INTERVAL = 1000 * 2;
 
@@ -181,6 +183,46 @@ export class WebrtcPeer extends Peer {
           this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
         }
         setTimeout(() => this.connect(true), HTTP_CONNECTION_RETRY_INTERVAL);
+      }
+    };
+  }
+
+  connectFromRendezvousService = async (host: string) => {
+    this.connect = async (isRetry = false) => {
+      if (this.state === 'deleted' || this.state === 'connected') {
+        return;
+      }
+      try {
+        const localDescription = await this.initiateConnection();
+        const conversationUuid = uuidv4();
+        await postRendezvousMessage(conversationUuid, {
+          name: getLocalPeer().name,
+          uuid: getLocalPeer().uuid,
+          description: localDescription,
+          version: SOUNDSYNC_VERSION,
+          instanceUuid: getLocalPeer().instanceUuid,
+        }, true); // if we initiate the connection, we are primary
+        await notifyPeerOfRendezvousMessage(conversationUuid, host);
+        const [response] = await fetchRendezvousMessages(conversationUuid, true);
+        const {
+          uuid, instanceUuid, name, description,
+        } = response;
+        const existingPeer = getPeersManager().peers[uuid];
+        if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
+          if (existingPeer.state === 'connected') {
+            // we already connected to this peer, do nothing
+            this.delete();
+            return;
+          }
+          existingPeer.delete();
+        }
+        this.setUuid(uuid);
+        this.instanceUuid = instanceUuid;
+        this.name = name;
+        this.log(`Got response from other peer http server`);
+        await this.handlePeerConnectionMessage({ description });
+      } catch (e) {
+        this.delete();
       }
     };
     this.connect();
