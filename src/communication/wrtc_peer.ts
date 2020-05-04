@@ -140,6 +140,7 @@ export class WebrtcPeer extends Peer {
   }
 
   connectFromHttpApi = async (host: string) => {
+    this.log(`Connecting with HTTP API and host: ${host}`);
     this.connect = async (isRetry = false) => {
       if (this.state === 'deleted' || this.state === 'connected') {
         return;
@@ -185,9 +186,11 @@ export class WebrtcPeer extends Peer {
         setTimeout(() => this.connect(true), HTTP_CONNECTION_RETRY_INTERVAL);
       }
     };
+    this.connect();
   }
 
   connectFromRendezvousService = async (host: string) => {
+    this.log(`Connecting with rendezvous service and host: ${host}`);
     this.connect = async (isRetry = false) => {
       if (this.state === 'deleted' || this.state === 'connected') {
         return;
