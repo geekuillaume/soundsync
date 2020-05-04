@@ -3,7 +3,10 @@ yarn-error.log
 dist
 tmp
 bin
-app
+app/*
+!app/package.json
+!app/yarn.lock
+!app
 tmp*
 test.pcm
 test.sh
