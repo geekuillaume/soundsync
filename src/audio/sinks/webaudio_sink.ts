@@ -50,7 +50,9 @@ export class WebAudioSink extends AudioSink {
     const audioworkletPath = require('./audioworklets/webaudio_sink_processor.audioworklet.ts');
     await this.context.audioWorklet.addModule(audioworkletPath);
     this.workletNode = new RawPcmPlayerWorklet(this.context);
-    this.workletNode.connect(this.context.destination);
+    const volumeNode = this.context.createGain();
+    this.workletNode.connect(volumeNode);
+    volumeNode.connect(this.context.destination);
 
     this.context.resume();
     // The context can be blocked from starting because of new webaudio changes
@@ -74,6 +76,11 @@ export class WebAudioSink extends AudioSink {
       type: 'currentStreamTime',
       currentStreamTime: this.getCurrentStreamTime(),
     });
+
+    const syncDeviceVolume = () => {
+      volumeNode.gain.value = this.volume;
+    };
+    this.on('update', syncDeviceVolume);
     // TODO: handle the source latency change
   }
 
