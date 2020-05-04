@@ -87,14 +87,14 @@ export class PeersManager extends EventEmitter {
       const existingPeer = this.peers[uuid];
       if (existingPeer) {
         if (existingPeer.instanceUuid === instanceUuid) {
-          log('Received new connection request from HTTP for a already existing peer, responding with an error');
+          log('Received new connection request from rendezvous service for a already existing peer, responding with an error');
           ctx.throw(409, 'peer with same uuid and instanceUuid already exist');
         }
         if (existingPeer instanceof WebrtcPeer) {
           existingPeer.disconnect(true, 'new peer with same uuid but different instanceUuid connecting');
         }
       }
-      log(`Received new connection request from HTTP from peer ${name} with uuid ${uuid}`);
+      log(`Received new connection request from rendezvous service for peer ${name} with uuid ${uuid}`);
       const peer = new WebrtcPeer({
         uuid,
         name,
