@@ -2,3 +2,4 @@ config/local.js
 domain.crt
 domain.csr
 domain.key
+/app
