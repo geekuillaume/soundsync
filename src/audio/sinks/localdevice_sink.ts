@@ -19,6 +19,7 @@ import { AudioInstance } from '../utils';
 import { CircularTypedArray } from './audioworklets/circularTypedArray';
 
 const BUFFER_DURATION = 10000;
+const MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO = 200; // when the audio device clock and the CPU clock have derived more than this, resync
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
@@ -91,12 +92,23 @@ export class LocalDeviceSink extends AudioSink {
     };
     this.on('update', syncDeviceVolume);
 
+    const resyncInterval = setInterval(() => {
+      const skew = Math.abs(this.buffer.getReaderPointer() - this.getIdealBufferReadPosition());
+      if (skew > MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO
+          * (OPUS_ENCODER_RATE / 1000)
+          * this.channels) {
+        this.log(`Resync because of audio clock skew: ${skew / ((OPUS_ENCODER_RATE / 1000) * this.channels)}ms`);
+        this.setStreamTimeForWorklet();
+      }
+    }, 20000);
+
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
       this.off('update', syncDeviceVolume);
       clearInterval(latencyInterval);
+      clearInterval(resyncInterval);
       this.soundioOutputStream.close();
       delete this.soundioOutputStream;
       delete this.soundioDevice;
@@ -131,13 +143,15 @@ export class LocalDeviceSink extends AudioSink {
     this.lastReceivedChunk = data.i;
   }
 
+  getIdealBufferReadPosition = () => this.getCurrentStreamTime()
+    * (OPUS_ENCODER_RATE / 1000)
+    * this.channels;
+
   setStreamTimeForWorklet = () => {
     if (!this.buffer) {
       return;
     }
-    this.buffer.setReaderPointer(this.getCurrentStreamTime()
-      * (OPUS_ENCODER_RATE / 1000)
-      * this.channels);
+    this.buffer.setReaderPointer(this.getIdealBufferReadPosition());
   }
 
   toDescriptor: (() => AudioInstance<LocalDeviceSinkDescriptor>) = () => ({
