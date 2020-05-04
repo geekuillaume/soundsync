@@ -1,4 +1,5 @@
 import { createServer } from 'http';
+import { createServer as createServerHttps } from 'https';
 import config from 'config';
 import Koa from 'koa';
 import logger from 'koa-logger';
@@ -7,6 +8,7 @@ import koaStatic from 'koa-static';
 import send from 'koa-send';
 
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 import internalAddressRouter from './routes/internalAddress';
 import wrtcMessengerRouter from './routes/wrtc_messenger';
 
@@ -71,5 +73,14 @@ export const initHttpServer = () => {
 
   server.listen(config.get('port'));
   console.log(`Server listening on ${config.get('port')}`);
+
+  if (config.get('httpsPort')) {
+    createServerHttps({
+      key: readFileSync(resolve(__dirname, '../domain.key')),
+      cert: readFileSync(resolve(__dirname, '../domain.crt')),
+    }, app.callback()).listen(config.get('httpsPort'));
+    console.log(`HTTPS Server listening on ${config.get('httpsPort')}`);
+  }
+
   return app;
 };
