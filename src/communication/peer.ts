@@ -7,7 +7,6 @@ import {
   ControllerMessage,
   ControllerMessageHandler,
 } from './messages';
-import { once } from '../utils/misc';
 import { now } from '../utils/time';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 
@@ -65,6 +64,7 @@ export abstract class Peer extends EventEmitter {
       const realTimeDelta = _.mean(this._previousTimeDeltas);
       if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
         this.timeDelta = realTimeDelta;
+        this.log(`Updating timedelta to ${realTimeDelta}`);
         this.emit('timedeltaUpdated');
       }
       this.emit('timesyncStateUpdated');
