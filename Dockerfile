@@ -35,6 +35,4 @@ COPY rendezvous-service/config ./rendezvous-service/config/
 COPY --from=builder /app/rendezvous-service/app ./rendezvous-service/app
 COPY --from=builder /app/webui/dist ./webui/dist
 
-ENV PORT=8080
-EXPOSE 8080
 CMD [ "sh", "-c", "cd rendezvous-service && yarn start" ]
