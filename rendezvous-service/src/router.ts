@@ -20,7 +20,7 @@ export const initHttpServer = () => {
     app.use(logger());
   }
 
-  // app.proxy = true;
+  app.proxy = true;
 
   if (!config.get('proxyTarget')) {
     const staticWebuiPath = resolve(__dirname, '../../webui/dist');
