@@ -6,11 +6,19 @@ import { getInternalIps } from '../utils/ip';
 
 const log = debug('soundsync:rendezvous');
 
+const rendezvousApi = superagent.agent().use((req) => {
+  if (req.trustLocalhost) {
+    // used for local dev of the rendezvous service, we should test for the existance of the method
+    // because it is not exposed when running in a web browser context
+    req.trustLocalhost();
+  }
+});
+
 const registerToRendezvousService = async (port: number) => {
   const ips = getInternalIps().map((ip) => `${ip}:${port}`).join(',');
   log(`Registering to rendezvous service with: ${ips}`);
   try {
-    await superagent
+    await rendezvousApi
       .post(`${RENDEZVOUS_SERVICE_URL}/api/ip_registry/register`)
       .set('Content-Type', 'text/plain')
       .type('text')
@@ -28,7 +36,7 @@ export const enableRendezvousServiceRegister = (port: number) => {
 };
 
 const getKnownRendezvousIps = async () => {
-  const { body } = await superagent
+  const { body } = await rendezvousApi
     .get(`${RENDEZVOUS_SERVICE_URL}/api/ip_registry/peers`);
   return body;
 };
@@ -47,14 +55,16 @@ export const enableRendezvousServicePeersDetection = async (shouldConnectWithRen
 
 export const postRendezvousMessage = async (conversationUuid: string, message: any, isPrimary: boolean) => {
   // if we are primary, we send the message to the inbox of the secondary peer, denoted with _S
-  await superagent.post(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'S' : 'P'}/messages`)
+  await rendezvousApi
+    .post(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'S' : 'P'}/messages`)
     .type('text')
     .set('Content-Type', 'text/plain')
     .send(JSON.stringify(message));
 };
 
 export const fetchRendezvousMessages = async (conversationUuid: string, isPrimary: boolean) => {
-  const { body } = await superagent.get(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'P' : 'S'}/messages`);
+  const { body } = await rendezvousApi
+    .get(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'P' : 'S'}/messages`);
   return body.map((message) => JSON.parse(message));
 };
 
