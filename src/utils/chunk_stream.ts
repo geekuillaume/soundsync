@@ -51,6 +51,7 @@ export class AudioChunkStream extends Readable {
       let currentChunkIndex = this.lastEmittedChunkIndex + 1;
       if (this.lastEmittedChunkIndex === -1) { // the stream was interrupted because source couldn't be read, restart a sequence
         currentChunkIndex = Math.floor(this.now() / this.interval);
+        console.log('Stream data available, starting new chunk serie');
       }
       const currentChunkLatency = this.now() - (currentChunkIndex * this.interval);
       if (currentChunkLatency < 0) { // this chunk is in the future, do nothing and wait for next tick
@@ -58,6 +59,7 @@ export class AudioChunkStream extends Readable {
       }
       let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
       if (chunk === null) { // nothing to read from source, we need to compute the next chunk from time instead of the sequence
+        console.log('Stream out of data, stopping reading loop until new data arrives');
         this.lastEmittedChunkIndex = -1;
         this.stopReadLoop();
         break;
