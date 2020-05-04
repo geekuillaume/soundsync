@@ -6,6 +6,7 @@ import { enableRendezvousServicePeersDetection } from '../../../src/communicatio
 import { registerLocalPeer, getLocalPeer } from '../../../src/communication/local_peer';
 import { getClientCoordinator } from '../../../src/coordinator/client_coordinator';
 import { initConfig, getConfigField } from '../../../src/coordinator/config';
+import { RENDEZVOUS_SERVICE_URL } from '../../../src/utils/constants';
 
 initConfig();
 registerLocalPeer({
@@ -19,9 +20,10 @@ let initializePromise: Promise<void>;
 export const initializeCoordinator = async () => {
   const innerInitialize = async () => {
     const peersManager = getPeersManager();
-
-    const peerHost = document.location.port === '8080' ? `http://${document.location.hostname}:6512` : `http://${document.location.host}`;
-    await peersManager.joinPeerWithHttpApi(peerHost);
+    if (!RENDEZVOUS_SERVICE_URL.endsWith(document.location.host)) {
+      const peerHost = document.location.port === '8080' ? `http://${document.location.hostname}:6512` : `http://${document.location.host}`;
+      await peersManager.joinPeerWithHttpApi(peerHost);
+    }
 
     const audioSourcesSinksManager = getAudioSourcesSinksManager();
     audioSourcesSinksManager.addFromConfig();
