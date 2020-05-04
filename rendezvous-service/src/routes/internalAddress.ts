@@ -12,9 +12,10 @@ const router = new Router<DefaultState, Context>();
 const allowedOriginsHostnames = ['localhost', '127.0.0.1'];
 router.use(cors({
   origin: (ctx) => {
-    const hostname = new URL(ctx.origin).hostname.split(':')[0];
+    const origin = ctx.request.headers.origin;
+    const hostname = new URL(origin).hostname.split(':')[0];
     if (allowedOriginsHostnames.includes(hostname)) {
-      return ctx.origin;
+      return origin;
     }
     return null;
   },
