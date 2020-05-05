@@ -1,6 +1,7 @@
 import superagent from 'superagent';
 import debug from 'debug';
-import { getPeersManager } from './peers_manager';
+import { InitiatorMessage } from './initiators/initiator';
+import { getPeersManager } from './get_peers_manager';
 import { RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL } from '../utils/constants';
 import { getInternalIps } from '../utils/ip';
 
@@ -65,7 +66,7 @@ export const postRendezvousMessage = async (conversationUuid: string, message: a
 export const fetchRendezvousMessages = async (conversationUuid: string, isPrimary: boolean) => {
   const { body } = await rendezvousApi
     .get(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'P' : 'S'}/messages`);
-  return body.map((message) => JSON.parse(message));
+  return body.map((message) => JSON.parse(message)) as InitiatorMessage[];
 };
 
 export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string) => {

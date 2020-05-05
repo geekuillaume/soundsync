@@ -8,8 +8,7 @@ import produce from 'immer';
 import { isHidden } from './hiddenUtils';
 import { onSoundStateChange, onPeersChange } from './coordinator_communication';
 import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
-import { getPeersManager } from '../../../src/communication/peers_manager';
-import { getLocalPeer } from '../../../src/communication/local_peer';
+import { getPeersManager } from '../../../src/communication/get_peers_manager';
 
 const initialState = {
   stateVersion: 0,
@@ -21,7 +20,7 @@ const soundSyncContext = createContext({
   state: initialState,
   dispatch: (...args) => {},
   audioSourcesSinksManager: getAudioSourcesSinksManager(),
-  peersManagers: getPeersManager(),
+  peersManagers: {},
 });
 
 const stateUpdate = createAction('stateUpdate');
@@ -91,6 +90,7 @@ export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter(
 // TODO: fix this
 export const useIsPiped = (uuid) => false;
 
+export const usePeersManager = () => useContext(soundSyncContext).peersManagers;
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
 export const usePeer = (uuid) => usePeers()[uuid];
 

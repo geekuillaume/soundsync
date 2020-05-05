@@ -35,8 +35,11 @@ export interface SinkPatchMessage extends BaseMessage {
 
 export interface PeerConnectionInfoMessage extends BaseMessage {
   type: 'peerConnectionInfo';
+  messageUuid: string; // this is used to deduplicate messages as they are broadcasted to everyone
   targetUuid: string;
   senderUuid: string;
+  senderVersion: string;
+  initiatorUuid: string;
   senderInstanceUuid: string;
   description?: RTCSessionDescription;
   candidate?: RTCIceCandidate;

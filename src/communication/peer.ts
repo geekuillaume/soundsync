@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import _ from 'lodash';
 import debug, { Debugger } from 'debug';
 import { getLocalPeer } from './local_peer';
-import { getPeersManager } from './peers_manager';
+import { getPeersManager } from './get_peers_manager';
 import {
   ControllerMessage,
   ControllerMessageHandler,
@@ -20,6 +20,7 @@ const TIMESYNC_INIT_REQUEST_COUNT = 3;
 export enum Capacity {
   Librespot = 'librespot',
   Shairport = 'shairport',
+  HttpServerAccessible = 'http_server_accessible',
 }
 
 export abstract class Peer extends EventEmitter {
@@ -41,7 +42,7 @@ export abstract class Peer extends EventEmitter {
     this.setMaxListeners(1000);
     this.isLocal = false;
     this.name = name;
-    this.uuid = uuid;
+    this.setUuid(uuid);
     this.host = host;
     this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
@@ -78,6 +79,7 @@ export abstract class Peer extends EventEmitter {
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
+        this._previousTimeDeltas = [];
         return;
       }
       if (this.isLocal) {
@@ -92,15 +94,16 @@ export abstract class Peer extends EventEmitter {
         setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
       });
     });
+    getPeersManager().emit('peerChange', this);
   }
 
   setState = (state: 'disconnected' | 'connecting' | 'connected' | 'deleted') => {
     if (this.state === state) {
       return;
     }
+    this.state = state;
     // setImmediate is necessary to force same async behavior even for peer that are connected at start like local peer
     setImmediate(() => {
-      this.state = state;
       this.emit('stateChange', this);
       getPeersManager().emit('peerChange', this);
     });
@@ -118,9 +121,14 @@ export abstract class Peer extends EventEmitter {
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
 
   setUuid = (uuid: string) => {
+    if (uuid === this.uuid) {
+      return;
+    }
+    // unregister current peer with uuid
     delete getPeersManager().peers[this.uuid];
     this.uuid = uuid;
     if (getPeersManager().peers[uuid] && getPeersManager().peers[uuid] !== this) {
+      this.delete();
       throw new Error('A peer with this uuid already exists');
     }
     getPeersManager().peers[uuid] = this;
@@ -168,10 +176,13 @@ export abstract class Peer extends EventEmitter {
   }
 
   delete = () => {
+    this._delete();
     this.state = 'deleted';
     delete getPeersManager().peers[this.uuid];
     this.removeAllListeners();
   }
+
+  _delete = () => undefined;
 
   toDescriptor = (): PeerDescriptor => ({
     uuid: this.uuid,

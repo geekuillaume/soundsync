@@ -1,9 +1,8 @@
 import debug from 'debug';
 import _ from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
 import { Peer } from '../communication/peer';
 import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
-import { getPeersManager } from '../communication/peers_manager';
+import { getPeersManager } from '../communication/get_peers_manager';
 import {
   PeerConnectionInfoMessage,
   PeerSoundStateMessage,
@@ -13,9 +12,10 @@ import {
   SourceCreateMessage,
   SourceDeleteMessage,
 } from '../communication/messages';
-import { WebrtcPeer } from '../communication/wrtc_peer';
+import { handlePeerRelayInitiatorMessage, createPeerRelayServiceInitiator } from '../communication/initiators/peerRelayInitiator';
 // import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
 import { getLocalPeer } from '../communication/local_peer';
+import { WebrtcPeer } from '../communication/wrtc_peer';
 
 export class ClientCoordinator {
   log: debug.Debugger;
@@ -73,7 +73,7 @@ export class ClientCoordinator {
     });
   }
 
-  private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage, transmitter: Peer) => {
+  private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
     if (message.targetUuid !== getLocalPeer().uuid) {
       // we received this message but it's not for us, let's retransmit it to the correct peer
       const destinationPeer = getPeersManager().peers[message.targetUuid];
@@ -82,37 +82,7 @@ export class ClientCoordinator {
       }
       return;
     }
-
-    let requesterPeer = getPeersManager().getPeerByUuid(message.senderUuid, false) as WebrtcPeer;
-    if (!(requesterPeer instanceof WebrtcPeer)) {
-      return;
-    }
-    if (!requesterPeer.instanceUuid || requesterPeer.instanceUuid === 'placeholder') {
-      requesterPeer.instanceUuid = message.senderInstanceUuid;
-    }
-    // this is coming from a new peer with the same uuid, disconnect previous
-    if (requesterPeer.instanceUuid !== message.senderInstanceUuid) {
-      requesterPeer.disconnect(true, 'got peer connection info of new peer with same uuid');
-      requesterPeer = new WebrtcPeer({
-        uuid: message.senderUuid,
-        instanceUuid: message.senderInstanceUuid,
-        name: 'placeholder',
-        host: 'placeholder',
-      });
-
-      getPeersManager().peers[message.senderUuid] = requesterPeer;
-    }
-
-    const responseDescription = await requesterPeer.handlePeerConnectionMessage({ description: message.description, candidate: message.candidate });
-    if (responseDescription) {
-      transmitter.sendControllerMessage({
-        type: 'peerConnectionInfo',
-        targetUuid: requesterPeer.uuid,
-        senderUuid: getLocalPeer().uuid,
-        senderInstanceUuid: getLocalPeer().instanceUuid,
-        description: responseDescription,
-      });
-    }
+    await handlePeerRelayInitiatorMessage(message);
   }
 
   private handleNewSourceChannel = async ({ sourceUuid, stream }: {sourceUuid: string; stream: NodeJS.WritableStream}) => {
@@ -153,7 +123,16 @@ export class ClientCoordinator {
 
   private handlePeerDiscoveryMessage = (message: PeerDiscoveryMessage) => {
     message.peersUuid.forEach((uuid) => {
-      getPeersManager().getPeerByUuid(uuid);
+      if (!getPeersManager().peers[uuid]) {
+        const peer = new WebrtcPeer({
+          uuid,
+          host: 'unknown',
+          name: `placeholderForPeerRelayJoin_${uuid}`,
+          initiatorConstructor: createPeerRelayServiceInitiator(uuid),
+          instanceUuid: null,
+        });
+        peer.connect();
+      }
     });
   }
 

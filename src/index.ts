@@ -2,8 +2,8 @@ import yargs from 'yargs';
 import debug from 'debug';
 import { attachApi } from './api/api';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
-import { createHttpServer } from './communication/http_server';
-import { getPeersManager } from './communication/peers_manager';
+import { getHttpServer } from './communication/http_server';
+import { getPeersManager, registerPeersManager } from './communication/get_peers_manager';
 import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { getClientCoordinator } from './coordinator/client_coordinator';
 // import { ApiController } from './api/api';
@@ -15,7 +15,7 @@ import {
 import { registerLocalPeer } from './communication/local_peer';
 import { Capacity } from './communication/peer';
 import { enableRendezvousServiceRegister, enableRendezvousServicePeersDetection } from './communication/rendezvous_service';
-
+import { PeersManager } from './communication/peers_manager';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState');
@@ -37,11 +37,12 @@ const main = async () => {
     .completion()
     .parse(process.argv.slice(1));
 
+  registerPeersManager(new PeersManager());
   initConfig(argv.configDir);
   registerLocalPeer({
     name: getConfigField('name'),
     uuid: getConfigField('uuid'),
-    capacities: [Capacity.Librespot, Capacity.Shairport],
+    capacities: [Capacity.Librespot, Capacity.Shairport, Capacity.HttpServerAccessible],
   });
 
   const peersManager = getPeersManager();
@@ -63,8 +64,7 @@ const main = async () => {
   refreshMenu();
 
   try {
-    const httpServer = await createHttpServer(getConfigField('port'));
-    peersManager.attachToSignalingServer(httpServer);
+    const httpServer = await getHttpServer(getConfigField('port'));
     attachApi(httpServer);
     if (getConfigField('detectPeersOnLocalNetwork')) {
       publishService(httpServer.port);

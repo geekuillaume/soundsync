@@ -1,9 +1,12 @@
+import _ from 'lodash';
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import debug from 'debug';
 import { createServer } from 'http';
 import cors from '@koa/cors';
+import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
+import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
 
 const l = debug(`soundsync:httpserver`);
 
@@ -13,7 +16,7 @@ export interface SoundSyncHttpServer {
   port: number;
 }
 
-export const createHttpServer = async (port: number): Promise<SoundSyncHttpServer> => {
+export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHttpServer> => {
   l(`Creating new http server`);
   const app = new Koa();
   const router = new Router();
@@ -23,6 +26,9 @@ export const createHttpServer = async (port: number): Promise<SoundSyncHttpServe
   }));
   app.use(bodyParser());
   app.use(router.routes());
+
+  initHttpInitiator(router);
+  initRendezvousInitiator(router);
 
   const server = createServer(app.callback());
   await new Promise((resolve, reject) => {
@@ -39,4 +45,4 @@ export const createHttpServer = async (port: number): Promise<SoundSyncHttpServe
     router,
     port,
   };
-};
+});

@@ -13,7 +13,7 @@ import {
 import { createAudioDecodedStream } from '../../utils/opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getPeersManager } from '../../communication/peers_manager';
+import { getPeersManager } from '../../communication/get_peers_manager';
 import { SourceUUID } from '../sources/source_type';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 

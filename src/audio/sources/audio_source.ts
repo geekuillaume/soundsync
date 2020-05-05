@@ -8,7 +8,7 @@ import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getPeersManager } from '../../communication/peers_manager';
+import { getPeersManager } from '../../communication/get_peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 import { now } from '../../utils/time';
 

@@ -28,3 +28,5 @@ export const sha1sum = (buf: Buffer) => {
   hash.update(buf);
   return hash.digest('hex');
 };
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

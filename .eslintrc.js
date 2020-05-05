@@ -50,5 +50,6 @@ module.exports = {
     "spaced-comment": 0,
     "no-useless-constructor": 0,
     "no-return-await": 0,
+    "no-new": 0,
   },
 };

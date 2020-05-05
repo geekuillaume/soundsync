@@ -1,21 +1,28 @@
 import { RTCPeerConnection } from 'wrtc';
-import superagent from 'superagent';
-import { v4 as uuidv4 } from 'uuid';
+import freeice from 'freeice';
 
+import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
-import { getPeersManager } from './peers_manager';
+import { getPeersManager } from './get_peers_manager';
 import { onExit } from '../utils/on_exit';
 import {
-  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS, SOUNDSYNC_VERSION, RENDEZVOUS_SERVICE_URL,
+  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer } from './peer';
 import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 import { once } from '../utils/misc';
-import { postRendezvousMessage, notifyPeerOfRendezvousMessage, fetchRendezvousMessages } from './rendezvous_service';
 
-const HTTP_CONNECTION_RETRY_INTERVAL = 1000 * 2;
+const CONNECTION_RETRY_DELAY = 1000 * 2;
+
+interface WebrtcPeerConstructorParams {
+  uuid: string;
+  name: string;
+  host: string;
+  instanceUuid: string;
+  initiatorConstructor: (handleReceiveMessage: (message: InitiatorMessage) => void) => WebrtcInitiator;
+}
 
 export class WebrtcPeer extends Peer {
   private connection: RTCPeerConnection;
@@ -24,14 +31,16 @@ export class WebrtcPeer extends Peer {
   shouldIgnoreOffer = false;
   private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
+  private initiator: WebrtcInitiator;
 
   constructor({
-    uuid, name, host, instanceUuid,
-  }) {
+    uuid, name, host, instanceUuid, initiatorConstructor,
+  }: WebrtcPeerConstructorParams) {
     super({
       uuid, name, host, instanceUuid,
     });
     onExit(() => this.disconnect(true, 'exiting process'));
+    this.initiator = initiatorConstructor(this.handleInitiatorMessage);
   }
 
   initWebrtcIfNeeded = () => {
@@ -40,10 +49,24 @@ export class WebrtcPeer extends Peer {
     }
 
     this.connection = new RTCPeerConnection({
-      // iceServers: [
-      //   { urls: 'stun:stun.l.google.com:19302' },
-      // ],
+      iceServers: freeice(),
     });
+    this.connection.addEventListener('icecandidate', async ({ candidate }) => {
+      if (!candidate) {
+        return;
+      }
+      try {
+        await this.initiator.sendMessage({
+          candidate,
+        });
+      } catch {}
+    });
+    // this.connection.addEventListener('error', (e) => {
+    //   console.error('Error from webrtc connection', e);
+    // });
+    // this.connection.addEventListener('icecandidateerror', (e) => {
+    //   console.error('Error from ice candidates', e);
+    // });
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
       id: CONTROLLER_CHANNEL_ID,
@@ -51,6 +74,7 @@ export class WebrtcPeer extends Peer {
     this.connection.ondatachannel = this.handleRequestedAudioSourceChannel;
 
     this.controllerChannel.addEventListener('open', () => {
+      this.initiator.stopPolling();
       this.setState('connected');
       this.log('Connected');
       this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
@@ -64,11 +88,13 @@ export class WebrtcPeer extends Peer {
   }
 
   cleanWebrtcState = () => {
+    if (!this.connection) {
+      return;
+    }
+    this.log('Cleaning webrtc state');
     this.hasSentOffer = false;
     this.shouldIgnoreOffer = false;
-    if (this.connection) {
-      this.connection.close();
-    }
+    this.connection.close();
     delete this.connection;
     delete this.controllerChannel;
     if (this.missingPeerResponseTimeout) {
@@ -93,20 +119,24 @@ export class WebrtcPeer extends Peer {
     return this.connection.localDescription;
   }
 
-  // will return response description if needed
-  handlePeerConnectionMessage = async ({ description, candidate }: {description?: RTCSessionDescription; candidate?: RTCIceCandidate}) => {
+  handleInitiatorMessage = async (message: InitiatorMessage) => {
+    this.setUuid(message.senderUuid);
+    this.instanceUuid = message.senderInstanceUuid;
     this.initWebrtcIfNeeded();
+    const { description, candidate } = message;
+
     if (description) {
       const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
       this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > this.uuid;
       if (this.shouldIgnoreOffer) {
-        return null;
+        return;
       }
       if (offerCollision) {
         // Rolling back, this should be done automatically in a next version of wrtc lib
         this.cleanWebrtcState();
         this.initWebrtcIfNeeded();
       }
+      this.log('Setting remote description');
       await this.connection.setRemoteDescription(description);
       if (description.type === 'offer') {
         // const localDescription: any = {
@@ -116,7 +146,11 @@ export class WebrtcPeer extends Peer {
         //   sdp: (await this.connection.createAnswer()).sdp,
         // };
         await this.connection.setLocalDescription(await this.connection.createAnswer());
-        return this.connection.localDescription;
+        try {
+          await this.initiator.sendMessage({
+            description: this.connection.localDescription,
+          });
+        } catch {}
       }
     } else if (candidate) {
       try {
@@ -129,111 +163,28 @@ export class WebrtcPeer extends Peer {
     }
   }
 
-  connectFromOtherPeers = async () => {
-    getPeersManager().broadcast({
-      type: 'peerConnectionInfo',
-      targetUuid: this.uuid,
-      senderUuid: getLocalPeer().uuid,
-      senderInstanceUuid: getLocalPeer().instanceUuid,
-      description: await this.initiateConnection(),
-    });
+  connect = async (isRetry = false) => {
+    if (this.state === 'deleted' || this.state === 'connected') {
+      return;
+    }
+    const localDescription = await this.initiateConnection();
+    try {
+      this.initiator.startPolling();
+      await this.initiator.sendMessage({
+        description: localDescription,
+      });
+    } catch (e) {
+      if (!isRetry) {
+        this.log(`Cannot connect to peer with initiator ${this.initiator.type}`, e.message);
+      }
+      if (!e.shouldAbord) {
+        setTimeout(() => this.connect(true), CONNECTION_RETRY_DELAY);
+      }
+    }
   }
 
-  connectFromHttpApi = async (host: string) => {
-    this.log(`Connecting with HTTP API and host: ${host}`);
-    this.connect = async (isRetry = false) => {
-      if (this.state === 'deleted' || this.state === 'connected') {
-        return;
-      }
-      try {
-        const localDescription = await this.initiateConnection();
-        const {
-          body: {
-            description, uuid, name, instanceUuid,
-          },
-        } = await superagent.post(`${host}/connect_webrtc_peer`)
-          .send({
-            name: getLocalPeer().name,
-            uuid: getLocalPeer().uuid,
-            description: localDescription,
-            version: SOUNDSYNC_VERSION,
-            instanceUuid: getLocalPeer().instanceUuid,
-          });
-        const existingPeer = getPeersManager().peers[uuid];
-        if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
-          if (existingPeer.state === 'connected') {
-            // we already connected to this peer, do nothing
-            this.delete();
-            return;
-          }
-          existingPeer.delete();
-        }
-        this.setUuid(uuid);
-        this.instanceUuid = instanceUuid;
-        this.name = name;
-        this.log(`Got response from other peer http server`);
-        await this.handlePeerConnectionMessage({ description });
-      } catch (e) {
-        if (e.status === 409) {
-          this.log(`Already connecting to this peer, bailing out`);
-          // we are already connected to this peer, bail out
-          this.delete();
-          return;
-        }
-        if (!isRetry) {
-          this.log('Cannot connect to peer with http api retrying in 10 seconds', e.message);
-        }
-        setTimeout(() => this.connect(true), HTTP_CONNECTION_RETRY_INTERVAL);
-      }
-    };
-    this.connect();
-  }
-
-  connectFromRendezvousService = async (host: string) => {
-    this.log(`Connecting with rendezvous service and host: ${host}`);
-    this.connect = async (isRetry = false) => {
-      if (this.state === 'deleted' || this.state === 'connected') {
-        return;
-      }
-      try {
-        const localDescription = await this.initiateConnection();
-        const conversationUuid = uuidv4();
-        await postRendezvousMessage(conversationUuid, {
-          name: getLocalPeer().name,
-          uuid: getLocalPeer().uuid,
-          description: localDescription,
-          version: SOUNDSYNC_VERSION,
-          instanceUuid: getLocalPeer().instanceUuid,
-        }, true); // if we initiate the connection, we are primary
-        await notifyPeerOfRendezvousMessage(conversationUuid, host);
-        const [response] = await fetchRendezvousMessages(conversationUuid, true);
-        const {
-          uuid, instanceUuid, name, description,
-        } = response;
-        const existingPeer = getPeersManager().peers[uuid];
-        if (existingPeer && existingPeer !== this && existingPeer.state === 'connected') {
-          if (existingPeer.state === 'connected') {
-            // we already connected to this peer, do nothing
-            this.delete();
-            return;
-          }
-          existingPeer.delete();
-        }
-        this.setUuid(uuid);
-        this.instanceUuid = instanceUuid;
-        this.name = name;
-        this.log(`Got response from other peer http server`);
-        await this.handlePeerConnectionMessage({ description });
-      } catch (e) {
-        this.delete();
-      }
-    };
-    this.connect();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  connect = (isRetry?: boolean) => {
-    // nothing to do by default if no connection method as been set
+  _delete = () => {
+    this.disconnect();
   }
 
   disconnect = async (advertiseDisconnect = false, cause = 'unknown') => {
@@ -249,7 +200,7 @@ export class WebrtcPeer extends Peer {
 
     this.cleanWebrtcState();
     // retry connection to this peer in 10 seconds
-    setTimeout(this.connect, HTTP_CONNECTION_RETRY_INTERVAL);
+    setTimeout(this.connect, CONNECTION_RETRY_DELAY);
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {

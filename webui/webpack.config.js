@@ -54,6 +54,7 @@ const config = {
     }),
     new webpack.DefinePlugin({
       'process.browser': JSON.stringify(true),
+      'process.env.RENDEZVOUS_SERVICE_URL': JSON.stringify(process.env.RENDEZVOUS_SERVICE_URL),
     }),
     new MiniCssExtractPlugin(),
   ],
