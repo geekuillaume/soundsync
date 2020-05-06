@@ -7,6 +7,7 @@
     "clean": "rm -rf dist/**",
     "start": "cross-env NODE_ENV=development webpack-dev-server",
     "build": "cross-env NODE_ENV=production webpack",
+    "build:debug": "cross-env NODE_ENV=development webpack",
     "lint": "eslint --ext .jsx,.js --fix src"
   },
   "devDependencies": {

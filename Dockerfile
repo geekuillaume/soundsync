@@ -17,7 +17,7 @@ RUN cd rendezvous-service && yarn
 COPY ./src ./src
 COPY ./webui/src ./webui/src
 COPY ./webui/.babelrc ./webui/webpack.config.js ./webui/tsconfig.json ./webui/
-RUN cd webui && yarn build
+RUN cd webui && yarn build:debug
 COPY ./rendezvous-service/tsconfig.json ./rendezvous-service/
 COPY ./rendezvous-service/src ./rendezvous-service/src/
 RUN cd rendezvous-service && yarn build
