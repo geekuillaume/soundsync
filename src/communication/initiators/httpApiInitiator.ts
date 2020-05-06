@@ -32,6 +32,11 @@ export class HttpApiInitiator extends WebrtcInitiator {
     initiators[this.uuid] = this;
   }
 
+  destroy = () => {
+    this.stopPolling();
+    delete initiators[this.uuid];
+  }
+
   sendMessage = async (message: InitiatorMessageContent) => {
     const requestBody: HttpApiPostMessage = {
       senderHttpEndpointPort: getLocalPeer().capacities.includes(Capacity.HttpServerAccessible) ? getConfigField('port') : null,
@@ -47,10 +52,20 @@ export class HttpApiInitiator extends WebrtcInitiator {
       this.messagesToEmitBuffer.push(requestBody.message);
       return;
     }
-    const { body } = await superagent.post(`${this.httpEndpoint}/initiator/${this.uuid}/messages`)
-      .send(requestBody);
+
+    let body;
+    try {
+      const res = await superagent.post(`${this.httpEndpoint}/initiator/${this.uuid}/messages`)
+        .send(requestBody);
+      body = res.body;
+    } catch (e) {
+      if (e.status === 409) {
+        e.shouldAbort = true;
+      }
+      throw e;
+    }
+
     body.forEach(this.handleReceiveMessage);
-    // TODO: handle fatal error 409 that should delete peer and not retry
   }
 
   startPolling = () => {
@@ -89,21 +104,19 @@ export const initHttpServerRoutes = (router: Router) => {
     const body = ctx.request.body as HttpApiPostMessage;
     const initiatorUuid = ctx.params.uuid;
     ctx.assert(initiatorUuid, 400, 'Initiator uuid required');
+    const {
+      senderUuid, senderVersion, senderInstanceUuid,
+    } = ctx.request.body.message as InitiatorMessage;
+
+    ctx.assert(senderUuid !== getLocalPeer().uuid, 409, 'Connecting to own peer');
 
     if (!initiators[initiatorUuid]) {
-      const {
-        senderUuid, senderVersion, senderInstanceUuid,
-      } = ctx.request.body.message as InitiatorMessage;
       ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
-      if (senderVersion !== SOUNDSYNC_VERSION) {
-        ctx.throw(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`, 400);
-      }
+      ctx.assert(senderVersion === SOUNDSYNC_VERSION, 400, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
 
       const existingPeer = getPeersManager().peers[senderUuid];
       if (existingPeer) {
-        if (existingPeer.instanceUuid === senderInstanceUuid) {
-          ctx.throw(409, 'peer with same uuid and instanceUuid already exist');
-        }
+        ctx.assert(existingPeer.instanceUuid !== senderInstanceUuid, 409, 'peer with same uuid and instanceUuid already exist');
         // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
         // TODO: add reason to delete method
         existingPeer.delete();

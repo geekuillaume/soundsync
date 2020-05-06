@@ -1,10 +1,14 @@
+import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
+import { assert } from '../../utils/assert';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
 import { PeerConnectionInfoMessage } from '../messages';
+
+const log = debug('soundsync:peerRelayInitiator');
 
 const initiatorsListener: {[initiatorUuid: string]: (message: PeerConnectionInfoMessage) => unknown} = {};
 
@@ -27,6 +31,11 @@ export class PeerRelayInitiator extends WebrtcInitiator {
     };
   }
 
+  destroy = () => {
+    this.stopPolling();
+    delete initiatorsListener[this.uuid];
+  }
+
   sendMessage = async (message: InitiatorMessageContent) => {
     getPeersManager().broadcast({
       type: 'peerConnectionInfo',
@@ -47,33 +56,36 @@ export const createPeerRelayServiceInitiator = (targetUuid: string, uuid?: strin
   ));
 
 export const handlePeerRelayInitiatorMessage = async (message: PeerConnectionInfoMessage) => {
-  const { initiatorUuid } = message;
-  if (!initiatorsListener[initiatorUuid]) {
+  try {
+    const { initiatorUuid } = message;
     const {
       senderUuid, senderInstanceUuid, senderVersion,
     } = message;
-    if (senderVersion !== SOUNDSYNC_VERSION) {
-      throw new Error(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
-    }
 
-    const existingPeer = getPeersManager().peers[senderUuid];
-    if (existingPeer) {
-      if (existingPeer.instanceUuid === senderInstanceUuid) {
-        throw new Error('peer with same uuid and instanceUuid already exist');
+    assert(senderUuid !== getLocalPeer().uuid, 'Connecting to own peer');
+
+    if (!initiatorsListener[initiatorUuid]) {
+      assert(senderVersion === SOUNDSYNC_VERSION, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
+
+      const existingPeer = getPeersManager().peers[senderUuid];
+      if (existingPeer) {
+        assert(existingPeer.instanceUuid !== senderInstanceUuid, 'peer with same uuid and instanceUuid already exist');
+        // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
+        // TODO: add reason to delete method
+        existingPeer.delete();
       }
-      // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
-      // TODO: add reason to delete method
-      existingPeer.delete();
-    }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const peer = new WebrtcPeer({
-      uuid: senderUuid,
-      name: `placeholderForPeerRelayJoin_${senderUuid}`,
-      host: 'unknown',
-      instanceUuid: senderInstanceUuid,
-      initiatorConstructor: createPeerRelayServiceInitiator(senderUuid, initiatorUuid),
-    });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const peer = new WebrtcPeer({
+        uuid: senderUuid,
+        name: `placeholderForPeerRelayJoin_${senderUuid}`,
+        host: 'unknown',
+        instanceUuid: senderInstanceUuid,
+        initiatorConstructor: createPeerRelayServiceInitiator(senderUuid, initiatorUuid),
+      });
+    }
+    await initiatorsListener[initiatorUuid](message);
+  } catch (e) {
+    log('Error while treating message', e);
   }
-  await initiatorsListener[initiatorUuid](message);
 };

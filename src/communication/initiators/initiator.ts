@@ -23,6 +23,10 @@ export abstract class WebrtcInitiator {
   // TODO: add a way to clean initiators to prevent memory leak
   abstract sendMessage(message: InitiatorMessageContent): Promise<unknown>;
 
+  destroy() {
+    this.stopPolling();
+  }
+
   startPolling() {}
   stopPolling() {}
 }
