@@ -120,6 +120,9 @@ export class WebrtcPeer extends Peer {
   }
 
   handleInitiatorMessage = async (message: InitiatorMessage) => {
+    if (this.state === 'deleted') {
+      return;
+    }
     this.setUuid(message.senderUuid);
     this.instanceUuid = message.senderInstanceUuid;
     this.initWebrtcIfNeeded();
@@ -177,13 +180,16 @@ export class WebrtcPeer extends Peer {
       if (!isRetry) {
         this.log(`Cannot connect to peer with initiator ${this.initiator.type}`, e.message);
       }
-      if (!e.shouldAbord) {
-        setTimeout(() => this.connect(true), CONNECTION_RETRY_DELAY);
+      if (e.shouldAbort) {
+        this.delete();
+        return;
       }
+      setTimeout(() => this.connect(true), CONNECTION_RETRY_DELAY);
     }
   }
 
   _delete = () => {
+    this.initiator.destroy();
     this.disconnect();
   }
 
