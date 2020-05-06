@@ -49,7 +49,7 @@ export const enableRendezvousServicePeersDetection = async (shouldConnectWithRen
     if (shouldConnectWithRendezvous) {
       peersManager.joinPeerWithRendezvousApi(`http://${ip}`);
     } else {
-      peersManager.joinPeerWithHttpApi(`http://${ip}`);
+      peersManager.joinPeerWithHttpApi(ip);
     }
   });
 };
@@ -66,7 +66,16 @@ export const postRendezvousMessage = async (conversationUuid: string, message: a
 export const fetchRendezvousMessages = async (conversationUuid: string, isPrimary: boolean) => {
   const { body } = await rendezvousApi
     .get(`${RENDEZVOUS_SERVICE_URL}/api/conversations/${conversationUuid}_${isPrimary ? 'P' : 'S'}/messages`);
-  return body.map((message) => JSON.parse(message)) as InitiatorMessage[];
+  const messages = body.map((message) => JSON.parse(message));
+  for (const message of messages) {
+    if (message.error === true) {
+      const error = new Error(message.message);
+      // @ts-ignore
+      error.status = message.status;
+      throw error;
+    }
+  }
+  return messages as InitiatorMessage[];
 };
 
 export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string) => {

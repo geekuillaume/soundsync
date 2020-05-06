@@ -24,6 +24,11 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
     initiatorsListener[this.uuid] = this.handleReceiveMessage;
   }
 
+  destroy = () => {
+    this.stopPolling();
+    delete initiatorsListener[this.uuid];
+  }
+
   sendMessage = async (message: InitiatorMessageContent) => {
     await postRendezvousMessage(this.uuid, {
       senderUuid: getLocalPeer().uuid,
@@ -35,7 +40,12 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
       await notifyPeerOfRendezvousMessage(this.uuid, this.host);
       const messages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
       messages.forEach(this.handleReceiveMessage);
-    } catch (e) {}
+    } catch (e) {
+      if (e.status === 409) {
+        e.shouldAbort = true;
+      }
+      throw e;
+    }
   }
 
   startPolling = () => {
@@ -71,36 +81,42 @@ export const initHttpServerRoutes = (router: Router) => {
     const messages = await fetchRendezvousMessages(initiatorUuid, false);
     ctx.assert(messages.length, 404, 'No messages');
 
-    if (!initiatorsListener[initiatorUuid]) {
-      const {
-        senderUuid, senderInstanceUuid, senderVersion,
-      } = messages[0];
-      ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
-      if (senderVersion !== SOUNDSYNC_VERSION) {
-        ctx.throw(`Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`, 400);
-      }
+    try {
+      ctx.assert(messages[0].senderUuid !== getLocalPeer().uuid, 409, 'Connecting to own peer');
 
-      const existingPeer = getPeersManager().peers[senderUuid];
-      if (existingPeer) {
-        if (existingPeer.instanceUuid === senderInstanceUuid) {
-          ctx.throw(409, 'peer with same uuid and instanceUuid already exist');
+      if (!initiatorsListener[initiatorUuid]) {
+        const {
+          senderUuid, senderInstanceUuid, senderVersion,
+        } = messages[0];
+        ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
+        ctx.assert(senderVersion === SOUNDSYNC_VERSION, 400, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
+
+        const existingPeer = getPeersManager().peers[senderUuid];
+        if (existingPeer) {
+          ctx.assert(existingPeer.instanceUuid !== senderInstanceUuid, 409, 'peer with same uuid and instanceUuid already exist');
+          // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
+          // TODO: add reason to delete method
+          existingPeer.delete();
         }
-        // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
-        // TODO: add reason to delete method
-        existingPeer.delete();
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const peer = new WebrtcPeer({
+          uuid: senderUuid,
+          name: `placeholderForRendezvousJoin_${ctx.request.ip}`,
+          host: ctx.request.ip,
+          instanceUuid: senderInstanceUuid,
+          initiatorConstructor: createRendezvousServiceInitiator(ctx.request.ip, initiatorUuid, false), // we are not primary because we didn't sent the first request
+        });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const peer = new WebrtcPeer({
-        uuid: senderUuid,
-        name: `placeholderForRendezvousJoin_${ctx.request.ip}`,
-        host: ctx.request.ip,
-        instanceUuid: senderInstanceUuid,
-        initiatorConstructor: createRendezvousServiceInitiator(ctx.request.ip, initiatorUuid, false), // we are not primary because we didn't sent the first request
-      });
+      await Promise.all(messages.map(initiatorsListener[initiatorUuid]));
+    } catch (e) {
+      await postRendezvousMessage(initiatorUuid, {
+        error: true,
+        message: e.message,
+        status: e.status,
+      }, false);
     }
-
-    await Promise.all(messages.map(initiatorsListener[initiatorUuid]));
 
     ctx.body = EMPTY_IMAGE;
     ctx.set('Content-type', 'image/png');
