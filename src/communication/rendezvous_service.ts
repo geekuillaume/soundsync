@@ -80,6 +80,6 @@ export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, ho
   await new Promise((resolve, reject) => {
     imgEl.onload = resolve;
     imgEl.onerror = reject;
-    imgEl.src = `${host}/rendezvous_message_notify?conversionUuid=${conversationUuid}`;
+    imgEl.src = `${host}/rendezvous_message_notify?initiatorUuid=${conversationUuid}`;
   });
 };

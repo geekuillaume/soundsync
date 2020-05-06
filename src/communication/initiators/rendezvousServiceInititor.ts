@@ -67,7 +67,9 @@ export const createRendezvousServiceInitiator = (host: string, uuid?: string, is
 export const initHttpServerRoutes = (router: Router) => {
   router.get('/rendezvous_message_notify', async (ctx) => {
     const { initiatorUuid } = ctx.request.query;
+    ctx.assert(!!initiatorUuid, 400, 'initiatorUuid query string required');
     const messages = await fetchRendezvousMessages(initiatorUuid, false);
+    ctx.assert(messages.length, 404, 'No messages');
 
     if (!initiatorsListener[initiatorUuid]) {
       const {
