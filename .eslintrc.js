@@ -51,5 +51,6 @@ module.exports = {
     "no-useless-constructor": 0,
     "no-return-await": 0,
     "no-new": 0,
+    "no-restricted-syntax": 0,
   },
 };
