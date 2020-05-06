@@ -25,9 +25,8 @@ router.post(`/api/conversations/:id/messages`, async (ctx) => {
   ctx.assert(typeof conversationId === 'string', 400, 'id sould be a string');
   ctx.assert(message.length < 2048, 400, 'body should be less than 1024 chars');
   ctx.assert(conversationId.length < 128, 400, 'conversion_id should be less than 128 chars');
-
   await redis.pipeline()
-    .lpush(`conversation:${conversationId}`, message)
+    .rpush(`conversation:${conversationId}`, message)
     .expire(`conversation:${conversationId}`, config.get('conversationExpireTime'))
     .exec();
 
