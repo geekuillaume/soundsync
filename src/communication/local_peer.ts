@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ControllerMessage } from './messages';
 import { Peer, PeerDescriptor } from './peer';
+import { getPeersManager } from './get_peers_manager';
 
 class LocalPeer extends Peer {
   constructor({
@@ -9,13 +10,15 @@ class LocalPeer extends Peer {
     super({
       uuid,
       name,
-      host: '127.0.0.1',
       capacities,
       instanceUuid,
     });
     this.log(`Registering local peer with instaceUuid: ${this.instanceUuid}`);
     this.isLocal = true;
-    this.setState('connected');
+    this.sendControllerMessage({
+      type: 'peerInfo',
+      peer: this.toDescriptor(),
+    });
   }
 
   sendControllerMessage(message: ControllerMessage) {
@@ -31,6 +34,7 @@ export const registerLocalPeer = ({ name, uuid, capacities }: Partial<PeerDescri
   localPeer = new LocalPeer({
     name, uuid, capacities, instanceUuid: uuidv4(),
   });
+  getPeersManager().registerPeer(localPeer);
 };
 
 export const getLocalPeer = () => {

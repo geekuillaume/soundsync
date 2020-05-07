@@ -12,10 +12,8 @@ import {
   SourceCreateMessage,
   SourceDeleteMessage,
 } from '../communication/messages';
-import { handlePeerRelayInitiatorMessage, createPeerRelayServiceInitiator } from '../communication/initiators/peerRelayInitiator';
-// import { waitUntilIceGatheringStateComplete } from '../utils/wait_for_ice_complete';
+import { handlePeerRelayInitiatorMessage } from '../communication/initiators/peerRelayInitiator';
 import { getLocalPeer } from '../communication/local_peer';
-import { WebrtcPeer } from '../communication/wrtc_peer';
 
 export class ClientCoordinator {
   log: debug.Debugger;
@@ -34,19 +32,24 @@ export class ClientCoordinator {
       .onControllerMessage('peerDiscovery', this.handlePeerDiscoveryMessage)
       .onControllerMessage('sourceCreate', this.handleSourceCreate)
       .onControllerMessage('sourceDelete', this.handleSourceDelete)
-      .on('newConnectedPeer', () => {
-        this.announceSoundState();
+      .on('newConnectedPeer', (peer: Peer) => {
+        this.announceSoundState(peer);
       });
 
     getAudioSourcesSinksManager().on('localSoundStateUpdated', this.announceSoundState);
   }
 
-  private announceSoundState = () => {
-    getPeersManager().broadcast({
+  private announceSoundState = (peer?: Peer) => {
+    const message = {
       type: 'peerSoundState',
       sinks: getAudioSourcesSinksManager().sinks.filter((s) => s.local).map((sink) => sink.toDescriptor()),
       sources: getAudioSourcesSinksManager().sources.filter((s) => s.local).map((source) => source.toDescriptor()),
-    });
+    } as PeerSoundStateMessage;
+    if (peer) {
+      peer.sendControllerMessage(message);
+    } else {
+      getPeersManager().broadcast(message);
+    }
   }
 
   private handlePeerSoundStateUpdate = (message: PeerSoundStateMessage, peer: Peer) => {
@@ -76,7 +79,7 @@ export class ClientCoordinator {
   private handlePeerConnectionInfo = async (message: PeerConnectionInfoMessage) => {
     if (message.targetUuid !== getLocalPeer().uuid) {
       // we received this message but it's not for us, let's retransmit it to the correct peer
-      const destinationPeer = getPeersManager().peers[message.targetUuid];
+      const destinationPeer = getPeersManager().getConnectedPeerByUuid(message.targetUuid);
       if (destinationPeer) {
         destinationPeer.sendControllerMessage(message);
       }
@@ -123,16 +126,7 @@ export class ClientCoordinator {
 
   private handlePeerDiscoveryMessage = (message: PeerDiscoveryMessage) => {
     message.peersUuid.forEach((uuid) => {
-      if (!getPeersManager().peers[uuid]) {
-        const peer = new WebrtcPeer({
-          uuid,
-          host: 'unknown',
-          name: `placeholderForPeerRelayJoin_${uuid}`,
-          initiatorConstructor: createPeerRelayServiceInitiator(uuid),
-          instanceUuid: null,
-        });
-        peer.connect();
-      }
+      getPeersManager().joinPeerWithPeerRelay(uuid);
     });
   }
 

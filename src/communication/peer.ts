@@ -27,7 +27,6 @@ export abstract class Peer extends EventEmitter {
   uuid: string;
   instanceUuid: string;
   name: string;
-  host: string;
   state: 'disconnected' | 'connecting' | 'connected' | 'deleted' = 'disconnected';
   timeDelta = 0;
   private _previousTimeDeltas: number[] = [];
@@ -36,17 +35,16 @@ export abstract class Peer extends EventEmitter {
   isLocal: boolean;
 
   constructor({
-    uuid, name, capacities, host, instanceUuid,
+    uuid, name, capacities, instanceUuid,
   }: PeerDescriptor) {
     super();
     this.setMaxListeners(1000);
     this.isLocal = false;
     this.name = name;
-    this.setUuid(uuid);
-    this.host = host;
+    this.uuid = uuid;
+    this.log = debug(`soundsync:peer:${uuid}`);
     this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
-    this.log = debug(`soundsync:peer:${uuid}`);
     this.log(`Created new peer`);
     this.onControllerMessage(`timekeepRequest`, (message) => {
       this.sendControllerMessage({
@@ -74,25 +72,35 @@ export abstract class Peer extends EventEmitter {
     setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
 
     this.onControllerMessage('peerInfo', (message) => {
+      const existingPeer = getPeersManager().getConnectedPeerByUuid(message.peer.uuid);
+      if (existingPeer) {
+        if (existingPeer.instanceUuid === message.peer.instanceUuid) { // this is the same peer
+          this.destroy('Peer is already connected, this is a duplicate');
+          return;
+        }
+        // this is a new instance of the same peer, disconnect previous instance
+        existingPeer.destroy('New instance of peer connected');
+      }
+      this.instanceUuid = message.peer.instanceUuid;
       this.name = message.peer.name;
       this.capacities = message.peer.capacities;
+      this.uuid = message.peer.uuid;
+      this.log = debug(`soundsync:peer:${message.peer.uuid}`);
+      this.setState('connected');
+      this.log('Connected');
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
         this._previousTimeDeltas = [];
-        return;
       }
-      if (this.isLocal) {
-        return;
+      if (this.state === 'connected') {
+        getPeersManager().emit('newConnectedPeer', this);
+        if (!this.isLocal) {
+          _.times(TIMESYNC_INIT_REQUEST_COUNT, (i) => {
+            setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
+          });
+        }
       }
-      this.sendControllerMessage({
-        type: 'peerInfo',
-        peer: getLocalPeer().toDescriptor(),
-      });
-      getPeersManager().emit('newConnectedPeer', this);
-      _.times(TIMESYNC_INIT_REQUEST_COUNT, (i) => {
-        setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
-      });
     });
     getPeersManager().emit('peerChange', this);
   }
@@ -100,6 +108,9 @@ export abstract class Peer extends EventEmitter {
   setState = (state: 'disconnected' | 'connecting' | 'connected' | 'deleted') => {
     if (this.state === state) {
       return;
+    }
+    if (this.state === 'deleted') {
+      return; // once it's deleted, it's not possible to go back to another state
     }
     this.state = state;
     // setImmediate is necessary to force same async behavior even for peer that are connected at start like local peer
@@ -119,21 +130,6 @@ export abstract class Peer extends EventEmitter {
   }
 
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
-
-  setUuid = (uuid: string) => {
-    if (uuid === this.uuid) {
-      return;
-    }
-    // unregister current peer with uuid
-    delete getPeersManager().peers[this.uuid];
-    this.uuid = uuid;
-    if (getPeersManager().peers[uuid] && getPeersManager().peers[uuid] !== this) {
-      this.delete();
-      throw new Error('A peer with this uuid already exists');
-    }
-    getPeersManager().peers[uuid] = this;
-    this.log = debug(`soundsync:peer:${uuid}`);
-  }
 
   waitForConnected = async () => {
     if (this.state === 'connected') {
@@ -175,14 +171,14 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  delete = () => {
-    this._delete();
+  destroy = (resaon = 'unknown') => {
+    this.log(`Destroying peer, reason: ${resaon}`);
+    this._destroy();
     this.state = 'deleted';
-    delete getPeersManager().peers[this.uuid];
     this.removeAllListeners();
   }
 
-  _delete = () => undefined;
+  _destroy = () => undefined;
 
   toDescriptor = (): PeerDescriptor => ({
     uuid: this.uuid,

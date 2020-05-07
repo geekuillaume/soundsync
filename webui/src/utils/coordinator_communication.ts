@@ -19,7 +19,7 @@ registerLocalPeer({
 
 export const initializeCoordinator = memoize(async () => {
   if (!RENDEZVOUS_SERVICE_URL.endsWith(document.location.host)) {
-    const peerHost = document.location.port === '8080' ? `${document.location.hostname}:6512` : `${document.location.host}`;
+    const peerHost = document.location.port === '8080' ? `http://${document.location.hostname}:6512` : `http://${document.location.host}`;
     await getPeersManager().joinPeerWithHttpApi(peerHost);
   }
 
@@ -37,7 +37,7 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  enableRendezvousServicePeersDetection(true);
+  // enableRendezvousServicePeersDetection(true);
 });
 
 export const onSoundStateChange = async (listener) => {

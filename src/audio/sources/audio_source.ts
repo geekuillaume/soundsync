@@ -49,7 +49,7 @@ export abstract class AudioSource {
   }
 
   get peer() {
-    return getPeersManager().peers[this.peerUuid];
+    return getPeersManager().getConnectedPeerByUuid(this.peerUuid);
   }
 
   // Change info about a source in response to a user event

@@ -64,7 +64,7 @@ export abstract class AudioSink extends EventEmitter {
   }
 
   get peer() {
-    return getPeersManager().peers[this.peerUuid];
+    return getPeersManager().getConnectedPeerByUuid(this.peerUuid);
   }
 
   patch(descriptor: Partial<SinkDescriptor>) {

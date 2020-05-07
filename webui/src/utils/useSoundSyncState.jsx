@@ -92,7 +92,7 @@ export const useIsPiped = (uuid) => false;
 
 export const usePeersManager = () => useContext(soundSyncContext).peersManagers;
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
-export const usePeer = (uuid) => usePeers()[uuid];
+export const usePeer = (uuid) => usePeersManager().getConnectedPeerByUuid(uuid);
 
 export const useRegisterForPipe = (type, audioObject) => {
   const { state, dispatch } = useContext(soundSyncContext);

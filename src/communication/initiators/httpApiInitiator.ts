@@ -114,24 +114,16 @@ export const initHttpServerRoutes = (router: Router) => {
       ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
       ctx.assert(senderVersion === SOUNDSYNC_VERSION, 400, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
 
-      const existingPeer = getPeersManager().peers[senderUuid];
-      if (existingPeer) {
-        ctx.assert(existingPeer.instanceUuid !== senderInstanceUuid, 409, 'peer with same uuid and instanceUuid already exist');
-        // existingPeer.delete(true, 'new peer with same uuid but different instanceUuid connecting');
-        // TODO: add reason to delete method
-        existingPeer.delete();
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const peer = new WebrtcPeer({
-        uuid: senderUuid,
-        name: `placeholderForHttpApiJoin_${ctx.request.ip}`,
-        host: ctx.request.ip,
+        uuid: `placeholderForHttpInitiatorRequest_${initiatorUuid}`,
+        name: `placeholderForHttpInitiatorRequest_${initiatorUuid}`,
         instanceUuid: senderInstanceUuid,
         initiatorConstructor: createHttpApiInitiator(
           body.senderHttpEndpointPort ? `http://[${ctx.request.ip}]:${body.senderHttpEndpointPort}` : null,
           initiatorUuid,
         ),
       });
+      getPeersManager().registerPeer(peer);
     }
     await initiators[initiatorUuid].handleReceiveMessage(body.message);
     ctx.body = initiators[initiatorUuid].messagesToEmitBuffer;

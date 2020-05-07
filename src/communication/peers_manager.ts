@@ -2,19 +2,22 @@ import { EventEmitter } from 'events';
 import _ from 'lodash';
 import debug from 'debug';
 
-import { createHttpApiInitiator } from './initiators/httpApiInitiator';
-import { createRendezvousServiceInitiator } from './initiators/rendezvousServiceInititor';
+import { getLocalPeer } from './local_peer';
+import { createHttpApiInitiator, HttpApiInitiator } from './initiators/httpApiInitiator';
+import { createRendezvousServiceInitiator, RendezVousServiceInitiator } from './initiators/rendezvousServiceInititor';
 import { WebrtcPeer } from './wrtc_peer';
 import {
   ControllerMessage,
   ControllerMessageHandler,
 } from './messages';
 import { Peer } from './peer';
+import { createPeerRelayServiceInitiator, PeerRelayInitiator } from './initiators/peerRelayInitiator';
+
 
 const log = debug('soundsync:wrtc');
 
 export class PeersManager extends EventEmitter {
-  peers: {[uuid: string]: Peer} = {};
+  private peers: Peer[] = [];
 
   constructor() {
     super();
@@ -25,35 +28,71 @@ export class PeersManager extends EventEmitter {
         peersUuid: _.map(_.filter(this.peers, (p) => p.state === 'connected'), (p) => p.uuid),
       });
     });
+    // TODO: handle clearing this.peers when peer is destroyed
   }
 
-  async joinPeerWithHttpApi(host: string, uuid?: string) {
+  joinPeerWithHttpApi = async (httpEndpoint: string) => {
+    if (_.some(this.peers, (p) => (
+      p instanceof WebrtcPeer
+        && p.initiator instanceof HttpApiInitiator
+        && p.initiator.httpEndpoint === httpEndpoint
+    ))) {
+      return;
+    }
     const peer = new WebrtcPeer({
       name: 'remote',
-      uuid: uuid || `placeholderForHttpApiJoin_${host}`,
-      host,
+      uuid: `placeholderForHttpApiJoin_${httpEndpoint}`,
       instanceUuid: 'placeholder',
-      initiatorConstructor: createHttpApiInitiator(`http://${host}`),
+      initiatorConstructor: createHttpApiInitiator(httpEndpoint),
     });
+    this.peers.push(peer);
     await peer.connect();
   }
 
   joinPeerWithRendezvousApi = async (host: string) => {
+    if (_.some(this.peers, (p) => (
+      p instanceof WebrtcPeer
+        && p.initiator instanceof RendezVousServiceInitiator
+        && p.initiator.host === host
+    ))) {
+      return;
+    }
     const peer = new WebrtcPeer({
       name: 'remote',
       uuid: `placeholderForRendezvousJoin_${host}`,
-      host,
       instanceUuid: 'placeholder',
       initiatorConstructor: createRendezvousServiceInitiator(host),
     });
+    this.peers.push(peer);
     await peer.connect();
   }
 
-  broadcastPeersDiscoveryInfo = () => {
-    this.broadcast({
-      type: 'peerDiscovery',
-      peersUuid: _.map(_.filter(this.peers, (p) => p.state === 'connected'), (p) => p.uuid),
+  joinPeerWithPeerRelay = async (targetUuid: string) => {
+    if (_.some(this.peers, (p) => (
+      p instanceof WebrtcPeer
+        && p.initiator instanceof PeerRelayInitiator
+        && p.initiator.targetUuid === targetUuid
+    ))) {
+      return;
+    }
+    if (targetUuid === getLocalPeer().uuid) {
+      return;
+    }
+    if (_.some(this.peers, (p) => p.state === 'connected' && p.uuid === targetUuid)) { // already connected
+      return;
+    }
+    const peer = new WebrtcPeer({
+      name: 'remote',
+      uuid: `placeholderForPeerRelay_${targetUuid}`,
+      instanceUuid: 'placeholder',
+      initiatorConstructor: createPeerRelayServiceInitiator(targetUuid),
     });
+    this.peers.push(peer);
+    await peer.connect();
+  }
+
+  registerPeer = (peer: Peer) => {
+    this.peers.push(peer);
   }
 
   async broadcast(message: ControllerMessage, ignorePeerByUuid: string[] = []) {
@@ -67,4 +106,6 @@ export class PeersManager extends EventEmitter {
   }
 
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
+
+  getConnectedPeerByUuid = (uuid: string) => _.find(this.peers, (p) => p.uuid === uuid && p.state === 'connected');
 }

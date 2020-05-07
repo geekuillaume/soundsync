@@ -19,7 +19,6 @@ const CONNECTION_RETRY_DELAY = 1000 * 2;
 interface WebrtcPeerConstructorParams {
   uuid: string;
   name: string;
-  host: string;
   instanceUuid: string;
   initiatorConstructor: (handleReceiveMessage: (message: InitiatorMessage) => void) => WebrtcInitiator;
 }
@@ -31,13 +30,13 @@ export class WebrtcPeer extends Peer {
   shouldIgnoreOffer = false;
   private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
-  private initiator: WebrtcInitiator;
+  initiator: WebrtcInitiator;
 
   constructor({
-    uuid, name, host, instanceUuid, initiatorConstructor,
+    uuid, name, instanceUuid, initiatorConstructor,
   }: WebrtcPeerConstructorParams) {
     super({
-      uuid, name, host, instanceUuid,
+      uuid, name, instanceUuid,
     });
     onExit(() => this.disconnect(true, 'exiting process'));
     this.initiator = initiatorConstructor(this.handleInitiatorMessage);
@@ -52,7 +51,7 @@ export class WebrtcPeer extends Peer {
       iceServers: freeice(),
     });
     this.connection.addEventListener('icecandidate', async ({ candidate }) => {
-      if (!candidate) {
+      if (!candidate || this.state === 'deleted') {
         return;
       }
       try {
@@ -75,10 +74,12 @@ export class WebrtcPeer extends Peer {
 
     this.controllerChannel.addEventListener('open', () => {
       this.initiator.stopPolling();
-      this.setState('connected');
-      this.log('Connected');
       this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
       this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
+      this.sendControllerMessage({
+        type: 'peerInfo',
+        peer: getLocalPeer().toDescriptor(),
+      });
     });
 
     this.controllerChannel.addEventListener('close', () => this.disconnect(false, 'controller channel is closed'));
@@ -123,14 +124,13 @@ export class WebrtcPeer extends Peer {
     if (this.state === 'deleted') {
       return;
     }
-    this.setUuid(message.senderUuid);
-    this.instanceUuid = message.senderInstanceUuid;
-    this.initWebrtcIfNeeded();
+    const { senderUuid } = message;
     const { description, candidate } = message;
 
     if (description) {
+      this.initWebrtcIfNeeded();
       const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
-      this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > this.uuid;
+      this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > senderUuid;
       if (this.shouldIgnoreOffer) {
         return;
       }
@@ -156,6 +156,10 @@ export class WebrtcPeer extends Peer {
         } catch {}
       }
     } else if (candidate) {
+      if (!this.connection) {
+        this.log('Received candidate but connection was not yet initialized, ignoring');
+        return;
+      }
       try {
         await this.connection.addIceCandidate(candidate);
       } catch (err) {
@@ -181,15 +185,16 @@ export class WebrtcPeer extends Peer {
         this.log(`Cannot connect to peer with initiator ${this.initiator.type}`, e.message);
       }
       if (e.shouldAbort) {
-        this.delete();
+        this.destroy('Initiator hinted that it we should abort');
         return;
       }
       setTimeout(() => this.connect(true), CONNECTION_RETRY_DELAY);
     }
   }
 
-  _delete = () => {
+  _destroy = () => {
     this.initiator.destroy();
+    this.cleanWebrtcState();
     this.disconnect();
   }
 
