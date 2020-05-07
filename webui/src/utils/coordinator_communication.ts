@@ -37,7 +37,9 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  // enableRendezvousServicePeersDetection(true);
+  if (!localStorage.soundsync_disable_rendezvous_service) {
+    enableRendezvousServicePeersDetection(true);
+  }
 });
 
 export const onSoundStateChange = async (listener) => {
