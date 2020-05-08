@@ -6,21 +6,19 @@ export interface AudioChunkStreamOutput {
   chunk: Buffer;
 }
 
+// This is used to control the output throughput of a stream and emit chunks of "chunkSize" bytes every "chunkDuration" ms
+// every chunk has a index corresponding to when this chunk is emitted (i = [time when chunk was read relative to the creating of the stream] / chunkDuration)
+// as long as the source stream can be read, the index is incremented directly
+// if the source stream is interrupted (nothing can be read anymore), the next time a chunk is available, the index will be recalculated from the time
 export class AudioChunkStream extends Readable {
-  interval: number;
-  sampleSize: number;
-  sourceStream: NodeJS.ReadableStream;
   private readInterval: NodeJS.Timeout;
   creationTime: number = now();
   lastEmittedChunkIndex: number;
 
-  constructor(sourceStream: NodeJS.ReadableStream, interval: number, sampleSize: number) {
+  constructor(public sourceStream: NodeJS.ReadableStream, public chunkDuration: number, public chunkSize: number) {
     super({
       objectMode: true,
     });
-    this.sourceStream = sourceStream;
-    this.interval = interval;
-    this.sampleSize = sampleSize;
     this.lastEmittedChunkIndex = -1;
     this.sourceStream.on('readable', this.startReadLoop);
   }
@@ -30,7 +28,7 @@ export class AudioChunkStream extends Readable {
       return;
     }
     this._pushNecessaryChunks();
-    this.readInterval = setInterval(this._pushNecessaryChunks, this.interval);
+    this.readInterval = setInterval(this._pushNecessaryChunks, this.chunkDuration);
   }
 
   private stopReadLoop = () => {
@@ -48,27 +46,29 @@ export class AudioChunkStream extends Readable {
 
   _pushNecessaryChunks = () => {
     while (true) {
-      let currentChunkIndex = this.lastEmittedChunkIndex + 1;
-      if (this.lastEmittedChunkIndex === -1) { // the stream was interrupted because source couldn't be read, restart a sequence
-        currentChunkIndex = Math.floor(this.now() / this.interval);
-        // console.log('Stream data available, starting new chunk serie');
-      }
-      const currentChunkLatency = this.now() - (currentChunkIndex * this.interval);
+      const currentChunkIndex = this.lastEmittedChunkIndex === -1 ? Math.floor(this.now() / this.chunkDuration) : this.lastEmittedChunkIndex + 1;
+      // if this.lastEmittedChunkIndex === -1 the stream was interrupted because source couldn't be read, restart a sequence
+      const currentChunkLatency = this.now() - (currentChunkIndex * this.chunkDuration);
       if (currentChunkLatency < 0) { // this chunk is in the future, do nothing and wait for next tick
         break;
       }
-      let chunk = this.sourceStream.read(this.sampleSize) as Buffer;
-      if (chunk === null) { // nothing to read from source, we need to compute the next chunk from time instead of the sequence
-        // console.log('Stream out of data, stopping reading loop until new data arrives');
+      let chunk = this.sourceStream.read(this.chunkSize) as Buffer;
+      if (chunk === null) {
+        // nothing to read from source, we need to compute the next chunk from time instead of the sequence
+        console.log('Stream out of data, stopping reading loop until new data arrives');
         this.lastEmittedChunkIndex = -1;
         this.stopReadLoop();
         break;
       }
-      if (chunk.length !== this.sampleSize) {
+      if (this.lastEmittedChunkIndex === -1) {
+        console.log('Stream started again');
+      }
+      if (chunk.length !== this.chunkSize) {
+        console.log('INCOMPLETE CHUNK');
         // it could mean we are at the end of the stream and receiving an incomplete chunk
         // so we complete it with zeros
         const incompleteChunk = chunk;
-        chunk = Buffer.alloc(this.sampleSize);
+        chunk = Buffer.alloc(this.chunkSize);
         chunk.set(incompleteChunk);
       }
       const chunkOutput: AudioChunkStreamOutput = {
