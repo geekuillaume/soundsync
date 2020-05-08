@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { PassThrough } from 'stream';
 import eos from 'end-of-stream';
 import { EventEmitter } from 'events';
-import { OPUS_ENCODER_RATE } from '../../utils/constants';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
   SinkDescriptor, SinkType, BaseSinkDescriptor, SinkUUID,
@@ -39,6 +39,7 @@ export abstract class AudioSink extends EventEmitter {
   instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
   latency = 0;
+  lastReceivedChunkIndex = -1;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
@@ -134,7 +135,7 @@ export abstract class AudioSink extends EventEmitter {
       this.decodedStream.destroy();
       this.log(`Error while starting sink`, e);
     }
-    this.decodedStream.on('data', this.handleAudioChunk);
+    this.decodedStream.on('data', this._handleAudioChunk);
     eos(this.sourceStream, () => {
       this.log('Source stream has closed, unlinking');
       this.unlinkSource();
@@ -149,9 +150,22 @@ export abstract class AudioSink extends EventEmitter {
     delete this.pipedSource;
     this.sourceStream.destroy();
     delete this.sourceStream;
-    this.decodedStream.off('data', this.handleAudioChunk);
+    this.decodedStream.off('data', this._handleAudioChunk);
     this.decodedStream.destroy();
     delete this.decodedStream;
+  }
+
+  _handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
+    if (this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1) {
+      this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
+    }
+    this.lastReceivedChunkIndex = chunk.i;
+    if ((chunk.i * OPUS_ENCODER_CHUNK_DURATION + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -2000) {
+      this.log(`Received old chunk, discarding it: ${chunk.i}`);
+      // we received old chunks, discard them
+      return;
+    }
+    this.handleAudioChunk(chunk);
   }
 
   abstract handleAudioChunk(chunk: AudioChunkStreamOutput);

@@ -10,7 +10,7 @@ import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_DURATION,
+  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId } from '../../utils/soundio';
@@ -19,14 +19,12 @@ import { AudioInstance } from '../utils';
 import { CircularTypedArray } from './audioworklets/circularTypedArray';
 
 const BUFFER_DURATION = 10000;
-const MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO = 200; // when the audio device clock and the CPU clock have derived more than this, resync
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
   local: true = true;
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
-  lastReceivedChunk = -1;
 
   private worklet: Worker;
   private cleanStream;
@@ -100,7 +98,7 @@ export class LocalDeviceSink extends AudioSink {
         this.log(`Resync because of audio clock skew: ${skew / ((OPUS_ENCODER_RATE / 1000) * this.channels)}ms`);
         this.setStreamTimeForWorklet();
       }
-    }, 20000);
+    }, 5000);
 
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
@@ -130,17 +128,9 @@ export class LocalDeviceSink extends AudioSink {
       this.log(`Received a chunk for a not piped sink, ignoring`);
       return;
     }
-    if ((data.i * 10 + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -200) {
-      // we received old chunks, discard them
-      return;
-    }
-    if (this.lastReceivedChunk !== -1 && data.i !== this.lastReceivedChunk + 1) {
-      this.log(`Received out-of-order chunk, received chunk index: ${data.i}, last chunk index: ${this.lastReceivedChunk}`);
-    }
     const chunk = new Float32Array(data.chunk.buffer);
-    const offset = data.i * OPUS_ENCODER_CHUNK_DURATION * (OPUS_ENCODER_RATE / 1000) * this.channels;
+    const offset = data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels;
     this.buffer.set(chunk, offset);
-    this.lastReceivedChunk = data.i;
   }
 
   getIdealBufferReadPosition = () => this.getCurrentStreamTime()
