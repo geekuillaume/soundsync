@@ -90,7 +90,7 @@ export class AudioChunkStreamEncoder extends Transform {
   _transform(d: AudioChunkStreamOutput, encoding, callback) {
     const encodedChunk = Buffer.alloc(
       4 // Index: UInt32
-      + d.chunk.length,
+      + d.chunk.byteLength,
     );
     encodedChunk.writeUInt32LE(d.i, 0);
     d.chunk.copy(encodedChunk, 4);
