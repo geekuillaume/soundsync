@@ -12,6 +12,8 @@ import { getPeersManager } from '../../communication/get_peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 import { now } from '../../utils/time';
 
+const DEFAULT_LATENCY = 2000;
+
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
   name: string;
@@ -23,7 +25,7 @@ export abstract class AudioSource {
   uuid: string;
   peerUuid: string;
   manager: AudioSourcesSinksManager;
-  instanceUuid; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
+  instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
   encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
@@ -41,7 +43,7 @@ export abstract class AudioSource {
     this.peerUuid = descriptor.peerUuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
-    this.latency = descriptor.latency || 500;
+    this.latency = descriptor.latency || DEFAULT_LATENCY;
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
