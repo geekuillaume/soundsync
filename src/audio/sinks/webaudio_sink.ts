@@ -13,6 +13,7 @@ export class WebAudioSink extends AudioSink {
   local: true = true;
   workletNode: AudioWorkletNode;
   context: AudioContext;
+  cleanAudioContext;
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -41,7 +42,7 @@ export class WebAudioSink extends AudioSink {
     if (!this.context) {
       this.context = new AudioContext({
         sampleRate: 48000,
-        latencyHint: 'interactive',
+        latencyHint: 0.5,
       });
     }
     // this is handled by parcel with the copy static files config
@@ -51,6 +52,7 @@ export class WebAudioSink extends AudioSink {
     await this.context.audioWorklet.addModule(audioworkletPath);
     this.workletNode = new RawPcmPlayerWorklet(this.context);
     const volumeNode = this.context.createGain();
+    volumeNode.gain.value = this.volume;
     this.workletNode.connect(volumeNode);
     volumeNode.connect(this.context.destination);
 
@@ -71,36 +73,46 @@ export class WebAudioSink extends AudioSink {
     this.updateInfo({
       latency: this.context.baseLatency * 1000,
     });
-    // Todo: use this.context.getOutputTimestamp() as time reference to prevent time shift between sending and receiving the message in the audio thread
-    this.workletNode.port.postMessage({
-      type: 'currentStreamTime',
-      currentStreamTime: this.getCurrentStreamTime(),
-    });
+    this._synchronizeWorklet();
 
     const syncDeviceVolume = () => {
       volumeNode.gain.value = this.volume;
     };
     this.on('update', syncDeviceVolume);
+    const resyncInterval = setInterval(this._synchronizeWorklet, 5000);
     // TODO: handle the source latency change
+    this.cleanAudioContext = () => {
+      this.off('update', syncDeviceVolume);
+      clearInterval(resyncInterval);
+      this.workletNode.disconnect();
+      delete this.workletNode;
+      this.context.suspend();
+      delete this.context;
+      this.cleanAudioContext = undefined;
+    };
+  }
+
+  _synchronizeWorklet = () => {
+    if (!this.workletNode) {
+      return;
+    }
+    const currentStreamTime = this.getCurrentStreamTime();
+    const currentContextTime = this.context.getOutputTimestamp().contextTime * 1000;
+    // console.log('Sent at', currentContextTime);
+    this.workletNode.port.postMessage({
+      type: 'currentStreamTime',
+      currentStreamTimeRelativeToContextTime: currentStreamTime - currentContextTime,
+    });
   }
 
   _stopSink() {
-    if (this.context) {
-      this.context.suspend();
-      delete this.context;
-    }
-    if (this.workletNode) {
-      this.workletNode.disconnect();
-      delete this.workletNode;
+    if (this.cleanAudioContext) {
+      this.cleanAudioContext();
     }
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
     if (!this.workletNode) {
-      return;
-    }
-    if ((data.i * 10 + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -200) {
-      // we received old chunks, discard them
       return;
     }
     const chunk = new Float32Array(data.chunk.buffer);
