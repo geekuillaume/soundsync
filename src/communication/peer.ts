@@ -62,8 +62,8 @@ export abstract class Peer extends EventEmitter {
       this._previousTimeDeltas.splice(TIME_DELTAS_TO_KEEP);
       const realTimeDelta = _.mean(this._previousTimeDeltas);
       if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
+        this.log(`Updating timedelta to ${realTimeDelta}, diff was ${realTimeDelta - this.timeDelta}ms`);
         this.timeDelta = realTimeDelta;
-        this.log(`Updating timedelta to ${realTimeDelta}`);
         this.emit('timedeltaUpdated');
       }
       this.emit('timesyncStateUpdated');
