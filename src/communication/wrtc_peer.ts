@@ -270,12 +270,12 @@ export class WebrtcPeer extends Peer {
     }
     this.log(`Requesting channel for source ${sourceUuid}`);
     const channel = this.connection.createDataChannel(`audioSource:${sourceUuid}`, AUDIO_CHANNEL_OPTIONS);
+    this.datachannelsBySourceUuid[sourceUuid] = channel;
     if (channel.readyState !== 'open') {
       await new Promise((resolve) => {
         channel.onopen = resolve;
       });
     }
-    this.datachannelsBySourceUuid[sourceUuid] = channel;
     // TODO: check that this isn't a memory leak when closing the channel
     return new DataChannelStream(channel);
   }
@@ -284,8 +284,7 @@ export class WebrtcPeer extends Peer {
     if (!this.datachannelsBySourceUuid[sourceUuid]) {
       throw new Error('No channel for this source exist');
     }
-    const datachannel = this.datachannelsBySourceUuid[sourceUuid];
-    datachannel.close();
+    this.datachannelsBySourceUuid[sourceUuid].close();
     delete this.datachannelsBySourceUuid[sourceUuid];
   }
 
