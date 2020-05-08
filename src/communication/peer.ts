@@ -85,9 +85,11 @@ export abstract class Peer extends EventEmitter {
       this.name = message.peer.name;
       this.capacities = message.peer.capacities;
       this.uuid = message.peer.uuid;
-      this.log = debug(`soundsync:peer:${message.peer.uuid}`);
-      this.setState('connected');
-      this.log('Connected');
+      if (this.state !== 'connected') {
+        this.log = debug(`soundsync:peer:${message.peer.uuid}`);
+        this.setState('connected');
+        this.log('Connected');
+      }
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
