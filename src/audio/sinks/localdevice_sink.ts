@@ -91,10 +91,8 @@ export class LocalDeviceSink extends AudioSink {
     this.on('update', syncDeviceVolume);
 
     const resyncInterval = setInterval(() => {
-      const skew = Math.abs(this.buffer.getReaderPointer() - this.getIdealBufferReadPosition());
-      if (skew > MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO
-          * (OPUS_ENCODER_RATE / 1000)
-          * this.channels) {
+      const skew = this.buffer.getReaderPointer() - this.getIdealBufferReadPosition();
+      if (Math.abs(skew) > MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO * (OPUS_ENCODER_RATE / 1000) * this.channels) {
         this.log(`Resync because of audio clock skew: ${skew / ((OPUS_ENCODER_RATE / 1000) * this.channels)}ms`);
         this.setStreamTimeForWorklet();
       }
@@ -133,9 +131,7 @@ export class LocalDeviceSink extends AudioSink {
     this.buffer.set(chunk, offset);
   }
 
-  getIdealBufferReadPosition = () => this.getCurrentStreamTime()
-    * (OPUS_ENCODER_RATE / 1000)
-    * this.channels;
+  getIdealBufferReadPosition = () => Math.floor(this.getCurrentStreamTime() * (OPUS_ENCODER_RATE / 1000)) * this.channels;
 
   setStreamTimeForWorklet = () => {
     if (!this.buffer) {
