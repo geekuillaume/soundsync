@@ -19,22 +19,27 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
   <img src="res/screenshot_menu.png" height="400">
 </p>
 
-<!-- ## Download it
+## Download it
 
 <table width="100%" align="center"><tr>
-  <td>
+  <td align="center">
     <h3>Windows</h3>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/Soundsync.Setup.0.1.0.exe">Download development version</a></p>
   </td>
-  <td>
+  <td align="center">
     <h3>MacOS</h3>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/Soundsync-0.1.0.dmg">Download development version</a></p>
   </td>
-  <td>
+  <td align="center">
     <h3>Linux</h3>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_amd64.deb">Download development version (.deb)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync-0.1.0.pacman">Download development version (.pacman)</a></p>
   </td>
-  <td>
-    <h3>Raspberry</h3>
+  <td align="center">
+    <h3>Linux ARM (Raspberry)</h3>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb">Download development version (.deb)</a></p>
   </td>
-</tr></table> -->
+</tr></table>
 
 ## Project status
 
@@ -42,13 +47,11 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 
 - Bluetooth on linux
 - UPnP: gmrender-resurrect
-- Reconnection when registered with IP instead of Bonjour
 - Updating info for Spotify sink from WebUI
-- Initiate WebRTC connection between peers from a web server with an Auth Token as an alternative to Bonjour and to prevent issue with AudioWorklet not being available on http pages
 - Allow changing the name of a peer from the webui
 - Group of sinks
 - Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
-- Integration media info on webui
+- Integration of media info on webui
 - Synchronize sound with Philips Hue light bulbs
 - Create a ready to use RaspberryPi image
 
