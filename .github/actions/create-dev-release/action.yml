@@ -1,0 +1,5 @@
+name: 'Create a dev release'
+description: 'Create a release if doesnt already exists and upload build artifacts'
+runs:
+  using: 'node12'
+  main: 'index.js'
