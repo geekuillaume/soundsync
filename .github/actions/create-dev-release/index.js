@@ -65,9 +65,12 @@ async function run() {
         });
       }
       // Determine content-length for header to upload asset
-
+      const fileStat = fs.statSync(file);
+      if (fileStat.isDirectory()) {
+        continue;
+      }
       // Setup headers for API call, see Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-upload-release-asset for more information
-      const headers = { 'content-type': contentType, 'content-length': contentLength(file) };
+      const headers = { 'content-type': contentType, 'content-length': fileStat.size };
       console.log(`Uploading ${file}`);
       await github.repos.uploadReleaseAsset({
         url: uploadUrl,
