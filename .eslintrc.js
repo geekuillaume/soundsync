@@ -52,5 +52,6 @@ module.exports = {
     "no-return-await": 0,
     "no-new": 0,
     "no-restricted-syntax": 0,
+    "no-await-in-loop": 0
   },
 };
