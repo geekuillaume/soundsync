@@ -18,7 +18,7 @@ export abstract class WebrtcInitiator {
 
   constructor(
     public uuid = uuidv4(),
-    public handleReceiveMessage: (message: InitiatorMessage) => void,
+    public handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
   ) {}
   // TODO: add a way to clean initiators to prevent memory leak
   abstract sendMessage(message: InitiatorMessageContent): Promise<unknown>;

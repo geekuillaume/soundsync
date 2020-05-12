@@ -1,4 +1,5 @@
 import Router from 'koa-router';
+import { assert } from '../../utils/assert';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
@@ -7,7 +8,7 @@ import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './in
 import { fetchRendezvousMessages, postRendezvousMessage, notifyPeerOfRendezvousMessage } from '../rendezvous_service';
 
 const POLLING_INTERVAL = 3000;
-const initiatorsListener: {[initiatorUuid: string]: (message: InitiatorMessage) => unknown} = {};
+const initiatorsListener: {[initiatorUuid: string]: (message: InitiatorMessage) => Promise<void>} = {};
 
 export class RendezVousServiceInitiator extends WebrtcInitiator {
   uuid: string;
@@ -16,7 +17,7 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
 
   constructor(
     uuid: string,
-    public handleReceiveMessage: (message: InitiatorMessage) => void,
+    public handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
     public host: string,
     public isPrimary?: boolean, // the primary is the peer which sent the first request
   ) {
@@ -38,8 +39,10 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
     } as InitiatorMessage, this.isPrimary);
     try {
       await notifyPeerOfRendezvousMessage(this.uuid, this.host);
-      const messages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
-      messages.forEach(this.handleReceiveMessage);
+      const fetchedMessages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
+      for (const fetchedMessage of fetchedMessages) {
+        await this.handleReceiveMessage(fetchedMessage);
+      }
     } catch (e) {
       if (e.status === 409) {
         e.shouldAbort = true;
@@ -70,7 +73,7 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
 }
 
 export const createRendezvousServiceInitiator = (host: string, uuid?: string, isPrimary = true) => (
-  (handleReceiveMessage: (message: InitiatorMessage) => void) => (
+  (handleReceiveMessage: (message: InitiatorMessage) => Promise<void>) => (
     new RendezVousServiceInitiator(uuid, handleReceiveMessage, host, isPrimary)
   ));
 
@@ -100,7 +103,11 @@ export const initHttpServerRoutes = (router: Router) => {
         getPeersManager().registerPeer(peer);
       }
 
-      await Promise.all(messages.map(initiatorsListener[initiatorUuid]));
+      for (const message of messages) {
+        await initiatorsListener[initiatorUuid](message);
+        // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
+        assert(initiatorsListener[initiatorUuid], 'Error while handling initiator message');
+      }
     } catch (e) {
       await postRendezvousMessage(initiatorUuid, {
         error: true,
@@ -109,6 +116,8 @@ export const initHttpServerRoutes = (router: Router) => {
       }, false);
     }
 
+    // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
+    ctx.assert(initiatorsListener[initiatorUuid], 500, 'Error while handling message');
     ctx.body = EMPTY_IMAGE;
     ctx.set('Content-type', 'image/png');
     ctx.status = 200;

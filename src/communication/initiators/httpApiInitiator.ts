@@ -25,7 +25,7 @@ export class HttpApiInitiator extends WebrtcInitiator {
 
   constructor(
     uuid: string,
-    handleReceiveMessage: (message: InitiatorMessage) => void,
+    handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
     public httpEndpoint: string,
   ) {
     super(uuid, handleReceiveMessage);
@@ -59,13 +59,14 @@ export class HttpApiInitiator extends WebrtcInitiator {
         .send(requestBody);
       body = res.body;
     } catch (e) {
-      if (e.status === 409) {
+      if (e.status === 409 || e.status === 500) {
         e.shouldAbort = true;
       }
       throw e;
     }
-
-    body.forEach(this.handleReceiveMessage);
+    for (const receivedMessage of body) {
+      await this.handleReceiveMessage(receivedMessage);
+    }
   }
 
   startPolling = () => {
@@ -88,13 +89,17 @@ export class HttpApiInitiator extends WebrtcInitiator {
   }
 
   poll = async () => {
-    const { body } = await superagent.get(`${this.httpEndpoint}/initiator/${this.uuid}/messages`);
-    body.forEach(this.handleReceiveMessage);
+    try {
+      const { body } = await superagent.get(`${this.httpEndpoint}/initiator/${this.uuid}/messages`);
+      body.forEach(this.handleReceiveMessage);
+    } catch {
+      // nothing to do, just ignoring the error
+    }
   }
 }
 
 export const createHttpApiInitiator = (httpEndpoint: string, uuid?: string) => (
-  handleReceiveMessage: (message: InitiatorMessage) => void,
+  handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
 ) => (
   new HttpApiInitiator(uuid, handleReceiveMessage, httpEndpoint)
 );
@@ -126,6 +131,9 @@ export const initHttpServerRoutes = (router: Router) => {
       getPeersManager().registerPeer(peer);
     }
     await initiators[initiatorUuid].handleReceiveMessage(body.message);
+    // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
+    ctx.assert(initiators[initiatorUuid], 500, 'Error while handling initiator message');
+
     ctx.body = initiators[initiatorUuid].messagesToEmitBuffer;
     initiators[initiatorUuid].messagesToEmitBuffer = [];
     ctx.status = 200;

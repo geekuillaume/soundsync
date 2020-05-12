@@ -20,7 +20,7 @@ interface WebrtcPeerConstructorParams {
   uuid: string;
   name: string;
   instanceUuid: string;
-  initiatorConstructor: (handleReceiveMessage: (message: InitiatorMessage) => void) => WebrtcInitiator;
+  initiatorConstructor: (handleReceiveMessage: (message: InitiatorMessage) => Promise<void>) => WebrtcInitiator;
 }
 
 export class WebrtcPeer extends Peer {
@@ -124,49 +124,54 @@ export class WebrtcPeer extends Peer {
     if (this.state === 'deleted') {
       return;
     }
-    const { senderUuid } = message;
-    const { description, candidate } = message;
+    try {
+      const { senderUuid } = message;
+      const { description, candidate } = message;
 
-    if (description) {
-      this.initWebrtcIfNeeded();
-      const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
-      this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > senderUuid;
-      if (this.shouldIgnoreOffer) {
-        return;
-      }
-      if (offerCollision) {
-        // Rolling back, this should be done automatically in a next version of wrtc lib
-        this.cleanWebrtcState();
+      if (description) {
         this.initWebrtcIfNeeded();
-      }
-      this.log('Setting remote description');
-      await this.connection.setRemoteDescription(description);
-      if (description.type === 'offer') {
-        // const localDescription: any = {
-        //   type: this.connection.signalingState === 'stable'
-        //   || this.connection.signalingState === 'have-local-offer'
-        //   || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
-        //   sdp: (await this.connection.createAnswer()).sdp,
-        // };
-        await this.connection.setLocalDescription(await this.connection.createAnswer());
+        const offerCollision = description.type === 'offer' && (this.hasSentOffer || this.connection.signalingState !== 'stable');
+        this.shouldIgnoreOffer = offerCollision && getLocalPeer().uuid > senderUuid;
+        if (this.shouldIgnoreOffer) {
+          return;
+        }
+        if (offerCollision) {
+          // Rolling back, this should be done automatically in a next version of wrtc lib
+          this.cleanWebrtcState();
+          this.initWebrtcIfNeeded();
+        }
+        this.log('Setting remote description');
+        await this.connection.setRemoteDescription(description);
+        if (description.type === 'offer') {
+          // const localDescription: any = {
+          //   type: this.connection.signalingState === 'stable'
+          //   || this.connection.signalingState === 'have-local-offer'
+          //   || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
+          //   sdp: (await this.connection.createAnswer()).sdp,
+          // };
+          await this.connection.setLocalDescription(await this.connection.createAnswer());
+          try {
+            await this.initiator.sendMessage({
+              description: this.connection.localDescription,
+            });
+          } catch {}
+        }
+      } else if (candidate) {
+        if (!this.connection) {
+          this.log('Received candidate but connection was not yet initialized, ignoring');
+          return;
+        }
         try {
-          await this.initiator.sendMessage({
-            description: this.connection.localDescription,
-          });
-        } catch {}
-      }
-    } else if (candidate) {
-      if (!this.connection) {
-        this.log('Received candidate but connection was not yet initialized, ignoring');
-        return;
-      }
-      try {
-        await this.connection.addIceCandidate(candidate);
-      } catch (err) {
-        if (!this.shouldIgnoreOffer) {
-          throw err; // Suppress ignored offer's candidates
+          await this.connection.addIceCandidate(candidate);
+        } catch (err) {
+          if (!this.shouldIgnoreOffer) {
+            throw err; // Suppress ignored offer's candidates
+          }
         }
       }
+    } catch (e) {
+      this.log('Error while handling initiator message', e);
+      this.destroy('Initiator message error');
     }
   }
 

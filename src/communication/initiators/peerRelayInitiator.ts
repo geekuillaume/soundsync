@@ -18,7 +18,7 @@ export class PeerRelayInitiator extends WebrtcInitiator {
 
   constructor(
     uuid: string,
-    public handleReceiveMessage: (message: InitiatorMessage) => void,
+    public handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
     public targetUuid: string,
   ) {
     super(uuid, handleReceiveMessage);
@@ -51,7 +51,7 @@ export class PeerRelayInitiator extends WebrtcInitiator {
 }
 
 export const createPeerRelayServiceInitiator = (targetUuid: string, uuid?: string) => (
-  (handleReceiveMessage: (message: InitiatorMessage) => void) => (
+  (handleReceiveMessage: (message: InitiatorMessage) => Promise<void>) => (
     new PeerRelayInitiator(uuid, handleReceiveMessage, targetUuid)
   ));
 
