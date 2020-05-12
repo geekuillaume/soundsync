@@ -83,7 +83,10 @@ export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, ho
   // so we need a hack: loading a <img> with the source on the host, this will still be allowed in a secure context
   // and allow us to notify the peer on the local network
   if (typeof document === 'undefined') {
-    throw new Error('This method is meant to be used in a web context, not in a NodeJS one');
+    const err = new Error('This method is meant to be used in a web context, not in a NodeJS one');
+    // @ts-ignore
+    err.shouldAbort = true;
+    throw err;
   }
   const imgEl = document.createElement('img');
   await new Promise((resolve, reject) => {
