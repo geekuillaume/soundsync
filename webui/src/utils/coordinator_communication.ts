@@ -40,7 +40,7 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  if (localStorage.getItem('soundsync:disableRendezvousService') === undefined) {
+  if (localStorage.getItem('soundsync:disableRendezvousService') === null) {
     enableRendezvousServicePeersDetection(true);
   }
 });
