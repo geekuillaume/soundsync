@@ -164,13 +164,14 @@ export class WebrtcPeer extends Peer {
         try {
           await this.connection.addIceCandidate(candidate);
         } catch (err) {
-          if (!this.shouldIgnoreOffer) {
-            throw err; // Suppress ignored offer's candidates
-          }
+          // if (!this.shouldIgnoreOffer) {
+          //   throw err; // Suppress ignored offer's candidates
+          // }
         }
       }
     } catch (e) {
-      this.log('Error while handling initiator message', e);
+      this.log('Error while handling initiator message');
+      console.error(e);
       this.destroy('Initiator message error');
     }
   }
