@@ -22,6 +22,9 @@ export const initializeCoordinator = memoize(async () => {
     const peerHost = document.location.port === '8080' ? `http://${document.location.hostname}:6512` : `http://${document.location.host}`;
     await getPeersManager().joinPeerWithHttpApi(peerHost);
   }
+  if (localStorage.getItem('soundsync:forceConnectToPeer')) {
+    getPeersManager().joinPeerWithHttpApi(localStorage.getItem('soundsync:forceConnectToPeer'));
+  }
 
   const audioSourcesSinksManager = getAudioSourcesSinksManager();
   audioSourcesSinksManager.addFromConfig();
@@ -37,7 +40,7 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  if (!localStorage.soundsync_disable_rendezvous_service) {
+  if (localStorage.getItem('soundsync:disableRendezvousService') === undefined) {
     enableRendezvousServicePeersDetection(true);
   }
 });
