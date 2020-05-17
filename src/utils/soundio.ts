@@ -17,3 +17,10 @@ export const getOutputDeviceFromId = (deviceId: string) => {
   }
   return getAudioDevices().outputDevices.find((device) => device.id === deviceId);
 };
+
+export const getInputDeviceFromId = (deviceId: string) => {
+  if (!deviceId) {
+    return null;
+  }
+  return getAudioDevices().inputDevices.find((device) => device.id === deviceId);
+};

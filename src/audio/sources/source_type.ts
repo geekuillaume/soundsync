@@ -8,6 +8,7 @@ export interface BaseSourceDescriptor {
   startedAt?: number;
   latency?: number;
   channels?: number;
+  available: boolean;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
@@ -33,10 +34,10 @@ export interface NullSourceDescriptor extends BaseSourceDescriptor {
   type: 'null';
 }
 
-export interface RtAudioSourceDescriptor extends BaseSourceDescriptor {
-  type: 'rtaudio';
-  deviceName: string;
+export interface LocalDeviceSourceDescriptor extends BaseSourceDescriptor {
+  type: 'localdevice';
+  deviceId: string;
 }
 
-export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | RtAudioSourceDescriptor | ShairportSourceDescriptor;
+export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | LocalDeviceSourceDescriptor | ShairportSourceDescriptor;
 export type SourceType = SourceDescriptor['type'];

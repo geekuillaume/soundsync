@@ -60,5 +60,6 @@ export class LibrespotSource extends AudioSource {
     channels: this.channels,
     latency: this.latency,
     startedAt: this.startedAt,
+    available: true, // TODO: check if librespot process is still running to get availability state
   })
 }

@@ -16,7 +16,7 @@ import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
-import { CircularTypedArray } from './audioworklets/circularTypedArray';
+import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 const BUFFER_DURATION = 10000;
 

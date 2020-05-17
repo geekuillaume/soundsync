@@ -33,6 +33,7 @@ export abstract class AudioSource {
   startedAt: number;
   private consumersStreams: PassThrough[] = [];
   latency: number;
+  available: boolean;
 
   protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
 
@@ -46,6 +47,7 @@ export abstract class AudioSource {
     this.latency = descriptor.latency || DEFAULT_LATENCY;
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
+    this.available = descriptor.available;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -145,6 +147,7 @@ export abstract class AudioSource {
     rate: this.rate,
     peerUuid: this.peerUuid,
     latency: this.latency,
+    available: this.available,
   })
 
   toDescriptor = (): AudioInstance<BaseSourceDescriptor> => ({
@@ -156,5 +159,6 @@ export abstract class AudioSource {
     peerUuid: this.peerUuid,
     instanceUuid: this.instanceUuid,
     channels: this.channels,
+    available: this.available,
   })
 }

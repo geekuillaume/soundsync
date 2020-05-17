@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { AudioWorkletProcessor } from 'audioworklet';
-import { CircularTypedArray } from './circularTypedArray';
+import { CircularTypedArray } from '../../../utils/circularTypedArray';
 
 class NodeAudioworklet extends AudioWorkletProcessor {
   buffer: CircularTypedArray<Float32Array>;
