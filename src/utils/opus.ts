@@ -71,9 +71,9 @@ export class OpusDecoder {
     });
   })
 
-  async decodeFloat(data: Buffer) {
+  decodeFloat(data: Buffer) {
     if (!this.handle) {
-      await this.setup();
+      throw new Error('Decoder should be setup before usage');
     }
     this.buf.set(data);
     const decodedSamplesPerChannel = this.module._opus_decode_float(this.handle, this.bufPtr, data.length, this.pcmPtr, this.frameSize, 0);
@@ -122,9 +122,9 @@ export class OpusEncoder {
     });
   })
 
-  async encode(pcm: Buffer) {
+  encode(pcm: Buffer) {
     if (!this.handle) {
-      await this.setup();
+      throw new Error('Encoder should be setup before usage');
     }
     this.pcm.set(pcm);
     const frameSize = pcm.length / 2 / this.channels;

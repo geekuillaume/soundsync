@@ -1,6 +1,6 @@
-import { Duplex } from 'stream';
+import MiniPass from 'minipass';
 
-export class DataChannelStream extends Duplex {
+export class DataChannelStream extends MiniPass {
   datachannel: RTCDataChannel;
 
   constructor(datachannel: RTCDataChannel) {
@@ -8,21 +8,11 @@ export class DataChannelStream extends Duplex {
     this.datachannel = datachannel;
     datachannel.onmessage = this.handleDataChannelMessage;
     datachannel.onclose = () => {
-      this.destroy();
+      this.end();
     };
   }
 
   private handleDataChannelMessage = (ev: MessageEvent) => {
-    this.push(Buffer.from(ev.data));
+    this.write(Buffer.from(ev.data));
   }
-
-  _write(chunk, encoding, callback) {
-    if (this.datachannel.readyState === 'open') {
-      this.datachannel.send(chunk);
-    }
-    callback(null);
-  }
-
-  // we need to wait for more data from datachannel, cannot force a read so doing nothing here
-  _read() {}
 }

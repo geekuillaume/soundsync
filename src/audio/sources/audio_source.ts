@@ -2,8 +2,7 @@ import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
-import { PassThrough } from 'stream';
-import eos from 'end-of-stream';
+import MiniPass from 'minipass';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
@@ -28,14 +27,14 @@ export abstract class AudioSource {
   instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
-  encodedAudioStream: PassThrough; // stream used to redistribute the audio chunks to every sink
-  protected directSourceStream: NodeJS.ReadableStream; // internal stream from the source
+  encodedAudioStream: MiniPass; // stream used to redistribute the audio chunks to every sink
+  protected directSourceStream: MiniPass; // internal stream from the source
   startedAt: number;
-  private consumersStreams: PassThrough[] = [];
+  private consumersStreams: MiniPass[] = [];
   latency: number;
   available: boolean;
 
-  protected abstract _getAudioEncodedStream(): Promise<NodeJS.ReadableStream> | NodeJS.ReadableStream;
+  protected abstract _getAudioEncodedStream(): Promise<MiniPass> | MiniPass;
 
   constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
@@ -83,22 +82,23 @@ export abstract class AudioSource {
     }
   }
 
-  async start(): Promise<PassThrough> {
+  async start(): Promise<MiniPass> {
     if (!this.encodedAudioStream) {
       this.log(`Starting audio source`);
-      this.encodedAudioStream = new PassThrough();
-      this.encodedAudioStream.on('data', (d) => {
-        this.consumersStreams.forEach((s) => s.write(d));
-      });
+      this.encodedAudioStream = new MiniPass();
       if (this.local) {
         this.updateInfo({ startedAt: Math.floor(now()) }); // no need for more than 1ms of precision
       }
+      // we don't use pipe here because minipass cannot be unpiped but we still need to stop sending to ended consumersStreams
+      this.encodedAudioStream.on('data', (d) => {
+        this.consumersStreams.forEach((stream) => stream.write(d));
+      });
       this.directSourceStream = await this._getAudioEncodedStream();
       this.directSourceStream.on('finish', () => {
         this.log('Source stream finished, cleaning source');
         // when the readable stream finishes => when the source program exit / source file finishes
         if (this.encodedAudioStream) {
-          this.encodedAudioStream.destroy();
+          this.encodedAudioStream.end();
         }
         delete this.encodedAudioStream;
         delete this.directSourceStream;
@@ -106,9 +106,9 @@ export abstract class AudioSource {
       this.directSourceStream.pipe(this.encodedAudioStream);
     }
 
-    const instanceStream = new PassThrough();
+    const instanceStream = new MiniPass();
     this.consumersStreams.push(instanceStream);
-    eos(instanceStream, () => {
+    instanceStream.on('end', () => {
       this.consumersStreams = this.consumersStreams.filter((s) => s !== instanceStream);
       if (this.consumersStreams.length === 0) {
         this.handleNoMoreReadingSink();
@@ -128,7 +128,7 @@ export abstract class AudioSource {
 
   stop() {
     if (this.encodedAudioStream) {
-      this.encodedAudioStream.destroy();
+      this.encodedAudioStream.end();
     }
     delete this.encodedAudioStream;
     delete this.directSourceStream;

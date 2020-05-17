@@ -1,47 +1,74 @@
 import SpeexResampler from 'speex-resampler';
-import { Transform } from 'stream';
+import MiniPass from 'minipass';
 import { OpusEncoder, OpusApplication, OpusDecoder } from './opus';
 import {
   AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder,
 } from './chunk_stream';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION } from './constants';
 
-export class OpusEncodeStream extends Transform {
+export class OpusEncodeStream extends MiniPass {
   encoder: OpusEncoder;
+  readyPromise: Promise<unknown>;
 
   constructor(sampleRate: number, channels: number, application: OpusApplication) {
     super({
       objectMode: true,
     });
     this.encoder = new OpusEncoder(sampleRate, channels, application);
+    this.readyPromise = this.encoder.setup();
   }
 
-  async _transform(data: AudioChunkStreamOutput, encoding, callback) {
-    const frame = await this.encoder.encode(data.chunk);
-    callback(null, {
-      i: data.i,
-      chunk: frame,
-    });
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    this.readyPromise
+      .then(() => this.encoder.encode(d.chunk))
+      .then((frame) => {
+        if (this.emittedEnd) {
+          return;
+        }
+
+        super.write({
+          i: d.i,
+          chunk: frame,
+        });
+        if (cb) {
+          cb();
+        }
+      });
+
+    return true;
   }
 }
 
-export class OpusDecodeStream extends Transform {
+export class OpusDecodeStream extends MiniPass {
   decoder: OpusDecoder;
+  readyPromise: Promise<unknown>;
 
   constructor(sampleRate: number, channels: number) {
     super({
       objectMode: true,
     });
     this.decoder = new OpusDecoder(sampleRate, channels);
+    this.readyPromise = this.decoder.setup();
   }
 
-  async _transform(data: AudioChunkStreamOutput, encoding, callback) {
-    const decodedFrame = await this.decoder.decodeFloat(data.chunk);
-    const output: AudioChunkStreamOutput = {
-      i: data.i,
+  async _handleChunk(d: AudioChunkStreamOutput, cb?: () => void) {
+    await this.readyPromise;
+    if (this.emittedEnd) {
+      return;
+    }
+    const decodedFrame = this.decoder.decodeFloat(d.chunk);
+    super.write({
+      i: d.i,
       chunk: Buffer.from(decodedFrame),
-    };
-    callback(null, output);
+    });
+    if (cb) {
+      cb();
+    }
+  }
+
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    this._handleChunk(d, cb);
+    return true;
   }
 }
 
@@ -63,7 +90,7 @@ export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, so
     .pipe(chunkEncoder);
 };
 
-export const createAudioDecodedStream = (encodedStream: NodeJS.ReadableStream, channels: number) => {
+export const createAudioDecodedStream = (encodedStream: MiniPass, channels: number) => {
   const chunkDecoderStream = new AudioChunkStreamDecoder();
   const opusDecoderStream = new OpusDecodeStream(OPUS_ENCODER_RATE, channels);
   return encodedStream

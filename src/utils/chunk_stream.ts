@@ -1,4 +1,5 @@
 import { Readable, Transform } from 'stream';
+import Minipass from 'minipass';
 import { now } from './time';
 
 export interface AudioChunkStreamOutput {
@@ -10,7 +11,7 @@ export interface AudioChunkStreamOutput {
 // every chunk has a index corresponding to when this chunk is emitted (i = [time when chunk was read relative to the creating of the stream] / chunkDuration)
 // as long as the source stream can be read, the index is incremented directly
 // if the source stream is interrupted (nothing can be read anymore), the next time a chunk is available, the index will be recalculated from the time
-export class AudioChunkStream extends Readable {
+export class AudioChunkStream extends Minipass {
   private readInterval: NodeJS.Timeout;
   creationTime: number = now();
   lastEmittedChunkIndex: number;
@@ -38,11 +39,7 @@ export class AudioChunkStream extends Readable {
     }
   }
 
-  _read() {
-    this.startReadLoop();
-  }
-
-  now = () => now() - this.creationTime;
+  private now = () => now() - this.creationTime;
 
   _pushNecessaryChunks = () => {
     while (true) {
@@ -75,35 +72,52 @@ export class AudioChunkStream extends Readable {
         i: currentChunkIndex,
         chunk,
       };
-      this.push(chunkOutput);
+      console.log(`+ ${currentChunkIndex}`);
+      this.write(chunkOutput);
       this.lastEmittedChunkIndex = currentChunkIndex;
     }
   }
 }
 
-export class AudioChunkStreamEncoder extends Transform {
+export class AudioChunkStreamEncoder extends Minipass {
   constructor() {
     super({
-      writableObjectMode: true,
+      objectMode: true,
     });
   }
-  _transform(d: AudioChunkStreamOutput, encoding, callback) {
+
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
     const encodedChunk = Buffer.alloc(
       4 // Index: UInt32
       + d.chunk.byteLength,
     );
     encodedChunk.writeUInt32LE(d.i, 0);
     d.chunk.copy(encodedChunk, 4);
-    callback(null, encodedChunk);
+    const returnVal = super.write(encodedChunk);
+    if (cb) {
+      cb();
+    }
+    return returnVal;
   }
 }
 
-export class AudioChunkStreamDecoder extends Transform {
+export class AudioChunkStreamDecoder extends Minipass {
   constructor() {
     super({
-      readableObjectMode: true,
+      objectMode: true,
     });
   }
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    const returnVal = super.write({
+      i: d.readUInt32LE(0),
+      chunk: d.subarray(4),
+    });
+    if (cb) {
+      cb();
+    }
+    return returnVal;
+  }
+
   _transform(d: Buffer, encoding, callback) {
     callback(null, {
       i: d.readUInt32LE(0),

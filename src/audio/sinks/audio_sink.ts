@@ -2,9 +2,8 @@ import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
-import { PassThrough } from 'stream';
-import eos from 'end-of-stream';
 import { EventEmitter } from 'events';
+import MiniPass from 'minipass';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
@@ -34,7 +33,7 @@ export abstract class AudioSink extends EventEmitter {
   manager: AudioSourcesSinksManager;
   decoder: NodeJS.ReadWriteStream;
   log: debug.Debugger;
-  sourceStream: PassThrough;
+  sourceStream: MiniPass;
   decodedStream: ReturnType<typeof createAudioDecodedStream>;
   instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   inputStream: NodeJS.ReadableStream;
@@ -132,11 +131,11 @@ export abstract class AudioSink extends EventEmitter {
     try {
       await this._startSink(this.pipedSource);
     } catch (e) {
-      this.decodedStream.destroy();
+      this.decodedStream.end();
       this.log(`Error while starting sink`, e);
     }
     this.decodedStream.on('data', this._handleAudioChunk);
-    eos(this.sourceStream, () => {
+    this.sourceStream.on('end', () => {
       this.log('Source stream has closed, unlinking');
       this.unlinkSource();
     });
@@ -148,10 +147,8 @@ export abstract class AudioSink extends EventEmitter {
     }
     this._stopSink();
     delete this.pipedSource;
-    this.sourceStream.destroy();
+    this.sourceStream.end();
     delete this.sourceStream;
-    this.decodedStream.off('data', this._handleAudioChunk);
-    this.decodedStream.destroy();
     delete this.decodedStream;
   }
 

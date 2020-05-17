@@ -47,7 +47,7 @@ export class RemoteSource extends AudioSource {
     }
     peer.closeAudioSourceChanel(this.uuid);
     if (this.encodedAudioStream) {
-      this.encodedAudioStream.destroy();
+      this.encodedAudioStream.end();
     }
     delete this.encodedAudioStream;
     delete this.directSourceStream;
