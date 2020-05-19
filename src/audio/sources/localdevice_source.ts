@@ -56,7 +56,7 @@ export class LocalDeviceSource extends AudioSource {
 
     this.cleanStream = () => {
       this.soundioInputStream.close();
-      inputStream.destroy();
+      inputStream.end();
       delete this.soundioInputStream;
       delete this.soundioDevice;
       delete this.cleanStream;
