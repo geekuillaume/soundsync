@@ -117,11 +117,4 @@ export class AudioChunkStreamDecoder extends Minipass {
     }
     return returnVal;
   }
-
-  _transform(d: Buffer, encoding, callback) {
-    callback(null, {
-      i: d.readUInt32LE(0),
-      chunk: d.subarray(4),
-    });
-  }
 }
