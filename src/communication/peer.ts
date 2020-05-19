@@ -31,6 +31,7 @@ export abstract class Peer extends EventEmitter {
   timeDelta = 0;
   private _previousTimeDeltas: number[] = [];
   log: Debugger;
+  private logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   capacities: Capacity[];
   isLocal: boolean;
 
@@ -125,7 +126,10 @@ export abstract class Peer extends EventEmitter {
   abstract sendControllerMessage(message: ControllerMessage): void;
   // need to be called by class which implement peer when a message is received
   protected _onReceivedMessage = (message) => {
-    this.log.extend(message.type)('Received controller message', message);
+    if (!this.logPerMessageType[message.type]) {
+      this.logPerMessageType[message.type] = this.log.extend(message.type);
+    }
+    this.logPerMessageType[message.type]('Received controller message', message);
     this.emit(`controllerMessage:all`, { peer: this, message });
     this.emit(`controllerMessage:${message.type}`, { peer: this, message });
     getPeersManager().emit(`controllerMessage:${message.type}`, { message, peer: this });
