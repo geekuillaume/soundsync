@@ -72,7 +72,7 @@ export class AudioChunkStream extends Minipass {
         i: currentChunkIndex,
         chunk,
       };
-      console.log(`+ ${currentChunkIndex}`);
+      // console.log(`+ ${currentChunkIndex}`);
       this.write(chunkOutput);
       this.lastEmittedChunkIndex = currentChunkIndex;
     }
