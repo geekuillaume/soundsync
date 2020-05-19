@@ -8,11 +8,19 @@ export class DataChannelStream extends MiniPass {
     this.datachannel = datachannel;
     datachannel.onmessage = this.handleDataChannelMessage;
     datachannel.onclose = () => {
+      console.log('CLOSING');
       this.end();
     };
   }
 
   private handleDataChannelMessage = (ev: MessageEvent) => {
-    this.write(Buffer.from(ev.data));
+    super.write(Buffer.from(ev.data));
+  }
+
+  write(d: any) {
+    if (this.datachannel.readyState === 'open') {
+      this.datachannel.send(d);
+    }
+    return true;
   }
 }
