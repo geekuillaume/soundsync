@@ -96,6 +96,9 @@ export class ClientCoordinator {
     }
     const sourceStream = await source.start();
     sourceStream.pipe(stream);
+    stream.on('end', () => { // necessary to instruct source stream to stop sending new data to stream as it is closed
+      sourceStream.end();
+    });
   }
 
   private handleSinkUpdate = (message: SinkPatchMessage) => {

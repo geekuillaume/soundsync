@@ -107,13 +107,13 @@ export abstract class AudioSource {
     }
 
     const instanceStream = new MiniPass();
-    this.consumersStreams.push(instanceStream);
     instanceStream.on('end', () => {
       this.consumersStreams = this.consumersStreams.filter((s) => s !== instanceStream);
       if (this.consumersStreams.length === 0) {
         this.handleNoMoreReadingSink();
       }
     });
+    this.consumersStreams.push(instanceStream);
     return instanceStream;
   }
 
