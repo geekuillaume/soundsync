@@ -149,6 +149,9 @@ export abstract class AudioSink extends EventEmitter {
     delete this.pipedSource;
     this.sourceStream.end();
     delete this.sourceStream;
+    if (this.decodedStream) {
+      this.decodedStream.end();
+    }
     delete this.decodedStream;
   }
 
