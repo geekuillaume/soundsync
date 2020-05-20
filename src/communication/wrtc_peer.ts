@@ -98,6 +98,7 @@ export class WebrtcPeer extends Peer {
     this.connection.close();
     delete this.connection;
     delete this.controllerChannel;
+    this.datachannelsBySourceUuid = {};
     if (this.missingPeerResponseTimeout) {
       clearTimeout(this.missingPeerResponseTimeout);
       delete this.missingPeerResponseTimeout;

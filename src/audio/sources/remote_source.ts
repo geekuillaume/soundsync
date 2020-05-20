@@ -25,7 +25,7 @@ export class RemoteSource extends AudioSource {
     }
   }
 
-  async _getAudioEncodedStream() {
+  _getAudioEncodedStream = async () => {
     if (!this.peer) {
       throw new Error('Unknown peer');
     }
@@ -33,19 +33,20 @@ export class RemoteSource extends AudioSource {
       // this should never happens as a remote source should have a webrtc peer
       throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
     }
-    await this.peer.waitForConnected();
     const stream = await this.peer.createAudioSourceChannel(this.uuid);
     this.log(`Created audio channel with source peer`);
     return stream;
   }
 
-  handleNoMoreReadingSink() {
+  handleNoMoreReadingSink = () => {
     const peer = this.peer;
-    if (!(peer instanceof WebrtcPeer)) {
-      // this should never happens as a remote source should have a webrtc peer
-      throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
+    if (peer) {
+      if (!(peer instanceof WebrtcPeer)) {
+        // this should never happens as a remote source should have a webrtc peer
+        throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
+      }
+      peer.closeAudioSourceChanel(this.uuid);
     }
-    peer.closeAudioSourceChanel(this.uuid);
     if (this.encodedAudioStream) {
       this.encodedAudioStream.end();
     }
