@@ -51,6 +51,9 @@ export class RemoteSource extends AudioSource {
       this.encodedAudioStream.end();
     }
     delete this.encodedAudioStream;
+    if (this.directSourceStream) {
+      this.directSourceStream.end();
+    }
     delete this.directSourceStream;
   }
 }
