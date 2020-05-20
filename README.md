@@ -8,7 +8,7 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 
 - 🆓 Free to use
 - 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link of your choosing
-- 🎶 Compatible with a lot of different audio sources (Spotify Connect with a premium account, Windows system audio ; coming soon: Airplay, UPnP)
+- 🎶 Compatible with a lot of different audio sources (Spotify Connect with a premium account, Airplay, Hardware Audio input (line in / microphone), Linux system audio ; coming soon: Windows system audio, UPnP and more)
 - 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome only) and soon Chromecast and more
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🎛️ Control everything from a web browser
@@ -19,12 +19,14 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
   <img src="res/screenshot_menu.png" height="400">
 </p>
 
-## Download it
+## Quick start
+
+Download and install the
 
 <table width="100%" align="center"><tr>
   <td align="center">
     <h3>Windows</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/Soundsync.Setup.0.1.0.exe">Download development version</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/Soundsync_Setup_0.1.0.exe">Download development version</a></p>
   </td>
   <td align="center">
     <h3>MacOS</h3>
