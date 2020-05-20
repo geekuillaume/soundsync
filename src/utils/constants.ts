@@ -20,6 +20,6 @@ export const SOUNDSYNC_VERSION = '0.1.0';
 export const MIN_SKEW_TO_RESYNC_AUDIO = 10;
 export const MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO = 50;
 
-export const RENDEZVOUS_SERVICE_URL = process.env.RENDEZVOUS_SERVICE_URL ?? 'https://soundsync.apps.besson.co';
+export const RENDEZVOUS_SERVICE_URL = process.env.RENDEZVOUS_SERVICE_URL ?? 'https://soundsync.app';
 export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every 4 hours
 export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64');
