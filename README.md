@@ -21,7 +21,7 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 
 ## Quick start
 
-Download and install the
+Download and install Soundsync for you operating system on every device in your home you want to use.
 
 <table width="100%" align="center"><tr>
   <td align="center">
@@ -34,14 +34,16 @@ Download and install the
   </td>
   <td align="center">
     <h3>Linux</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_amd64.deb">Download development version (.deb)</a></p>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync-0.1.0.pacman">Download development version (.pacman)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_amd64.deb">Download development version (.deb for Ubuntu/Debian)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync-0.1.0.pacman">Download development version (.pacman for Archlinux)</a></p>
   </td>
   <td align="center">
     <h3>Linux ARM (Raspberry)</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb">Download development version (.deb)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb">Download development version (.deb for Ubuntu/Debian/Raspbian)</a></p>
   </td>
 </tr></table>
+
+Now go to https://soundsync.app/ to control every Soundsync install on your home network.
 
 ## Project status
 
@@ -56,6 +58,9 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Integration of media info on webui
 - Synchronize sound with Philips Hue light bulbs
 - Create a ready to use RaspberryPi image
+- Chromecast support
+- Windows loopback support
+- Sonos support
 
 ## FAQ
 
