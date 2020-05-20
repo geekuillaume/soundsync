@@ -11,14 +11,18 @@ type TypedArray = Int8Array |
 export class CircularTypedArray<T extends TypedArray> {
   TypedArrayConstructor: new (...args) => T;
   buffer: T;
-  pointersBuffer: SharedArrayBuffer;
+  pointersBuffer: ArrayBuffer | SharedArrayBuffer;
   pointersTypedBuffer: Uint32Array;
 
   constructor(TypedArrayConstructor: new (...args) => T, lengthOrSharedArrayBuffer: number | SharedArrayBuffer) {
     this.TypedArrayConstructor = TypedArrayConstructor;
     this.buffer = new TypedArrayConstructor(lengthOrSharedArrayBuffer);
 
-    this.pointersBuffer = new SharedArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+    if (typeof SharedArrayBuffer !== 'undefined') {
+      this.pointersBuffer = new SharedArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+    } else {
+      this.pointersBuffer = new ArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+    }
     this.pointersTypedBuffer = new Uint32Array(this.pointersBuffer);
   }
 
