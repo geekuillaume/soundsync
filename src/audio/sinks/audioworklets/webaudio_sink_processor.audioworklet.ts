@@ -15,8 +15,8 @@ declare const sampleRate: number;
 class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   chunkBuffer = new Float32Array(128 * CHANNELS);
   currentSampleIndex = -1;
-  receivedStreamTimeRelativeToContextTime = -1;
   buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
+  lastReceivedStreamTime = -1;
 
   port: MessagePort;
 
@@ -25,23 +25,28 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
     this.port.onmessage = this.handleMessage_.bind(this);
   }
 
+  static get parameterDescriptors() {
+    return [{
+      name: 'streamTime',
+      defaultValue: -1,
+      automationRate: 'k-rate',
+    }];
+  }
+
   handleMessage_(event) {
     if (event.data.type === 'chunk') {
       const offset = event.data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * CHANNELS;
       this.buffer.set(event.data.chunk, offset);
       // console.log(`+ ${event.data.i} - ${formatNumber(offset)} -> ${formatNumber(offset + event.data.chunk.length)}`);
     }
-    if (event.data.type === 'currentStreamTime') {
-      // we cannot set the currentSampleIndex directly here as the process function can be delayed for +200ms by the browser
-      this.receivedStreamTimeRelativeToContextTime = event.data.currentStreamTimeRelativeToContextTime;
-    }
   }
 
-  process(inputs, outputs) {
-    if (this.receivedStreamTimeRelativeToContextTime !== -1) {
+  process(inputs, outputs, parameters) {
+    const receivedStreamTime = parameters.streamTime[0];
+    if (receivedStreamTime !== this.lastReceivedStreamTime) {
       // console.log('Processed at', currentTime * 1000);
       const targetCurrentSampleIndex = Math.floor(
-        (this.receivedStreamTimeRelativeToContextTime + (currentTime * 1000))
+        (receivedStreamTime)
         * (OPUS_ENCODER_RATE / 1000),
       ) * CHANNELS;
       const skewSampleCount = this.currentSampleIndex - targetCurrentSampleIndex;
@@ -52,8 +57,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
         console.log(`Resync, skew was ${skewDuration.toFixed(3)}ms - ${skewSampleCount / CHANNELS} samples`);
         this.currentSampleIndex = targetCurrentSampleIndex;
       }
-
-      this.receivedStreamTimeRelativeToContextTime = -1;
+      this.lastReceivedStreamTime = receivedStreamTime;
     }
     if (this.currentSampleIndex === -1) {
       return true;

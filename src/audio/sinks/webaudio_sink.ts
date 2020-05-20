@@ -45,8 +45,6 @@ export class WebAudioSink extends AudioSink {
         latencyHint: 0.5,
       });
     }
-    // this is handled by parcel with the copy static files config
-    // this file needs to be available at the root of the web server
     // eslint-disable-next-line
     const audioworkletPath = require('./audioworklets/webaudio_sink_processor.audioworklet.ts');
     await this.context.audioWorklet.addModule(audioworkletPath);
@@ -97,15 +95,10 @@ export class WebAudioSink extends AudioSink {
       return;
     }
     const currentStreamTime = this.getCurrentStreamTime();
-    const currentContextTime = this.context.getOutputTimestamp().contextTime * 1000;
-    // console.log('Sent at', currentContextTime);
-    this.workletNode.port.postMessage({
-      type: 'currentStreamTime',
-      currentStreamTimeRelativeToContextTime: currentStreamTime - currentContextTime,
-    });
+    this.workletNode.parameters.get('streamTime').setValueAtTime(currentStreamTime + 200, this.context.currentTime + 0.2);
   }
 
-  _stopSink() {
+  _stopSink = () => {
     if (this.cleanAudioContext) {
       this.cleanAudioContext();
     }
