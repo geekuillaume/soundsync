@@ -13,7 +13,13 @@ export class DataChannelStream extends MiniPass {
   }
 
   private handleDataChannelMessage = (ev: MessageEvent) => {
-    super.write(Buffer.from(ev.data));
+    if (typeof Blob !== 'undefined' && ev.data instanceof Blob) { // Firefox create a blob that needs to be tranformed to an array buffer
+      ev.data.arrayBuffer().then((b) => {
+        super.write(Buffer.from(b));
+      });
+    } else {
+      super.write(Buffer.from(ev.data));
+    }
   }
 
   write(d: any) {
