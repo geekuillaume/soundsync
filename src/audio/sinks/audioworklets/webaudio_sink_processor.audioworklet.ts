@@ -32,7 +32,6 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
       // console.log(`+ ${event.data.i} - ${formatNumber(offset)} -> ${formatNumber(offset + event.data.chunk.length)}`);
     }
     if (event.data.type === 'currentStreamTime') {
-      // console.log('Received at', currentTime * 1000);
       // we cannot set the currentSampleIndex directly here as the process function can be delayed for +200ms by the browser
       this.receivedStreamTimeRelativeToContextTime = event.data.currentStreamTimeRelativeToContextTime;
     }
@@ -50,7 +49,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
       // only reset currentSampleIndex if the skew is too high, this prevent the audio from resetting
       // too aggressivly and so leading to a choppy audio
       if (Math.abs(skewDuration) > MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO) {
-        // console.log(`Resync, skew was ${skewDuration.toFixed(3)}ms - ${skewSampleCount / CHANNELS} samples`);
+        console.log(`Resync, skew was ${skewDuration.toFixed(3)}ms - ${skewSampleCount / CHANNELS} samples`);
         this.currentSampleIndex = targetCurrentSampleIndex;
       }
 
