@@ -61,6 +61,7 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Chromecast support
 - Windows loopback support
 - Sonos support
+- Stop audio device when no audio has been received for a while to save energy
 
 ## FAQ
 
