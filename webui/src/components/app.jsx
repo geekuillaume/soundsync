@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider, CachePolicies } from 'use-http';
 import { SoundState } from './SoundState';
-import { SoundSyncProvider, useIsConnected } from '../utils/useSoundSyncState';
+import { SoundSyncProvider } from '../utils/useSoundSyncState';
 import { Header } from './Header';
 import { FirstUse } from './FirstUse/FirstUse';
 
@@ -9,8 +9,6 @@ import { FirstUse } from './FirstUse/FirstUse';
 const API_URL = document.location.host.endsWith(':1234') ? 'http://localhost:6512' : `http://${document.location.host}`;
 
 export const App = () => {
-  const isConnected = useIsConnected();
-
   return (
     <Provider
       url={API_URL}
@@ -19,7 +17,7 @@ export const App = () => {
       <SoundSyncProvider>
         <Header />
         <SoundState />
-        {!isConnected && <FirstUse />}
+        <FirstUse />
       </SoundSyncProvider>
     </Provider>
   );
