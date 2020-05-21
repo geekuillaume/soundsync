@@ -1,0 +1,39 @@
+.firstUseContainer {
+  padding: 30px;
+}
+
+.firstUseContainer h4 {
+  margin-top: 30px;
+
+}
+
+.downloadPlateforms {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 10px;
+  margin-top: 30px;
+}
+
+.downloadPlateforms .plateform {
+  text-align: center;
+}
+.downloadPlateforms .plateform img {
+  height: 60px;
+}
+.downloadPlateforms .plateform h3 {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  color: rgb(10,10,10);
+}
+
+.downloadButton {
+  margin-bottom: 10px !important;
+}
+.downloadButton span {
+  display: block;
+}
+
+.downloadButton .packageInfo {
+  font-size: 0.8em;
+  font-weight: 300;
+}
