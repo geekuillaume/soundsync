@@ -97,6 +97,9 @@ body {
     padding: 2px 5px;
     border-radius: 5px 0 0 0;
     background-color: rgba(10, 10, 10, 0.2);
+    &.ownPeer {
+      background-color: #ababff;
+    }
   }
 }
 

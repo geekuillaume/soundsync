@@ -11,6 +11,7 @@ import {
 } from 'utils/useSoundSyncState';
 import { HiddenIndicator } from 'components/utils/HiddenIndicator';
 import { SinkContextMenu } from './SinkContextMenu';
+import { getLocalPeer } from '../../../../src/communication/local_peer';
 
 const logos = {
   localdevice: speaker,
@@ -58,7 +59,7 @@ export const Sink = ({ sink }) => {
         <div className="box sink-box" onClick={() => setContextMenuOpen(true)}>
           <img src={sinkLogo} alt="" className="sink-logo" />
           <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
-          <p className="peer-name">{peer.name}</p>
+          <p className={classnames('peer-name', { ownPeer: peer.uuid === getLocalPeer().uuid })}>{peer.name}</p>
           {hidden && <HiddenIndicator position="left" />}
         </div>
         <SinkContextMenu isOpen={contextMenuOpen} sink={sink} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
