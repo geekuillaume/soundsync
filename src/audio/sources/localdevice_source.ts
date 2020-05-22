@@ -47,7 +47,6 @@ export class LocalDeviceSource extends AudioSource {
         }
 
         const canWrite = inputStream.write(Buffer.from(interleaved.buffer));
-        console.log(canWrite);
         return true;
       },
     });
