@@ -46,7 +46,7 @@ const deps = {
     },
     'darwin-x64': {
       url: 'https://github.com/geekuillaume/shairport-sync/releases/download/20200428/shairport-sync-macOS-x64.zip',
-      sha1: 'e981afabe08bad1aafab1ea98769aab97ede56e8',
+      sha1: '6eea636077a5bb09ed77d7b42ed3b05aa01b51d2',
     },
   },
 };
