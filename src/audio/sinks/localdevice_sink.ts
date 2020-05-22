@@ -45,7 +45,7 @@ export class LocalDeviceSink extends AudioSink {
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
-    this.soundioDevice = getOutputDeviceFromId(this.deviceId);
+    this.soundioDevice = await getOutputDeviceFromId(this.deviceId);
     this.soundioOutputStream = this.soundioDevice.openOutputStream({
       sampleRate: OPUS_ENCODER_RATE,
       name: `${source.name}`,

@@ -9,18 +9,22 @@ export const getSoundio = () => {
   return soundio;
 };
 
-export const getAudioDevices = () => getSoundio().getDevices();
-export const audioApiSupportsLoopback = () => getSoundio().getApi() === 'WASAPI';
-export const getOutputDeviceFromId = (deviceId: string) => {
-  if (!deviceId) {
-    return null;
-  }
-  return getAudioDevices().outputDevices.find((device) => device.id === deviceId);
+export const getAudioDevices = async () => {
+  await getSoundio().refreshDevices();
+  return getSoundio().getDevices();
 };
 
-export const getInputDeviceFromId = (deviceId: string) => {
+export const audioApiSupportsLoopback = () => getSoundio().getApi() === 'WASAPI';
+export const getOutputDeviceFromId = async (deviceId: string) => {
   if (!deviceId) {
     return null;
   }
-  return getAudioDevices().inputDevices.find((device) => device.id === deviceId);
+  return (await getAudioDevices()).outputDevices.find((device) => device.id === deviceId);
+};
+
+export const getInputDeviceFromId = async (deviceId: string) => {
+  if (!deviceId) {
+    return null;
+  }
+  return (await getAudioDevices()).inputDevices.find((device) => device.id === deviceId);
 };

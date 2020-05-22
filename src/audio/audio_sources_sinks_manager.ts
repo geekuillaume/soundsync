@@ -45,9 +45,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
     this.on('newLocalSink', updateConfigForSink);
   }
 
-  autodetectDevices = () => {
+  autodetectDevices = async () => {
     log(`Detecting local audio devices`);
-    const audioDevices = getAudioDevices();
+    const audioDevices = await getAudioDevices();
     audioDevices.outputDevices.forEach((device) => {
       this.addSink({
         type: 'localdevice',
@@ -58,8 +58,6 @@ export class AudioSourcesSinksManager extends EventEmitter {
         pipedFrom: null,
         available: true,
       });
-      // if (audioApiSupportsLoopback()) {
-      // }
     });
     audioDevices.inputDevices.forEach((device) => {
       this.addSource({

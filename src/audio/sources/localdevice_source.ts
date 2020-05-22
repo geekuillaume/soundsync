@@ -2,6 +2,7 @@ import { PassThrough } from 'stream';
 import {
   Soundio, SoundioDevice, SoundioInputStream,
 } from 'audioworklet';
+import { resolve } from 'path';
 import { getInputDeviceFromId } from '../../utils/soundio';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
@@ -29,28 +30,21 @@ export class LocalDeviceSource extends AudioSource {
     this.deviceId = descriptor.deviceId;
   }
 
-  _getAudioEncodedStream() {
+  async _getAudioEncodedStream() {
     this.log(`Creating localdevice sink`);
-    this.soundioDevice = getInputDeviceFromId(this.deviceId);
+    this.soundioDevice = await getInputDeviceFromId(this.deviceId);
     const inputStream = new PassThrough();
     this.soundioInputStream = this.soundioDevice.openInputStream({
       sampleRate: OPUS_ENCODER_RATE,
       name: this.name,
       format: Soundio.SoundIoFormatS16LE,
       bufferDuration: 2,
-      process: (inputChannels) => {
-        // we need interleaved samples for the encoded stream
-        const interleaved = new Int16Array(inputChannels[0].length * 2);
-        for (let sample = 0; sample < inputChannels[0].length; sample++) {
-          interleaved[sample * 2] = inputChannels[0][sample];
-          interleaved[(sample * 2) + 1] = inputChannels[1][sample];
-        }
-
-        const canWrite = inputStream.write(Buffer.from(interleaved.buffer));
-        return true;
-      },
     });
     this.soundioInputStream.start();
+    const worklet = this.soundioInputStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
+    worklet.on('message', (d) => {
+      inputStream.write(Buffer.from(d.buffer));
+    });
     const stream = createAudioEncodedStream(inputStream, OPUS_ENCODER_RATE, 2);
 
     this.cleanStream = () => {
