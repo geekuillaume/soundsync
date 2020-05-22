@@ -55,4 +55,11 @@ router.get('/api/ip_registry/peers', async (ctx) => {
   ctx.body = ips;
 });
 
+router.get('/api/ip_registry/external_ip', async (ctx) => {
+  const externalIp = sanitizeIp(ctx.request.ip);
+  ctx.body = {
+    ip: externalIp,
+  };
+});
+
 export default router;
