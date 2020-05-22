@@ -1,19 +1,13 @@
 import React, { useState, useRef } from 'react';
-// import Dialog from '@material-ui/core/Dialog';
-// import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { useSnackbar } from 'notistack';
+
 import {
   withStyles, Popover, TextField, InputAdornment,
 } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
-// import MuiDialogTitle from '@material-ui/core/DialogTitle';
-// import MuiDialogContent from '@material-ui/core/DialogContent';
-// import MuiDialogActions from '@material-ui/core/DialogActions';
 import IconButton from '@material-ui/core/IconButton';
-// import CloseIcon from '@material-ui/icons/Close';
-// import Typography from '@material-ui/core/Typography';
-// import Slide from '@material-ui/core/Slide';
 import EditIcon from '@material-ui/icons/Edit';
-import { useRegisterForPipe, useIsPiped, useUnpipeAction } from '../utils/useSoundSyncState';
+import { useRegisterForPipe } from '../utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 
 const EditPopover = withStyles((t) => ({
@@ -38,7 +32,7 @@ const PopoverButton = withStyles((t) => ({
   },
 }))(Button);
 
-const PopoverTextField = withStyles((t) => ({
+const PopoverTextField = withStyles(() => ({
   input: {
     color: 'white',
   },
@@ -47,6 +41,7 @@ const PopoverTextField = withStyles((t) => ({
 export const useEditAudioStreamModal = (type, audioStream) => {
   // const theme = useTheme();
   // const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const anchor = useRef();
@@ -78,15 +73,12 @@ export const useEditAudioStreamModal = (type, audioStream) => {
   const registerForPipe = useRegisterForPipe(type, audioStream)[2];
   const handleLink = () => {
     handleClose();
-    registerForPipe();
+    // @ts-ignore
+    const { piped } = registerForPipe();
+    if (!piped) {
+      enqueueSnackbar('Select which speaker to use in the list', { autoHideDuration: 3000 });
+    }
   };
-  const handleUnpipe = useUnpipeAction(audioStream);
-  const handleUnlink = () => {
-    handleUnpipe();
-    handleClose();
-  };
-
-  const isPiped = useIsPiped(audioStream.uuid);
 
   const canBeDeleted = type === 'source' && (audioStream.type === 'librespot' || audioStream.type === 'shairport');
   const handleDelete = () => {
@@ -135,7 +127,6 @@ export const useEditAudioStreamModal = (type, audioStream) => {
       {!renameOpen && (
         <>
           <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
-          {type === 'sink' && isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
           {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(audioStream)}>Log info</PopoverButton>}

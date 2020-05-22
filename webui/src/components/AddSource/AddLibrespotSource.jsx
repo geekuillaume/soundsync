@@ -3,7 +3,7 @@ import { filter } from 'lodash-es';
 import {
   makeStyles, DialogTitle, DialogContent, Button, MenuItem, TextField,
 } from '@material-ui/core';
-import { usePeers } from '../../utils/useSoundSyncState';
+import { usePeersManager } from '../../utils/useSoundSyncState';
 import { Capacity } from '../../../../src/communication/peer';
 
 const useStyles = makeStyles(() => ({

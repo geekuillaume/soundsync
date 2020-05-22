@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { useSnackbar } from 'notistack';
+
 // import Dialog from '@material-ui/core/Dialog';
 // import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
@@ -12,7 +14,7 @@ import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
 import VolumeUp from '@material-ui/icons/VolumeUp';
 
-import { useRegisterForPipe, useIsPiped, useUnpipeAction } from 'utils/useSoundSyncState';
+import { useRegisterForPipe, useUnpipeAction } from 'utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
 import { AudioSink } from '../../../../src/audio/sinks/audio_sink';
 
@@ -48,9 +50,12 @@ export const SinkContextMenu = ({
   isOpen, onClose, sink, anchor,
 }: { sink: AudioSink; isOpen: boolean; onClose: () => any; anchor: HTMLElement }) => {
   const [renameOpen, setRenameOpen] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const inputEl = useRef<HTMLInputElement>();
   const hidden = isHidden(sink.name);
+
+  const isPiped = !!sink.pipedFrom;
 
   const handleClose = () => {
     onClose();
@@ -80,7 +85,11 @@ export const SinkContextMenu = ({
 
   const handleLink = () => {
     handleClose();
-    registerForPipe();
+    // @ts-ignore
+    const { piped } = registerForPipe();
+    if (!piped) {
+      enqueueSnackbar('Select which source to pipe from in the list', { autoHideDuration: 3000 });
+    }
   };
 
   const handleUnpipe = useUnpipeAction(sink);
@@ -88,8 +97,6 @@ export const SinkContextMenu = ({
     handleUnpipe();
     handleClose();
   };
-
-  const isPiped = useIsPiped(sink.uuid);
 
   const renameInputAdornment = (
     <InputAdornment position="end">

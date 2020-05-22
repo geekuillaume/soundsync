@@ -87,8 +87,6 @@ export const getContextAudioSourcesSinksManager = () => useContext(soundSyncCont
 export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks, withHidden);
 export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources, withHidden);
 export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
-// TODO: fix this
-export const useIsPiped = (uuid) => false;
 
 export const usePeersManager = () => useContext(soundSyncContext).peersManagers;
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
@@ -115,7 +113,7 @@ export const useRegisterForPipe = (type, audioObject) => {
     };
   }, [isSelectedElement]);
 
-  return [shouldShow, isSelectedElement, async () => {
+  return [shouldShow, isSelectedElement, () => {
     // event handler on click
     if (selectedObjectType && selectedObjectType !== type) {
       const sink = type === 'sink' ? audioObject : state.registeringForPipe.selectedSink;
@@ -124,9 +122,10 @@ export const useRegisterForPipe = (type, audioObject) => {
       sink.patch({
         pipedFrom: source.uuid,
       });
-    } else {
-      dispatch(registerForPipe({ type, audioObject }));
+      return { piped: true };
     }
+    dispatch(registerForPipe({ type, audioObject }));
+    return { piped: false };
   }];
 };
 
