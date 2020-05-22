@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import React, { useRef, useEffect } from 'react';
 import { find } from 'lodash-es';
 import { useSinks, useSources, useShowHidden } from '../utils/useSoundSyncState';
@@ -51,12 +52,12 @@ export const Pipe = ({ pipe }) => {
       }
       ctxRef.current = setupCanvas(canvasRef.current);
     };
-    document.addEventListener('resize', initCanvas);
+    window.addEventListener('resize', initCanvas);
     initCanvas();
     return () => {
-      document.removeEventListener('resize', initCanvas);
+      window.removeEventListener('resize', initCanvas);
     };
-  }, [shouldShow]);
+  }, [shouldShow, sourceIndex, rowStart, sinkIndex, rowEnd]);
 
   useEffect(() => {
     if (!shouldShow) {
@@ -94,7 +95,7 @@ export const Pipe = ({ pipe }) => {
         cancelAnimationFrame(animationFrameRequest);
       }
     };
-  }, [shouldShow]);
+  }, [shouldShow, sourceIndex, rowStart, sinkIndex, rowEnd]);
 
   return shouldShow && (
     <div
