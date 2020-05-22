@@ -31,11 +31,11 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
   const [librespotUsername, setLibrespotUsername] = useState('');
   const [librespotPassword, setLibrespotPassword] = useState('');
 
-  const peers = usePeers();
-  const librespotCapablePeers = Object.values(filter(peers, (p) => p.capacities.includes(Capacity.Librespot)));
+  const peersManager = usePeersManager();
+  const librespotCapablePeers = Object.values(filter(peersManager.peers, (p) => p.state === 'connected' && p.capacities.includes(Capacity.Shairport)));
 
   const handleLibrespotCreate = () => {
-    const peer = peers[librespotHostId];
+    const peer = peersManager.getConnectedPeerByUuid(librespotHostId);
     if (!peer) {
       return;
     }

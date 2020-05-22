@@ -3,7 +3,7 @@ import { filter } from 'lodash-es';
 import {
   makeStyles, DialogTitle, DialogContent, Button, MenuItem, TextField,
 } from '@material-ui/core';
-import { usePeers } from '../../utils/useSoundSyncState';
+import { usePeersManager } from '../../utils/useSoundSyncState';
 import { Capacity } from '../../../../src/communication/peer';
 
 const useStyles = makeStyles(() => ({
@@ -29,11 +29,11 @@ export const AddShairportSource = ({ onDialogClose }) => {
   const [shairportHostId, setShairportHostId] = useState('');
   const [shairportName, setShairportName] = useState('Soundsync');
 
-  const peers = usePeers();
-  const shairportCapablePeers = Object.values(filter(peers, (p) => p.capacities.includes(Capacity.Shairport)));
+  const peersManager = usePeersManager();
+  const shairportCapablePeers = Object.values(filter(peersManager.peers, (p) => p.state === 'connected' && p.capacities.includes(Capacity.Shairport)));
 
   const handleAirplayCreate = () => {
-    const peer = peers[shairportHostId];
+    const peer = peersManager.getConnectedPeerByUuid(shairportHostId);
     if (!peer) {
       return;
     }
