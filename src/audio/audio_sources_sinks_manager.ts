@@ -86,7 +86,6 @@ export class AudioSourcesSinksManager extends EventEmitter {
         && source.deviceId === sourceDescriptor.deviceId
         && source.peerUuid === sourceDescriptor.peerUuid);
       if (existingSource) {
-        existingSource.updateInfo(sourceDescriptor);
         return;
       }
     }
