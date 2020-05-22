@@ -93,17 +93,21 @@ export abstract class AudioSource {
       this.encodedAudioStream.on('data', (d) => {
         this.consumersStreams.forEach((stream) => stream.write(d));
       });
-      this.directSourceStream = await this._getAudioEncodedStream();
-      this.directSourceStream.on('finish', () => {
-        this.log('Source stream finished, cleaning source');
-        // when the readable stream finishes => when the source program exit / source file finishes
-        if (this.encodedAudioStream) {
-          this.encodedAudioStream.end();
-        }
-        delete this.encodedAudioStream;
-        delete this.directSourceStream;
-      });
-      this.directSourceStream.pipe(this.encodedAudioStream);
+      try {
+        this.directSourceStream = await this._getAudioEncodedStream();
+        this.directSourceStream.on('finish', () => {
+          this.log('Source stream finished, cleaning source');
+          // when the readable stream finishes => when the source program exit / source file finishes
+          if (this.encodedAudioStream) {
+            this.encodedAudioStream.end();
+          }
+          delete this.encodedAudioStream;
+          delete this.directSourceStream;
+        });
+        this.directSourceStream.pipe(this.encodedAudioStream);
+      } catch (e) {
+        this.log('Error while starting source', e);
+      }
     }
 
     const instanceStream = new MiniPass();
