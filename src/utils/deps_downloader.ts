@@ -45,12 +45,24 @@ const deps = {
 
 const depPath = <T extends keyof typeof deps>(depName: T) => resolve(getConfigDir(), depName);
 
-export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
+export const isDepAvailableForPlatform = <T extends keyof typeof deps>(depName: T) => {
+  if (typeof process === 'undefined') {
+    return false;
+  }
   const dep = deps[depName];
   const downloadInfo = dep[`${process.platform}-${process.arch}`];
   if (!downloadInfo) {
+    return false;
+  }
+  return true;
+};
+
+export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
+  if (!isDepAvailableForPlatform(depName)) {
     throw new Error('Arch or os is not supported');
   }
+  const dep = deps[depName];
+  const downloadInfo = dep[`${process.platform}-${process.arch}`];
   let path = depPath(depName);
   if (dep.isZip) {
     path = `${path}.zip`;
