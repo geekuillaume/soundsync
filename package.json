@@ -59,6 +59,9 @@
       "webui/dist",
       "res/**/*"
     ],
+    "mac": {
+      "asar": false
+    },
     "win": {
       "asar": false
     },
