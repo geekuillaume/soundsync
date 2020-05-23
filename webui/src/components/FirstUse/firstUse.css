@@ -14,6 +14,9 @@
   column-gap: 10px;
   margin-top: 30px;
 }
+.downloadPlatforms.twoLinesLayout {
+  grid-template-columns: repeat(2, 1fr);
+}
 
 .downloadPlatforms .platform {
   text-align: center;

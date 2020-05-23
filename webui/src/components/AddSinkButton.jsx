@@ -4,6 +4,7 @@ import Dialog from '@material-ui/core/Dialog';
 import {
   makeStyles, DialogTitle, DialogContent, Button,
 } from '@material-ui/core';
+import { DownloadLinks } from './FirstUse/DownloadLinks';
 
 const useStyles = makeStyles({
   openDialogButton: {
@@ -36,12 +37,7 @@ export const AddSinkButton = () => {
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" className={styles.dialog}>
         <DialogTitle>Add a new speaker</DialogTitle>
         <DialogContent>
-          <p>
-            To add a new speaker, open this page in a new web browser or download SoundSync on another computer.
-          </p>
-          <p className={styles.buttonContainer}>
-            <Button href="https://github.com/geekuillaume/soundsync" variant="outlined">Download SoundSync</Button>
-          </p>
+          <DownloadLinks twoLinesLayout />
         </DialogContent>
       </Dialog>
     </>
