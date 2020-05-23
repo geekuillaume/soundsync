@@ -97,9 +97,9 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
       zipStream.pipe(unzipStream);
       await once(unzipStream, 'finish');
       const executablePath = resolve(depPath(depName), dep.executableName);
-      await chmod(executablePath, '555');
+      await chmod(executablePath, '775');
     } else {
-      await chmod(path, '555');
+      await chmod(path, '775');
     }
     l(`Downloaded dep to ${path}`);
   }
