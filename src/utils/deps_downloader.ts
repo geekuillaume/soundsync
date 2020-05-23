@@ -18,7 +18,7 @@ const deps = {
     executableName: null,
     'linux-x64': {
       url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-linux-x64-featureless',
-      sha1: 'ef8a32d0e846e8708b389460282545be3383bb05',
+      sha1: '87a6996858157bf6d38fe250e60c5618cea3e231',
     },
     'linux-arm': {
       url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-linux-arm-featureless',
