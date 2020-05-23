@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
   entry: './src/index.tsx',
@@ -59,6 +60,11 @@ const config = {
       'process.env.RENDEZVOUS_SERVICE_URL': JSON.stringify(process.env.RENDEZVOUS_SERVICE_URL),
     }),
     new MiniCssExtractPlugin(),
+    new CopyPlugin({
+      patterns: [
+        { from: 'src/static', to: 'static' },
+      ],
+    }),
   ],
   module: {
     rules: [
