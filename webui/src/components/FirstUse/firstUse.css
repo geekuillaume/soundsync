@@ -7,20 +7,21 @@
 
 }
 
-.downloadPlateforms {
+.downloadPlatforms {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  row-gap: 10px;
   column-gap: 10px;
   margin-top: 30px;
 }
 
-.downloadPlateforms .plateform {
+.downloadPlatforms .platform {
   text-align: center;
 }
-.downloadPlateforms .plateform img {
+.downloadPlatforms .platform img {
   height: 60px;
 }
-.downloadPlateforms .plateform h3 {
+.downloadPlatforms .platform h3 {
   margin-top: 10px;
   margin-bottom: 15px;
   color: rgb(10,10,10);
@@ -36,4 +37,10 @@
 .downloadButton .packageInfo {
   font-size: 0.8em;
   font-weight: 300;
+}
+
+@media(max-width: 600px) {
+  .downloadPlatforms {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
