@@ -19,7 +19,7 @@ export const SoundState = () => {
   return (
     <div className="container">
       <div className="scene-grid">
-        <p className="sources-title">Sources</p>
+        <p className="sources-title">Audio Sources</p>
         <div className="sinks-title">
           Speakers
         </div>

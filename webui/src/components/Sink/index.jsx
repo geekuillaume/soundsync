@@ -33,6 +33,8 @@ export const Sink = ({ sink }) => {
   const hidden = isHidden(sink.name);
   const shouldShowHidden = useShowHidden();
 
+  const peerName = peer.uuid === getLocalPeer().uuid ? 'This browser' : peer.name;
+
   return (
     <Zoom
       in={!hidden || shouldShowHidden}
@@ -59,7 +61,7 @@ export const Sink = ({ sink }) => {
         <div className="box sink-box" onClick={() => setContextMenuOpen(true)}>
           <img src={sinkLogo} alt="" className="sink-logo" />
           <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
-          <p className={classnames('peer-name', { ownPeer: peer.uuid === getLocalPeer().uuid })}>{peer.name}</p>
+          <p className={classnames('peer-name', { ownPeer: peer.uuid === getLocalPeer().uuid })}>{peerName}</p>
           {hidden && <HiddenIndicator position="left" />}
         </div>
         <SinkContextMenu isOpen={contextMenuOpen} sink={sink} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
