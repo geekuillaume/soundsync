@@ -10,6 +10,7 @@ const config = {
   target: 'web',
   optimization: {
     usedExports: true,
+    mangleWasmImports: true,
   },
   output: {
     filename: '[name]-[contenthash].js',
@@ -30,6 +31,7 @@ const config = {
       crypto: 'utils/polyfills/empty.js',
       path: 'utils/polyfills/empty.js',
       child_process: 'utils/polyfills/empty.js',
+      unzipper: 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',
