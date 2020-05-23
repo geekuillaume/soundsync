@@ -42,6 +42,11 @@ export const initializeCoordinator = memoize(async () => {
   }
   if (localStorage.getItem('soundsync:disableRendezvousService') === null) {
     enableRendezvousServicePeersDetection(true);
+    setInterval(() => {
+      if (!getPeersManager().isConnectedToAtLeastOnePeer()) {
+        enableRendezvousServicePeersDetection(true);
+      }
+    }, 5000);
   }
 });
 

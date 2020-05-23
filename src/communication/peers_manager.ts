@@ -108,4 +108,5 @@ export class PeersManager extends EventEmitter {
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
 
   getConnectedPeerByUuid = (uuid: string) => _.find(this.peers, (p) => p.uuid === uuid && p.state === 'connected');
+  isConnectedToAtLeastOnePeer = () => _.some(this.peers, (p) => p !== getLocalPeer() && p.state === 'connected');
 }
