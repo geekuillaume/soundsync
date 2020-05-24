@@ -10,6 +10,10 @@ export class DataChannelStream extends MiniPass {
     datachannel.onclose = () => {
       this.end();
     };
+    this.on('end', () => {
+      this.datachannel.onmessage = () => {};
+      this.datachannel.close();
+    });
   }
 
   private handleDataChannelMessage = (ev: MessageEvent) => {
