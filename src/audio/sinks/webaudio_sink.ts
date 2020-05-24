@@ -7,6 +7,7 @@ import { AudioSource } from '../sources/audio_source';
 import { WebAudioSinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
+import { OPUS_ENCODER_RATE } from '../../utils/constants';
 
 export class WebAudioSink extends AudioSink {
   type: 'webaudio' = 'webaudio';
@@ -41,8 +42,11 @@ export class WebAudioSink extends AudioSink {
 
     if (!this.context) {
       this.context = new AudioContext({
-        sampleRate: 48000,
-        latencyHint: 0.5,
+        sampleRate: OPUS_ENCODER_RATE,
+        // We could use a higher latencyHint here to improve power consumption but because of
+        // a chromium bug, a higher latencyHint lead to a really bad getOutputTimestamp accuracy
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=1086005
+        latencyHint: 0,
       });
     }
     // eslint-disable-next-line
@@ -95,7 +99,7 @@ export class WebAudioSink extends AudioSink {
       return;
     }
     const currentStreamTime = this.getCurrentStreamTime();
-    this.workletNode.parameters.get('streamTime').setValueAtTime(currentStreamTime + 200, this.context.currentTime + 0.2);
+    this.workletNode.parameters.get('streamTime').setValueAtTime(currentStreamTime + 200, this.context.getOutputTimestamp().contextTime + 0.2);
   }
 
   _stopSink = () => {

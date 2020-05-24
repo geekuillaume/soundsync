@@ -44,11 +44,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   process(inputs, outputs, parameters) {
     const receivedStreamTime = parameters.streamTime[0];
     if (receivedStreamTime !== this.lastReceivedStreamTime) {
-      // console.log('Processed at', currentTime * 1000);
-      const targetCurrentSampleIndex = Math.floor(
-        (receivedStreamTime)
-        * (OPUS_ENCODER_RATE / 1000),
-      ) * CHANNELS;
+      const targetCurrentSampleIndex = Math.floor(receivedStreamTime * (OPUS_ENCODER_RATE / 1000)) * CHANNELS;
       const skewSampleCount = this.currentSampleIndex - targetCurrentSampleIndex;
       const skewDuration = skewSampleCount / CHANNELS / (OPUS_ENCODER_RATE / 1000);
       // only reset currentSampleIndex if the skew is too high, this prevent the audio from resetting
