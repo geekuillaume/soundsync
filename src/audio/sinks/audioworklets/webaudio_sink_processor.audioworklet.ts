@@ -29,7 +29,6 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
     return [{
       name: 'streamTime',
       defaultValue: -1,
-      automationRate: 'k-rate',
     }];
   }
 
