@@ -1,4 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import { debounce } from 'lodash';
+import { useSnackbar } from 'notistack';
 import classnames from 'classnames';
 import { Zoom } from '@material-ui/core';
 
@@ -20,6 +22,7 @@ const logos = {
 };
 
 export const Sink = ({ sink }) => {
+  const { enqueueSnackbar } = useSnackbar();
   const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('sink', sink);
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
   const anchor = useRef();
@@ -34,6 +37,10 @@ export const Sink = ({ sink }) => {
   const shouldShowHidden = useShowHidden();
 
   const peerName = peer.uuid === getLocalPeer().uuid ? 'This browser' : peer.name;
+
+  const handleDrag = useCallback(debounce(() => {
+    enqueueSnackbar('Click on the source you want to link');
+  }, 5000, { leading: true, trailing: false }), []);
 
   return (
     <Zoom
@@ -53,6 +60,8 @@ export const Sink = ({ sink }) => {
         <div
           className="handle"
           onClick={registerForPipe}
+          draggable
+          onDrag={handleDrag}
         />
         <a
           className={classnames('unpipe-button delete is-large', { active: sink.pipedFrom && isSelectedElement })}

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { debounce } from 'lodash';
+import { useSnackbar } from 'notistack';
 import classnames from 'classnames';
 import { Zoom } from '@material-ui/core';
 import {
@@ -29,6 +31,11 @@ export const Source = ({ source }) => {
   const { handleOpen, anchor, modal } = useEditAudioStreamModal('source', source);
   const hidden = isHidden(source.name);
   const shouldShowHidden = useShowHidden();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const handleDrag = useCallback(debounce(() => {
+    enqueueSnackbar('Click on the speaker you want to link');
+  }, 5000, { leading: true, trailing: false }), []);
 
   return (
     <Zoom
@@ -48,6 +55,8 @@ export const Source = ({ source }) => {
         <div
           className="handle"
           onClick={registerForPipe}
+          draggable
+          onDrag={handleDrag}
         />
         <div className="box source-box" onClick={handleOpen}>
           <img src={sourceLogo} alt="" className="source-logo" />
