@@ -18,10 +18,11 @@ export const refreshMenu = async () => {
 export const createSystray = () => {
   try {
     // eslint-disable-next-line
-    const { app, Menu, Tray } = require('electron');
+    const { app, Menu, Tray, nativeImage } = require('electron');
     app.on('ready', () => {
       try {
-        const tray = new Tray(resolve(__dirname, '../../res/logo_small.png'));
+        const image = nativeImage.createFromPath(resolve(__dirname, '../../res/logo_small.png'));
+        const tray = new Tray(image.resize({ width: 20, height: 20 })); // necessary for macos, else it will become huge in the systray
 
         const onAutostartClick = async () => {
           if (await isAutolaunchedAtStartup()) {
