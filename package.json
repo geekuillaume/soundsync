@@ -1,9 +1,9 @@
 {
   "name": "soundsync",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
-  "homepage": "https://github.com/geekuillaume/soundsync",
+  "homepage": "https://soundsync.app",
   "main": "app/index.js",
   "bin": "app/index.js",
   "scripts": {
@@ -51,6 +51,7 @@
   "build": {
     "appId": "geekuillaume.soundsync",
     "productName": "Soundsync",
+    "asar": false,
     "directories": {
       "output": "bin"
     },
@@ -59,14 +60,7 @@
       "webui/dist",
       "res/**/*"
     ],
-    "mac": {
-      "asar": false
-    },
-    "win": {
-      "asar": false
-    },
     "linux": {
-      "asar": false,
       "target": [
         "deb",
         "pacman"
