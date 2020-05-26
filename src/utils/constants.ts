@@ -1,4 +1,4 @@
-import { version } from '../package.json';
+import { version } from '../../package.json';
 
 export const CONTROLLER_CHANNEL_ID = 42;
 export const OPUS_ENCODER_RATE = 48000;
