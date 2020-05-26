@@ -19,7 +19,7 @@ export const AddLocalDeviceSource = () => {
     <>
       <DialogTitle>Use computer audio</DialogTitle>
       <DialogContent>
-        <p>Install SoundSync on a Windows or Linux computer (MacOS not yet supported) to use this computer audio output on any speakers.</p>
+        <p>Install SoundSync on Linux computer (Windows and MacOS not yet supported) to use this computer audio output on any speakers.</p>
         <Button className={styles.downloadButton} href="https://github.com/geekuillaume/soundsync" variant="outlined">Download SoundSync</Button>
       </DialogContent>
     </>

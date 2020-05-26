@@ -46,7 +46,7 @@ export const SourceTypeSelection = ({ onTypeSelected }) => {
         </Button>
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('shairport')}>
           <img src={airplayIcon} alt="" className={styles.sourceTypeLogo} />
-          <span>Create an Airplay receiver</span>
+          <span>Add an Airplay receiver</span>
         </Button>
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('localDevice')}>
           <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />

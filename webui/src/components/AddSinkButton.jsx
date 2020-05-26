@@ -37,6 +37,13 @@ export const AddSinkButton = () => {
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" className={styles.dialog}>
         <DialogTitle>Add a new speaker</DialogTitle>
         <DialogContent>
+          <p>
+            Open
+            {' '}
+            <a href="https://soundsync.app/">soundsync.app</a>
+            {' '}
+            on another web browser or install the App on a new device:
+          </p>
           <DownloadLinks twoLinesLayout />
         </DialogContent>
       </Dialog>
