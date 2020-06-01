@@ -3,7 +3,7 @@ export type SourceUUID = string;
 export interface BaseSourceDescriptor {
   type;
   name: string;
-  uuid?: SourceUUID;
+  uuid: SourceUUID;
   peerUuid: string;
   startedAt?: number;
   latency?: number;

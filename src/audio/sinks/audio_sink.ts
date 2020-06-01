@@ -186,15 +186,18 @@ export abstract class AudioSink extends EventEmitter {
     volume: this.volume,
   })
 
-  toDescriptor: () => AudioInstance<BaseSinkDescriptor> = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<BaseSinkDescriptor> => ({
     type: this.type,
     name: this.name,
     uuid: this.uuid,
-    latency: this.latency,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
-    available: this.available,
     volume: this.volume,
+
+    ...(!sanitizeForConfigSave && {
+      available: this.available,
+      instanceUuid: this.instanceUuid,
+      latency: this.latency,
+      peerUuid: this.peerUuid,
+    }),
   })
 }

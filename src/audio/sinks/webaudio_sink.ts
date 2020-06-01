@@ -120,15 +120,17 @@ export class WebAudioSink extends AudioSink {
     }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
   }
 
-  toDescriptor: (() => AudioInstance<WebAudioSinkDescriptor>) = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<WebAudioSinkDescriptor> => ({
     type: 'webaudio',
     name: this.name,
     uuid: this.uuid,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
-    latency: this.latency,
-    available: this.available,
     volume: this.volume,
+    ...(!sanitizeForConfigSave && {
+      peerUuid: this.peerUuid,
+      instanceUuid: this.instanceUuid,
+      latency: this.latency,
+      available: this.available,
+    }),
   })
 }

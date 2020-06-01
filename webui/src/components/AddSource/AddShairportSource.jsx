@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { filter } from 'lodash-es';
+import { v4 as uuidv4 } from 'uuid';
 import {
   makeStyles, DialogTitle, DialogContent, Button, MenuItem, TextField,
 } from '@material-ui/core';
@@ -43,6 +44,7 @@ export const AddShairportSource = ({ onDialogClose }) => {
         type: 'shairport',
         name: shairportName,
         peerUuid: peer.uuid,
+        uuid: uuidv4(),
         shairportOptions: {
           name: shairportName,
         },

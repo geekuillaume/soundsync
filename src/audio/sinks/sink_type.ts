@@ -5,7 +5,7 @@ export type SinkUUID = string;
 export interface BaseSinkDescriptor {
   type;
   name: string;
-  uuid?: SinkUUID;
+  uuid: SinkUUID;
   peerUuid: string;
   latency?: number;
   pipedFrom: SourceUUID | null;

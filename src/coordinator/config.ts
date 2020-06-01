@@ -13,6 +13,8 @@ import produce from 'immer';
 import { isBrowser } from '../utils/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
+import { AudioSource } from '../audio/sources/audio_source';
+import { AudioSink } from '../audio/sinks/audio_sink';
 
 const log = debug(`soundsync:config`);
 
@@ -115,24 +117,18 @@ export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigD
   return (c || config.configData)[field];
 };
 
-const fieldsToSanitizeInConfig = ['latency', 'startedAt', 'instanceUuid', 'peerUuid', 'available'];
 
-export function updateConfigArrayItem(field: 'sources', item: SourceDescriptor): void;
-export function updateConfigArrayItem(field: 'sinks', item: SinkDescriptor): void;
-export function updateConfigArrayItem(field: 'sources' | 'sinks', item) {
+export function updateConfigArrayItem(field: 'sources', item: AudioSource): void;
+export function updateConfigArrayItem(field: 'sinks', item: AudioSink): void;
+export function updateConfigArrayItem(field: 'sources' | 'sinks', sourceOrSink) {
   setConfig((c) => {
-    const existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
-    const itemToAssign = _.clone(item);
-    fieldsToSanitizeInConfig.forEach((f) => {
-      delete itemToAssign[f];
-    });
+    const descriptor = sourceOrSink.toDescriptor(true);
+    const existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === descriptor.type && (!t.uuid || t.uuid === descriptor.uuid));
     if (existingItem) {
-      Object.assign(existingItem, item);
-      fieldsToSanitizeInConfig.forEach((f) => {
-        delete existingItem[f];
-      });
+      // @ts-ignore
+      c[field] = c[field].filter((i) => i !== existingItem);
     } else {
-      c[field] = [...getConfigField(field), item];
+      c[field] = [...getConfigField(field), descriptor];
     }
   });
 }

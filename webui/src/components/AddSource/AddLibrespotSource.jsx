@@ -5,6 +5,7 @@ import {
 } from '@material-ui/core';
 import { usePeersManager } from '../../utils/useSoundSyncState';
 import { Capacity } from '../../../../src/communication/peer';
+import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles(() => ({
   formControl: {
@@ -45,6 +46,7 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
         type: 'librespot',
         name: librespotName,
         peerUuid: peer.uuid,
+        uuid: uuidv4(),
         librespotOptions: {
           name: librespotName,
           ...(librespotUsername && librespotPassword && {

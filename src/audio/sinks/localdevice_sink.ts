@@ -140,16 +140,18 @@ export class LocalDeviceSink extends AudioSink {
     this.buffer.setReaderPointer(this.getIdealBufferReadPosition());
   }
 
-  toDescriptor: (() => AudioInstance<LocalDeviceSinkDescriptor>) = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSinkDescriptor> => ({
     type: this.type,
     name: this.name,
     uuid: this.uuid,
     deviceId: this.deviceId,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     pipedFrom: this.pipedFrom,
-    latency: this.latency,
-    available: this.available,
     volume: this.volume,
+    ...(!sanitizeForConfigSave && {
+      peerUuid: this.peerUuid,
+      instanceUuid: this.instanceUuid,
+      latency: this.latency,
+      available: this.available,
+    }),
   })
 }

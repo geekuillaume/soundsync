@@ -39,7 +39,7 @@ export abstract class AudioSource {
   constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
     this.type = descriptor.type;
-    this.uuid = descriptor.uuid || uuidv4();
+    this.uuid = descriptor.uuid;
     this.peerUuid = descriptor.peerUuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
@@ -154,15 +154,18 @@ export abstract class AudioSource {
     available: this.available,
   })
 
-  toDescriptor = (): AudioInstance<BaseSourceDescriptor> => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<BaseSourceDescriptor> => ({
     name: this.name,
     uuid: this.uuid,
     type: this.type,
-    latency: this.latency,
-    startedAt: this.startedAt,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     channels: this.channels,
-    available: this.available,
+
+    ...(!sanitizeForConfigSave && {
+      latency: this.latency,
+      peerUuid: this.peerUuid,
+      startedAt: this.startedAt,
+      instanceUuid: this.instanceUuid,
+      available: this.available,
+    }),
   })
 }

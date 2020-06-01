@@ -1,4 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { clone } from 'lodash';
 import { hostname } from 'os';
 import { AudioSource } from './audio_source';
 import { LibresportSourceDescriptor } from './source_type';
@@ -17,7 +18,7 @@ export class LibrespotSource extends AudioSource {
 
   constructor(descriptor: LibresportSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.options = descriptor.librespotOptions || {};
+    this.options = clone(descriptor.librespotOptions) || {};
     this.options.name = this.options.name || hostname();
     this.start(); // start right away to consume librespot chunks even when there is no sink connected
   }
@@ -50,16 +51,19 @@ export class LibrespotSource extends AudioSource {
     delete this.librespotProcess;
   }
 
-  toDescriptor: (() => AudioInstance<LibresportSourceDescriptor>) = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LibresportSourceDescriptor> => ({
     type: 'librespot',
     name: this.name,
     uuid: this.uuid,
     librespotOptions: this.options,
-    peerUuid: this.peerUuid,
     instanceUuid: this.instanceUuid,
     channels: this.channels,
-    latency: this.latency,
-    startedAt: this.startedAt,
-    available: true, // TODO: check if librespot process is still running to get availability state
+
+    ...(!sanitizeForConfigSave && {
+      peerUuid: this.peerUuid,
+      latency: this.latency,
+      startedAt: this.startedAt,
+      available: true, // TODO: check if librespot process is still running to get availability state
+    }),
   })
 }

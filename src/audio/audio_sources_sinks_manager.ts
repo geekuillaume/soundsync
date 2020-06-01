@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import debug from 'debug';
 import _ from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 
 import { ShairportSource } from './sources/shairport_souce';
 import { WebAudioSink } from './sinks/webaudio_sink';
@@ -30,12 +31,12 @@ export class AudioSourcesSinksManager extends EventEmitter {
     super();
     const updateConfigForSource = (source: AudioSource) => {
       if (source.local) {
-        updateConfigArrayItem('sources', source.toDescriptor());
+        updateConfigArrayItem('sources', source);
       }
     };
     const updateConfigForSink = (sink: AudioSink) => {
       if (sink.local) {
-        updateConfigArrayItem('sinks', sink.toDescriptor());
+        updateConfigArrayItem('sinks', sink);
       }
     };
     this.on('sourceUpdate', updateConfigForSource);
@@ -53,6 +54,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
         type: 'localdevice',
         deviceId: device.id,
         name: device.name,
+        uuid: uuidv4(),
         peerUuid: getLocalPeer().uuid,
         volume: 1,
         pipedFrom: null,
@@ -62,6 +64,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     audioDevices.inputDevices.forEach((device) => {
       this.addSource({
         type: 'localdevice',
+        uuid: uuidv4(),
         deviceId: device.id,
         name: device.name,
         peerUuid: getLocalPeer().uuid,
@@ -74,7 +77,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
   getSinkByUuid = (uuid: SinkUUID) => _.find(this.sinks, { uuid });
 
   addSource(sourceDescriptor: SourceDescriptor) {
-    if (sourceDescriptor.uuid && this.getSourceByUuid(sourceDescriptor.uuid)) {
+    if (this.getSourceByUuid(sourceDescriptor.uuid)) {
       this.getSourceByUuid(sourceDescriptor.uuid).updateInfo(sourceDescriptor);
       return;
     }

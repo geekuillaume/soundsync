@@ -64,16 +64,18 @@ export class LocalDeviceSource extends AudioSource {
     }
   }
 
-  toDescriptor: (() => AudioInstance<LocalDeviceSourceDescriptor>) = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSourceDescriptor> => ({
     type: 'localdevice',
     name: this.name,
     uuid: this.uuid,
     deviceId: this.deviceId,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     channels: this.channels,
-    latency: this.latency,
-    startedAt: this.startedAt,
-    available: this.available,
+    ...(!sanitizeForConfigSave && {
+      peerUuid: this.peerUuid,
+      instanceUuid: this.instanceUuid,
+      latency: this.latency,
+      startedAt: this.startedAt,
+      available: this.available,
+    }),
   })
 }

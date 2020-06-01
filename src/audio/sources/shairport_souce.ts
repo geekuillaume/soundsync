@@ -19,7 +19,7 @@ export class ShairportSource extends AudioSource {
 
   constructor(descriptor: ShairportSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.options = descriptor.shairportOptions || {};
+    this.options = _.clone(descriptor.shairportOptions) || {};
     this.options.name = this.options.name || hostname();
     this.start(); // start right away to let devices detect and send audio to the shairport process
   }
@@ -52,16 +52,19 @@ export class ShairportSource extends AudioSource {
     delete this.shairportProcess;
   }
 
-  toDescriptor: (() => AudioInstance<ShairportSourceDescriptor>) = () => ({
+  toDescriptor = (sanitizeForConfigSave = false): AudioInstance<ShairportSourceDescriptor> => ({
     type: 'shairport',
     name: this.name,
     uuid: this.uuid,
     shairportOptions: this.options,
-    peerUuid: this.peerUuid,
-    instanceUuid: this.instanceUuid,
     channels: this.channels,
-    latency: this.latency,
-    startedAt: this.startedAt,
-    available: true, // TODO: check if shairport process is still running to get availability state
+
+    ...(!sanitizeForConfigSave && {
+      peerUuid: this.peerUuid,
+      instanceUuid: this.instanceUuid,
+      latency: this.latency,
+      startedAt: this.startedAt,
+      available: true, // TODO: check if shairport process is still running to get availability state
+    }),
   })
 }
