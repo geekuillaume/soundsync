@@ -1,14 +1,21 @@
 import { EventEmitter } from 'events';
+import { v4 as uuidv4 } from 'uuid';
+
 import _ from 'lodash';
 import debug, { Debugger } from 'debug';
+import {
+  RPCType, RPCRequestBody, RPCResponseBody, rpcHandlers,
+} from './rpc/rpc';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
 import {
   ControllerMessage,
   ControllerMessageHandler,
+  RPCMessage,
 } from './messages';
 import { now } from '../utils/time';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
+
 
 const TIME_DELTAS_TO_KEEP = 10;
 // if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
@@ -21,6 +28,7 @@ export enum Capacity {
   Librespot = 'librespot',
   Shairport = 'shairport',
   HttpServerAccessible = 'http_server_accessible',
+  Hue = 'hue',
 }
 
 export abstract class Peer extends EventEmitter {
@@ -32,6 +40,7 @@ export abstract class Peer extends EventEmitter {
   private _previousTimeDeltas: number[] = [];
   log: Debugger;
   private logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
+  private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
   capacities: Capacity[];
   isLocal: boolean;
 
@@ -91,6 +100,23 @@ export abstract class Peer extends EventEmitter {
         this.setState('connected');
         this.log('Connected');
       }
+    });
+    this.onControllerMessage('rpc', async (message) => {
+      if (message.isResponse) {
+        if (this.rpcResponseHandlers[message.uuid]) {
+          this.rpcResponseHandlers[message.uuid](message);
+        }
+        return;
+      }
+      // @ts-ignore
+      const body = await rpcHandlers[message.rpcType](this, message.body);
+      this.sendControllerMessage({
+        type: 'rpc',
+        isResponse: true,
+        body,
+        uuid: message.uuid,
+        rpcType: message.rpcType,
+      });
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
@@ -191,6 +217,21 @@ export abstract class Peer extends EventEmitter {
     name: this.name,
     instanceUuid: this.instanceUuid,
     capacities: this.capacities,
+  })
+
+  sendRcp = <T extends RPCType>(type: T, message: RPCRequestBody<T>) => new Promise<RPCResponseBody<T>>((resolve) => {
+    const uuid = uuidv4();
+    this.rpcResponseHandlers[uuid] = (m) => {
+      delete this.rpcResponseHandlers[uuid];
+      resolve(m.body);
+    };
+    this.sendControllerMessage({
+      type: 'rpc',
+      rpcType: type,
+      isResponse: false,
+      body: message,
+      uuid,
+    });
   })
 }
 

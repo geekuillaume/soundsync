@@ -47,6 +47,7 @@ const main = async () => {
       isDepAvailableForPlatform('librespot') && Capacity.Librespot,
       isDepAvailableForPlatform('shairport') && Capacity.Shairport,
       Capacity.HttpServerAccessible,
+      Capacity.Hue,
     ].filter(Boolean),
   });
 

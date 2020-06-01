@@ -33,6 +33,7 @@ const config = {
       path: 'utils/polyfills/empty.js',
       child_process: 'utils/polyfills/empty.js',
       unzipper: 'utils/polyfills/empty.js',
+      dgram: 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',

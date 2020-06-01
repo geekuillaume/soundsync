@@ -1,3 +1,4 @@
+import { RPCType } from './rpc/rpc';
 import { Peer, PeerDescriptor } from './peer';
 import {
   BaseSourceDescriptor, SourceDescriptor,
@@ -72,6 +73,14 @@ export interface PeerInfoMessage extends BaseMessage {
   peer: PeerDescriptor;
 }
 
+export interface RPCMessage extends BaseMessage {
+  type: 'rpc';
+  rpcType: RPCType;
+  uuid: string;
+  body?: any;
+  isResponse: boolean;
+}
+
 export type ControllerMessage =
   LightMessage |
   SourcePatchMessage |
@@ -82,7 +91,8 @@ export type ControllerMessage =
   TimekeepRequest | TimekeepResponse |
   PeerDiscoveryMessage |
   PeerInfoMessage |
-  PeerSoundStateMessage;
+  PeerSoundStateMessage |
+  RPCMessage;
 
 type ControllerMessageSingleHandler<T extends BaseMessage, Y> = ((type: T['type'], handler: (message: T, peer: Peer) => any) => Y);
 
@@ -97,4 +107,5 @@ export type ControllerMessageHandler<T> =
   ControllerMessageSingleHandler<TimekeepResponse, T> &
   ControllerMessageSingleHandler<PeerDiscoveryMessage, T> &
   ControllerMessageSingleHandler<PeerInfoMessage, T> &
-  ControllerMessageSingleHandler<PeerSoundStateMessage, T>;
+  ControllerMessageSingleHandler<PeerSoundStateMessage, T> &
+  ControllerMessageSingleHandler<RPCMessage, T>;
