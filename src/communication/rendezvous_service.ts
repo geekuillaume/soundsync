@@ -2,7 +2,7 @@ import superagent from 'superagent';
 import debug from 'debug';
 import { InitiatorMessage } from './initiators/initiator';
 import { getPeersManager } from './get_peers_manager';
-import { RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL } from '../utils/constants';
+import { RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL, WILDCARD_DNS_DOMAIN_NAME } from '../utils/constants';
 import { getInternalIps } from '../utils/ip';
 
 const log = debug('soundsync:rendezvous');
@@ -47,7 +47,7 @@ export const enableRendezvousServicePeersDetection = async (shouldConnectWithRen
   const peersManager = getPeersManager();
   ips.forEach((ip) => {
     if (shouldConnectWithRendezvous) {
-      peersManager.joinPeerWithRendezvousApi(`http://${ip}`);
+      peersManager.joinPeerWithRendezvousApi(ip);
     } else {
       peersManager.joinPeerWithHttpApi(ip);
     }
@@ -79,19 +79,19 @@ export const fetchRendezvousMessages = async (conversationUuid: string, isPrimar
 };
 
 export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string) => {
-  // this is only used from the webui when it is running in a https context and not able to make http fetch request
-  // so we need a hack: loading a <img> with the source on the host, this will still be allowed in a secure context
-  // and allow us to notify the peer on the local network
   if (typeof document === 'undefined') {
     const err = new Error('This method is meant to be used in a web context, not in a NodeJS one');
     // @ts-ignore
     err.shouldAbort = true;
     throw err;
   }
-  const imgEl = document.createElement('img');
-  await new Promise((resolve, reject) => {
-    imgEl.onload = resolve;
-    imgEl.onerror = reject;
-    imgEl.src = `${host}/rendezvous_message_notify?initiatorUuid=${conversationUuid}`;
-  });
+  const [ip, port] = host.split(':');
+  const ipParts = ip.split('.');
+  const domainName = `${conversationUuid.replace(/-/g, '_')}-${ipParts.join('-')}.${WILDCARD_DNS_DOMAIN_NAME}:${Number(port) + 1}`; // the https port is the http port + 1
+  try {
+    await superagent.get(`https://${domainName}`);
+  } catch (e) {
+    // this will always throw an error but it is expected as we only need this to advertise the conversationUuid to the peer
+    // but the peer doesn't have a valid SSL certificate for this domain
+  }
 };

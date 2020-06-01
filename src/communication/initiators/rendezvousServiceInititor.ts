@@ -1,4 +1,5 @@
 import Router from 'koa-router';
+import { sniRequestTracker } from '../https_sni_request';
 import { assert } from '../../utils/assert';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
@@ -77,49 +78,62 @@ export const createRendezvousServiceInitiator = (host: string, uuid?: string, is
     new RendezVousServiceInitiator(uuid, handleReceiveMessage, host, isPrimary)
   ));
 
+const handleRendezvousMessageNotification = async (initiatorUuid: string, host: string) => {
+  assert(!!initiatorUuid, 'initiatorUuid query string required');
+  const messages = await fetchRendezvousMessages(initiatorUuid, false);
+  assert(messages.length, 'No messages');
+
+  try {
+    assert(messages[0].senderUuid !== getLocalPeer().uuid, 'Connecting to own peer');
+
+    if (!initiatorsListener[initiatorUuid]) {
+      const {
+        senderUuid, senderInstanceUuid, senderVersion,
+      } = messages[0];
+      assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 'senderUuid, senderInstanceUuid and senderVersion should be set');
+      assert(senderVersion === SOUNDSYNC_VERSION, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
+
+      const peer = new WebrtcPeer({
+        uuid: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
+        name: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
+        instanceUuid: senderInstanceUuid,
+        initiatorConstructor: createRendezvousServiceInitiator(host, initiatorUuid, false), // we are not primary because we didn't sent the first request
+      });
+      getPeersManager().registerPeer(peer);
+    }
+
+    for (const message of messages) {
+      await initiatorsListener[initiatorUuid](message);
+      // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
+      assert(initiatorsListener[initiatorUuid], 'Error while handling initiator message');
+    }
+  } catch (e) {
+    await postRendezvousMessage(initiatorUuid, {
+      error: true,
+      message: e.message,
+      status: e.status,
+    }, false);
+  }
+};
+
 export const initHttpServerRoutes = (router: Router) => {
   router.get('/rendezvous_message_notify', async (ctx) => {
     const { initiatorUuid } = ctx.request.query;
-    ctx.assert(!!initiatorUuid, 400, 'initiatorUuid query string required');
-    const messages = await fetchRendezvousMessages(initiatorUuid, false);
-    ctx.assert(messages.length, 404, 'No messages');
-
-    try {
-      ctx.assert(messages[0].senderUuid !== getLocalPeer().uuid, 409, 'Connecting to own peer');
-
-      if (!initiatorsListener[initiatorUuid]) {
-        const {
-          senderUuid, senderInstanceUuid, senderVersion,
-        } = messages[0];
-        ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
-        ctx.assert(senderVersion === SOUNDSYNC_VERSION, 400, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
-
-        const peer = new WebrtcPeer({
-          uuid: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
-          name: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
-          instanceUuid: senderInstanceUuid,
-          initiatorConstructor: createRendezvousServiceInitiator(ctx.request.ip, initiatorUuid, false), // we are not primary because we didn't sent the first request
-        });
-        getPeersManager().registerPeer(peer);
-      }
-
-      for (const message of messages) {
-        await initiatorsListener[initiatorUuid](message);
-        // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
-        assert(initiatorsListener[initiatorUuid], 'Error while handling initiator message');
-      }
-    } catch (e) {
-      await postRendezvousMessage(initiatorUuid, {
-        error: true,
-        message: e.message,
-        status: e.status,
-      }, false);
-    }
-
+    await handleRendezvousMessageNotification(initiatorUuid, ctx.request.ip);
     // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
     ctx.assert(initiatorsListener[initiatorUuid], 500, 'Error while handling message');
     ctx.body = EMPTY_IMAGE;
     ctx.set('Content-type', 'image/png');
     ctx.status = 200;
+  });
+
+  sniRequestTracker.on('sniRequest', async (serverName: string) => {
+    const initiatorUuid = serverName.split('-')[0].replace(/_/g, '-');
+    try {
+      await handleRendezvousMessageNotification(initiatorUuid, 'null');
+    } catch (e) {
+      // we don't have any way of advertising an error to the client as the SSL request will fail eitherway
+      // so we just ignore it
+    }
   });
 };
