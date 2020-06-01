@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { filter } from 'lodash-es';
 import {
   makeStyles, DialogTitle, DialogContent, Button, MenuItem, TextField,
 } from '@material-ui/core';
+import { v4 as uuidv4 } from 'uuid';
 import { usePeersManager } from '../../utils/useSoundSyncState';
 import { Capacity } from '../../../../src/communication/peer';
-import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles(() => ({
   formControl: {
@@ -33,7 +32,7 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
   const [librespotPassword, setLibrespotPassword] = useState('');
 
   const peersManager = usePeersManager();
-  const librespotCapablePeers = Object.values(filter(peersManager.peers, (p) => p.state === 'connected' && p.capacities.includes(Capacity.Shairport)));
+  const librespotCapablePeers = peersManager.peers.filter((p) => p.state === 'connected' && p.capacities.includes(Capacity.Librespot));
 
   const handleLibrespotCreate = () => {
     const peer = peersManager.getConnectedPeerByUuid(librespotHostId);

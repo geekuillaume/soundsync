@@ -9,6 +9,7 @@ import { isHidden } from './hiddenUtils';
 import { onSoundStateChange, onPeersChange } from './coordinator_communication';
 import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/get_peers_manager';
+import { PeersManager } from '../../../src/communication/peers_manager';
 
 const initialState = {
   stateVersion: 0,
@@ -88,7 +89,7 @@ export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(ge
 export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources, withHidden);
 export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
 
-export const usePeersManager = () => useContext(soundSyncContext).peersManagers;
+export const usePeersManager = () => useContext(soundSyncContext).peersManagers as PeersManager;
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
 export const usePeer = (uuid) => usePeersManager().getConnectedPeerByUuid(uuid);
 

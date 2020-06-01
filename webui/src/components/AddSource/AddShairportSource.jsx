@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { filter } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 import {
   makeStyles, DialogTitle, DialogContent, Button, MenuItem, TextField,
@@ -31,7 +30,7 @@ export const AddShairportSource = ({ onDialogClose }) => {
   const [shairportName, setShairportName] = useState('Soundsync');
 
   const peersManager = usePeersManager();
-  const shairportCapablePeers = Object.values(filter(peersManager.peers, (p) => p.state === 'connected' && p.capacities.includes(Capacity.Shairport)));
+  const shairportCapablePeers = peersManager.peers.filter((p) => p.state === 'connected' && p.capacities.includes(Capacity.Shairport));
 
   const handleAirplayCreate = () => {
     const peer = peersManager.getConnectedPeerByUuid(shairportHostId);
