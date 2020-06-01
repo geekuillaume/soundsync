@@ -35,7 +35,7 @@ export const PeersListDialog = ({ open, onClose }) => {
       <List>
         <ListSubheader>Connected devices</ListSubheader>
         {connectedPeers.map((peer) => (
-          <ListItem key={peer.uuid} button>
+          <ListItem key={peer.uuid} button onClick={() => console.log(peer)}>
             <ListItemAvatar>
               {peer.state === 'connected'
                 ? <CheckCircleOutlineIcon />
@@ -53,7 +53,7 @@ export const PeersListDialog = ({ open, onClose }) => {
         ))}
         {otherPeers.length !== 0 && <ListSubheader>Other devices</ListSubheader>}
         {otherPeers.map((peer) => (
-          <ListItem key={peer.uuid} button>
+          <ListItem key={peer.uuid} button onClick={() => console.log(peer)}>
             <ListItemAvatar>
               {peer.state === 'connected'
                 ? <CheckCircleOutlineIcon />
