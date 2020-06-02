@@ -3,6 +3,7 @@ import debug from 'debug';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
+import { assertNever } from '../utils/assert';
 import { ShairportSource } from './sources/shairport_souce';
 import { WebAudioSink } from './sinks/webaudio_sink';
 import { AudioSource } from './sources/audio_source';
@@ -107,8 +108,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     } else if (sourceDescriptor.type === 'shairport') {
       source = new ShairportSource(sourceDescriptor, this);
     } else {
-      // @ts-ignore
-      throw new Error(`Unknown source type ${sourceDescriptor.type}`);
+      assertNever(sourceDescriptor);
     }
 
     this.sources.push(source);
@@ -173,8 +173,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     } else if (sinkDescriptor.type === 'webaudio') {
       sink = new WebAudioSink(sinkDescriptor, this);
     } else {
-      // @ts-ignore
-      throw new Error(`Unknown sink type ${sinkDescriptor.type}`);
+      assertNever(sinkDescriptor);
     }
 
     this.sinks.push(sink);
