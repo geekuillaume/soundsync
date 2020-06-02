@@ -1,7 +1,9 @@
 import { onHueScanRPC } from './huelights';
+import { onCreateSink } from './createSink';
 
 export const rpcHandlers = {
   hueScan: onHueScanRPC,
+  createSink: onCreateSink,
 };
 
 export type RPCType = keyof typeof rpcHandlers;
