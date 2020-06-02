@@ -1,7 +1,7 @@
 import debug from 'debug';
 import _ from 'lodash';
 import { Peer } from '../communication/peer';
-import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
+import { getAudioSourcesSinksManager } from '../audio/get_audio_sources_sinks_manager';
 import { getPeersManager } from '../communication/get_peers_manager';
 import {
   PeerConnectionInfoMessage,

@@ -1,10 +1,11 @@
 import yargs from 'yargs';
 import debug from 'debug';
+import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
 import { getHttpServer } from './communication/http_server';
 import { getPeersManager, registerPeersManager } from './communication/get_peers_manager';
-import { getAudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
+import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { getClientCoordinator } from './coordinator/client_coordinator';
 // import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
@@ -39,6 +40,7 @@ const main = async () => {
     .parse(process.argv.slice(1));
 
   registerPeersManager(new PeersManager());
+  registerAudioSourcesSinksManager(new AudioSourcesSinksManager());
   initConfig(argv.configDir);
   registerLocalPeer({
     name: getConfigField('name'),

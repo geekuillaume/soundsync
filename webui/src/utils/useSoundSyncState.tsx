@@ -7,7 +7,7 @@ import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
 import { onSoundStateChange, onPeersChange } from './coordinator_communication';
-import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
+import { getAudioSourcesSinksManager } from '../../../src/audio/get_audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/get_peers_manager';
 import { PeersManager } from '../../../src/communication/peers_manager';
 

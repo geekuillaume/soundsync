@@ -1,5 +1,6 @@
-import { debounce, map, memoize } from 'lodash-es';
-import { getAudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
+import { v4 as uuidv4 } from 'uuid';
+import { debounce, memoize } from 'lodash-es';
+import { getAudioSourcesSinksManager, registerAudioSourcesSinksManager } from '../../../src/audio/get_audio_sources_sinks_manager';
 import { getPeersManager, registerPeersManager } from '../../../src/communication/get_peers_manager';
 import { enableRendezvousServicePeersDetection } from '../../../src/communication/rendezvous_service';
 
@@ -8,9 +9,11 @@ import { getClientCoordinator } from '../../../src/coordinator/client_coordinato
 import { initConfig, getConfigField } from '../../../src/coordinator/config';
 import { PeersManager } from '../../../src/communication/peers_manager';
 import { RENDEZVOUS_SERVICE_URL } from '../../../src/utils/constants';
+import { AudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 
 initConfig();
 registerPeersManager(new PeersManager());
+registerAudioSourcesSinksManager(new AudioSourcesSinksManager());
 registerLocalPeer({
   name: 'Web page',
   uuid: getConfigField('uuid'),
@@ -35,6 +38,7 @@ export const initializeCoordinator = memoize(async () => {
       type: 'webaudio',
       name: 'Web Page Output',
       peerUuid: getLocalPeer().uuid,
+      uuid: uuidv4(),
       volume: 1,
       available: true,
       pipedFrom: null,
