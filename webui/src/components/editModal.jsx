@@ -80,7 +80,7 @@ export const useEditAudioStreamModal = (type, audioStream) => {
     }
   };
 
-  const canBeDeleted = type === 'source' && (audioStream.type === 'librespot' || audioStream.type === 'shairport');
+  const canBeDeleted = type === 'source' && (audioStream.type === 'librespot' || audioStream.type === 'shairport' || audioStream.type === 'null');
   const handleDelete = () => {
     audioStream.peer.sendControllerMessage({
       type: 'sourceDelete',
