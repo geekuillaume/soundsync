@@ -108,15 +108,25 @@ export abstract class Peer extends EventEmitter {
         }
         return;
       }
-      // @ts-ignore
-      const body = await rpcHandlers[message.rpcType](this, message.body);
-      this.sendControllerMessage({
-        type: 'rpc',
-        isResponse: true,
-        body,
-        uuid: message.uuid,
-        rpcType: message.rpcType,
-      });
+      try {
+        const body = await rpcHandlers[message.rpcType](this, message.body);
+        this.sendControllerMessage({
+          type: 'rpc',
+          isResponse: true,
+          body,
+          uuid: message.uuid,
+          rpcType: message.rpcType,
+        });
+      } catch (e) {
+        this.sendControllerMessage({
+          type: 'rpc',
+          isResponse: true,
+          isError: true,
+          body: e.toString(),
+          uuid: message.uuid,
+          rpcType: message.rpcType,
+        });
+      }
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
@@ -219,11 +229,15 @@ export abstract class Peer extends EventEmitter {
     capacities: this.capacities,
   })
 
-  sendRcp = <T extends RPCType>(type: T, message: RPCRequestBody<T>) => new Promise<RPCResponseBody<T>>((resolve) => {
+  sendRcp = <T extends RPCType>(type: T, message: RPCRequestBody<T>) => new Promise<RPCResponseBody<T>>((resolve, reject) => {
     const uuid = uuidv4();
     this.rpcResponseHandlers[uuid] = (m) => {
       delete this.rpcResponseHandlers[uuid];
-      resolve(m.body);
+      if (m.isError) {
+        reject(new Error(m.body));
+      } else {
+        resolve(m.body);
+      }
     };
     this.sendControllerMessage({
       type: 'rpc',

@@ -79,6 +79,7 @@ export interface RPCMessage extends BaseMessage {
   uuid: string;
   body?: any;
   isResponse: boolean;
+  isError?: boolean;
 }
 
 export type ControllerMessage =
