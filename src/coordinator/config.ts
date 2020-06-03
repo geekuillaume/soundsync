@@ -28,6 +28,11 @@ interface ConfigData {
   peers: string[];
   detectPeersOnLocalNetwork: boolean;
   enableRendezvousService: boolean;
+  hueBridges: {
+    host: string;
+    username: string;
+    clientKey: string;
+  }[];
 }
 
 const defaultConfig: ConfigData = {
@@ -40,6 +45,7 @@ const defaultConfig: ConfigData = {
   peers: [],
   detectPeersOnLocalNetwork: true,
   enableRendezvousService: true,
+  hueBridges: [],
 };
 
 let config: {
@@ -123,19 +129,14 @@ export function updateConfigArrayItem(field: 'sinks', item: AudioSink): void;
 export function updateConfigArrayItem(field: 'sources' | 'sinks', sourceOrSink) {
   setConfig((c) => {
     const descriptor = sourceOrSink.toDescriptor(true);
-    const existingItem = _.find(getConfigField(field, c), (t: SinkDescriptor | SourceDescriptor) => t.type === descriptor.type && (!t.uuid || t.uuid === descriptor.uuid));
-    if (existingItem) {
-      // @ts-ignore
-      c[field] = c[field].filter((i) => i !== existingItem);
-    } else {
-      c[field] = [...getConfigField(field), descriptor];
-    }
+    // @ts-ignore
+    c[field] = c[field].filter((s) => s.uuid && s.uuid !== descriptor.uuid);
+    c[field].push(descriptor);
   });
 }
 
 export function deleteConfigArrayItem(field, item) {
   setConfig((c) => {
-    const existingItem = _.find(getConfigField(field), (t: SinkDescriptor | SourceDescriptor) => t.type === item.type && (!t.uuid || t.uuid === item.uuid));
-    c[field] = getConfigField(field).filter((i) => i !== existingItem);
+    c[field] = getConfigField(field).filter((s) => s.uuid !== item.uuid);
   });
 }
