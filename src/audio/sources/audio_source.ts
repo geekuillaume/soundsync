@@ -39,7 +39,7 @@ export abstract class AudioSource {
   constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
     this.type = descriptor.type;
-    this.uuid = descriptor.uuid;
+    this.uuid = descriptor.uuid || uuidv4();
     this.peerUuid = descriptor.peerUuid;
     this.name = descriptor.name;
     this.startedAt = descriptor.startedAt;
