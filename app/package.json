@@ -32,7 +32,7 @@
     "supports-color": "^7.1.0",
     "unzipper": "^0.10.11",
     "uuid": "^3.3.3",
-    "wrtc": "^0.4.3",
+    "wrtc": "0.4.5",
     "yargs": "^15.1.0"
   },
   "devDependencies": {
