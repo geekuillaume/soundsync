@@ -26,5 +26,22 @@ export interface WebAudioSinkDescriptor extends BaseSinkDescriptor {
   type: 'webaudio';
 }
 
-export type SinkDescriptor = LocalDeviceSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor;
+export enum HueLightStatus {
+  notConnectable = 'notConnectable', // host is not joinable
+  connecting = 'connecting', // authentifying to hue bridge
+  needsAuthorization = 'needsAuthorization', // need to start authorization process
+  needAuthorizationValidation = 'needAuthorizationValidation', // needs to push the hue bridge button to authorize
+  available = 'available', // connected and authentified
+  initializingStreaming = 'initializingStreaming', // starting dtls socket
+  initializingError = 'initializingError', // error while starting dtls socket
+}
+
+export interface HueLightSinkDescriptor extends BaseSinkDescriptor {
+  type: 'huelight';
+  hueHost: string;
+  entertainmentZoneId: string;
+  status: HueLightStatus;
+}
+
+export type SinkDescriptor = LocalDeviceSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor | HueLightSinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

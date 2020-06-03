@@ -4,7 +4,9 @@ import Dialog from '@material-ui/core/Dialog';
 import {
   makeStyles, DialogTitle, DialogContent, Button,
 } from '@material-ui/core';
-import { DownloadLinks } from './FirstUse/DownloadLinks';
+import { DownloadLinks } from '../FirstUse/DownloadLinks';
+import { SinkTypeSelection } from './SinkTypeSelection';
+import { AddHueSink } from './AddHueSink';
 
 const useStyles = makeStyles({
   openDialogButton: {
@@ -27,6 +29,7 @@ const useStyles = makeStyles({
 
 export const AddSinkButton = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+
   const styles = useStyles();
 
   return (
@@ -34,9 +37,11 @@ export const AddSinkButton = () => {
       <Button className={styles.openDialogButton} onClick={() => setDialogOpen(true)}>
         <AddIcon fontSize="large" />
       </Button>
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" className={styles.dialog}>
-        <DialogTitle>Add a new speaker</DialogTitle>
-        <DialogContent>
+      <Dialog open={Boolean(dialogOpen)} onClose={() => setDialogOpen(false)} maxWidth="sm" className={styles.dialog}>
+        {dialogOpen === true && <SinkTypeSelection onTypeSelected={setDialogOpen} />}
+        {dialogOpen === 'localDevice' && <DownloadLinks twoLinesLayout />}
+        {dialogOpen === 'hue' && <AddHueSink onDialogClose={() => setDialogOpen(false)} />}
+        {/* <DialogContent>
           <p>
             Open
             {' '}
@@ -45,7 +50,7 @@ export const AddSinkButton = () => {
             on another web browser or install the App on a new device:
           </p>
           <DownloadLinks twoLinesLayout />
-        </DialogContent>
+        </DialogContent> */}
       </Dialog>
     </>
   );

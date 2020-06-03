@@ -4,21 +4,24 @@ import { useSnackbar } from 'notistack';
 import classnames from 'classnames';
 import { Zoom } from '@material-ui/core';
 
-import speaker from 'res/speaker.svg';
-import nullSinkLogo from 'res/null.svg';
-import browserIcon from 'res/browser.svg';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
 import {
   usePeer, useSinks, useRegisterForPipe, useUnpipeAction, useShowHidden,
 } from 'utils/useSoundSyncState';
 import { HiddenIndicator } from 'components/utils/HiddenIndicator';
-import { SinkContextMenu } from './SinkContextMenu';
+
+import speaker from 'res/speaker.svg';
+import nullSinkLogo from 'res/null.svg';
+import browserIcon from 'res/browser.svg';
+import hueBulbIcon from 'res/huebulb.svg';
 import { getLocalPeer } from '../../../../src/communication/local_peer';
+import { SinkContextMenu } from './SinkContextMenu';
 
 const logos = {
   localdevice: speaker,
   null: nullSinkLogo,
   webaudio: browserIcon,
+  huelight: hueBulbIcon,
 };
 
 export const Sink = ({ sink }) => {
@@ -68,7 +71,7 @@ export const Sink = ({ sink }) => {
           onClick={handleUnpipe}
         />
         <div className="box sink-box" onClick={() => setContextMenuOpen(true)}>
-          <img src={sinkLogo} alt="" className="sink-logo" />
+          <img src={sinkLogo} alt="" className={classnames('sink-logo', sink.type)} />
           <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
           <p className={classnames('peer-name', { ownPeer: peer.uuid === getLocalPeer().uuid })}>{peerName}</p>
           {hidden && <HiddenIndicator position="left" />}

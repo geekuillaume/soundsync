@@ -34,6 +34,7 @@ const config = {
       child_process: 'utils/polyfills/empty.js',
       unzipper: 'utils/polyfills/empty.js',
       dgram: 'utils/polyfills/empty.js',
+      'node-dtls-client': 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',

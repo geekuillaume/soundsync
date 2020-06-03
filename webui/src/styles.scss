@@ -131,6 +131,9 @@ body {
 .sink-logo {
   left: auto;
   right: -13px;
+  &.huelight {
+    top: -5px;
+  }
 }
 
 .pipe {

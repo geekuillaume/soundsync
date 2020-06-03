@@ -7,7 +7,7 @@ import {
 import { Source } from './Source';
 import { Sink } from './Sink';
 import { Pipe } from './Pipe';
-import { AddSinkButton } from './AddSinkButton';
+import { AddSinkButton } from './AddSink/AddSinkButton';
 import { AddSourceButton } from './AddSource';
 
 export const SoundState = () => {

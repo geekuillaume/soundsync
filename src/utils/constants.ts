@@ -1,3 +1,4 @@
+export const APP_NAME = 'Soundsync';
 export const CONTROLLER_CHANNEL_ID = 42;
 export const OPUS_ENCODER_RATE = 48000;
 export const OPUS_ENCODER_CHUNKS_PER_SECONDS = 100;

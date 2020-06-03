@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { assertNever } from '../utils/assert';
+import { HueLightSink } from './sinks/huelight_sink';
 import { ShairportSource } from './sources/shairport_souce';
 import { WebAudioSink } from './sinks/webaudio_sink';
 import { AudioSource } from './sources/audio_source';
@@ -172,6 +173,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       sink = new NullSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'webaudio') {
       sink = new WebAudioSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'huelight') {
+      sink = new HueLightSink(sinkDescriptor, this);
     } else {
       assertNever(sinkDescriptor);
     }

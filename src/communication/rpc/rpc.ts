@@ -1,8 +1,9 @@
-import { onHueScanRPC } from './huelights';
+import { onHueScanRPC, onHueGetEntertainmentZones } from './huelights';
 import { onCreateSink } from './createSink';
 
 export const rpcHandlers = {
   hueScan: onHueScanRPC,
+  hueGetEntertainmentZones: onHueGetEntertainmentZones,
   createSink: onCreateSink,
 };
 
