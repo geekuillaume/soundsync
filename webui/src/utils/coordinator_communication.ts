@@ -21,7 +21,7 @@ registerLocalPeer({
 });
 
 export const initializeCoordinator = memoize(async () => {
-  if (!RENDEZVOUS_SERVICE_URL.endsWith(document.location.host)) {
+  if (!RENDEZVOUS_SERVICE_URL.endsWith(document.location.host) && !localStorage.getItem('soundsync:disableConnectToLocalPeer')) {
     const peerHost = document.location.port === '8080' ? `//${document.location.hostname}:6512` : `//${document.location.host}`;
     await getPeersManager().joinPeerWithHttpApi(peerHost);
   }
