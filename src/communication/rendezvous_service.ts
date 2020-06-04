@@ -88,13 +88,10 @@ export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, ho
   const [ip, port] = host.split(':');
   const ipParts = ip.split('.');
   const domainName = `${conversationUuid.replace(/-/g, '_')}-${ipParts.join('-')}.${WILDCARD_DNS_DOMAIN_NAME}:${Number(port) + 1}`; // the https port is the http port + 1
-  const start = new Date().getTime();
-  console.log(`==== start SNI request for ${conversationUuid}`);
   try {
     await superagent.get(`https://${domainName}`);
   } catch (e) {
     // this will always throw an error but it is expected as we only need this to advertise the conversationUuid to the peer
     // but the peer doesn't have a valid SSL certificate for this domain
   }
-  console.log(`======= SNI request took: ${new Date().getTime() - start} ms`);
 };
