@@ -40,7 +40,7 @@ export class PeersManager extends EventEmitter {
       return;
     }
     const peer = new WebrtcPeer({
-      name: 'remote',
+      name: `placeholderForHttpApiJoin_${httpEndpoint}`,
       uuid: `placeholderForHttpApiJoin_${httpEndpoint}`,
       instanceUuid: 'placeholder',
       initiatorConstructor: createHttpApiInitiator(httpEndpoint),
@@ -58,7 +58,7 @@ export class PeersManager extends EventEmitter {
       return;
     }
     const peer = new WebrtcPeer({
-      name: 'remote',
+      name: `placeholderForRendezvousJoin_${host}`,
       uuid: `placeholderForRendezvousJoin_${host}`,
       instanceUuid: 'placeholder',
       initiatorConstructor: createRendezvousServiceInitiator(host),
@@ -82,7 +82,7 @@ export class PeersManager extends EventEmitter {
       return;
     }
     const peer = new WebrtcPeer({
-      name: 'remote',
+      name: `placeholderForPeerRelay_${targetUuid}`,
       uuid: `placeholderForPeerRelay_${targetUuid}`,
       instanceUuid: 'placeholder',
       initiatorConstructor: createPeerRelayServiceInitiator(targetUuid),
