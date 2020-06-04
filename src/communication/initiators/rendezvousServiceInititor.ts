@@ -1,5 +1,5 @@
 import Router from 'koa-router';
-import { sniRequestTracker } from '../https_sni_request';
+import { onSniRequest } from '../https_sni_request';
 import { assert } from '../../utils/assert';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
@@ -127,7 +127,7 @@ export const initHttpServerRoutes = (router: Router) => {
     ctx.status = 200;
   });
 
-  sniRequestTracker.on('sniRequest', async (serverName: string) => {
+  onSniRequest(async (serverName: string) => {
     const initiatorUuid = serverName.split('-')[0].replace(/_/g, '-');
     try {
       await handleRendezvousMessageNotification(initiatorUuid, 'null');

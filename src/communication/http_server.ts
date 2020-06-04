@@ -6,7 +6,7 @@ import debug from 'debug';
 import { createServer } from 'http';
 import { createServer as createServerHttps } from 'https';
 import cors from '@koa/cors';
-import { sniRequestTracker } from './https_sni_request';
+import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
 import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
 
@@ -47,8 +47,8 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
   const httpsPort = port + 1;
   l(`Creating https server on ${httpsPort}`);
   const httpsServer = createServerHttps({
-    SNICallback: (serverName, cb) => {
-      sniRequestTracker.emit('sniRequest', serverName);
+    SNICallback: async (serverName, cb) => {
+      await sniRequestReceived(serverName);
       cb(new Error('Not supported'), null);
     },
   }, app.callback());
