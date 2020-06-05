@@ -130,6 +130,8 @@ export function updateConfigArrayItem(field: 'sources' | 'sinks', sourceOrSink) 
   setConfig((c) => {
     const descriptor = sourceOrSink.toDescriptor(true);
     // @ts-ignore
+    c[field] = c[field] || [];
+    // @ts-ignore
     c[field] = c[field].filter((s) => s.uuid && s.uuid !== descriptor.uuid);
     c[field].push(descriptor);
   });
