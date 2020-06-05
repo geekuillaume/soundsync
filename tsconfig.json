@@ -11,6 +11,8 @@
       "outDir": "app",
       "baseUrl": "src",
       "resolveJsonModule": true,
+      "skipLibCheck": true,
+      "sourceRoot": "/",
       "paths": {
           "*": [
               "node_modules/*",

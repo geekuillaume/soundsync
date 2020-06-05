@@ -62,6 +62,9 @@ jobs:
         if: "runner.os == 'Linux'"
         run: sudo apt-get -y install bsdtar
 
+      - name: Update version global
+        run: sh scripts/update_build_version.sh
+
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
         env:
@@ -109,6 +112,9 @@ jobs:
       with:
         name: webui-dist
         path: webui/dist
+
+    - name: Update version global
+      run: sh scripts/update_build_version.sh
 
     - name: Build for raspberrypi
       shell: bash

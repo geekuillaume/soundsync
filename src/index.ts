@@ -1,5 +1,7 @@
+import './utils/sentry';
 import yargs from 'yargs';
 import debug from 'debug';
+
 import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
