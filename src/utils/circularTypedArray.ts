@@ -12,31 +12,34 @@ export class CircularTypedArray<T extends TypedArray> {
   TypedArrayConstructor: new (...args) => T;
   buffer: T;
   pointersBuffer: ArrayBuffer | SharedArrayBuffer;
-  pointersTypedBuffer: Uint32Array;
+  pointersTypedBuffer: Float64Array;
 
   constructor(TypedArrayConstructor: new (...args) => T, lengthOrSharedArrayBuffer: number | SharedArrayBuffer) {
     this.TypedArrayConstructor = TypedArrayConstructor;
     this.buffer = new TypedArrayConstructor(lengthOrSharedArrayBuffer);
 
     if (typeof SharedArrayBuffer !== 'undefined') {
-      this.pointersBuffer = new SharedArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+      this.pointersBuffer = new SharedArrayBuffer(2 * Float64Array.BYTES_PER_ELEMENT);
     } else {
-      this.pointersBuffer = new ArrayBuffer(2 * Uint32Array.BYTES_PER_ELEMENT);
+      this.pointersBuffer = new ArrayBuffer(2 * Float64Array.BYTES_PER_ELEMENT);
     }
-    this.pointersTypedBuffer = new Uint32Array(this.pointersBuffer);
+    this.pointersTypedBuffer = new Float64Array(this.pointersBuffer);
   }
 
   getPointersBuffer = () => this.pointersBuffer
   setPointersBuffer = (pointersBuffer: SharedArrayBuffer) => {
     this.pointersBuffer = pointersBuffer;
-    this.pointersTypedBuffer = new Uint32Array(this.pointersBuffer);
+    this.pointersTypedBuffer = new Float64Array(this.pointersBuffer);
   }
 
   setReaderPointer = (value: number) => {
-    Atomics.store(this.pointersTypedBuffer, 1, value);
+    this.pointersTypedBuffer[1] = value;
   }
-  getReaderPointer = () => Atomics.load(this.pointersTypedBuffer, 1)
-  advanceReaderPointer = (value: number) => Atomics.add(this.pointersTypedBuffer, 1, value)
+  getReaderPointer = () => this.pointersTypedBuffer[1]
+  advanceReaderPointer = (value: number) => {
+    this.pointersTypedBuffer[1] += value;
+    return this.pointersTypedBuffer[1] - value;
+  }
 
   set(data: T, offset: number) {
     const realOffset = offset % this.buffer.length;
