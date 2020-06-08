@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/electron';
+import * as Sentry from '@sentry/node';
 import { BUILD_VERSION } from './version';
 
 try {
