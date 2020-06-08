@@ -55,7 +55,7 @@ export class LocalDeviceSink extends AudioSink {
     this.worklet = this.soundioOutputStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
     this.soundioOutputStream.start();
 
-    const bufferSize = (BUFFER_DURATION / 1000) * OPUS_ENCODER_RATE * this.channels * Float32Array.BYTES_PER_ELEMENT;
+    const bufferSize = BUFFER_DURATION * (OPUS_ENCODER_RATE / 1000) * this.channels * Float32Array.BYTES_PER_ELEMENT;
     const bufferData = new SharedArrayBuffer(bufferSize);
     this.buffer = new CircularTypedArray(Float32Array, bufferData);
 
