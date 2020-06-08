@@ -40,6 +40,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.0",
     "@material-ui/icons": "^4.5.1",
+    "@sentry/browser": "^5.17.0",
     "buffer": "^5.5.0",
     "bulma": "^0.8.0",
     "classnames": "^2.2.6",
