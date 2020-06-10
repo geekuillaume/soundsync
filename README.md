@@ -4,12 +4,12 @@
 
 ## Connect virtual cables between any audio source and any audio output
 
-Soundsync is a web and desktop app to manage every audio source and every audio output in your home from a single interface. Link any audio source to multiple speakers connected to any computers on your home network. Soundsync will keep the music synchronized between all of them.
+Soundsync is a web and desktop app to manage every audio source and every audio output in your home from a single interface. Link any audio source to multiple speakers connected to any devices on your home network. Soundsync will keep the music synchronized between all of them.
 
 - 🆓 Free to use
 - 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link of your choosing
 - 🎶 Compatible with a lot of different audio sources (Spotify Connect with a premium account, Airplay, Hardware Audio input (line in / microphone), Linux system audio ; coming soon: Windows system audio, UPnP and more)
-- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome only) and soon Chromecast and more
+- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome, Firefox) and soon Chromecast and more
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🎛️ Control everything from a web browser
 - 🔓 Not linked to any external service, works offline, no account creation
