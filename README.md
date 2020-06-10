@@ -62,6 +62,7 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Windows loopback support
 - Sonos support
 - Stop audio device when no audio has been received for a while to save energy
+- Allow devices on multiple networks to be connected together
 
 ## FAQ
 
