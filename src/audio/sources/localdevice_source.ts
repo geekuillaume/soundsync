@@ -3,7 +3,7 @@ import {
   Soundio, SoundioDevice, SoundioInputStream,
 } from 'audioworklet';
 import { resolve } from 'path';
-import { getInputDeviceFromId } from '../../utils/soundio';
+import { getInputDeviceFromId, shouldUseAudioStreamName } from '../../utils/soundio';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
@@ -36,7 +36,7 @@ export class LocalDeviceSource extends AudioSource {
     const inputStream = new PassThrough();
     this.soundioInputStream = this.soundioDevice.openInputStream({
       sampleRate: OPUS_ENCODER_RATE,
-      name: this.name,
+      name: shouldUseAudioStreamName() ? this.name : undefined,
       format: Soundio.SoundIoFormatS16LE,
       bufferDuration: 2,
     });

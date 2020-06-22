@@ -13,7 +13,7 @@ import {
   OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
-import { getOutputDeviceFromId } from '../../utils/soundio';
+import { getOutputDeviceFromId, shouldUseAudioStreamName } from '../../utils/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
@@ -48,7 +48,7 @@ export class LocalDeviceSink extends AudioSink {
     this.soundioDevice = await getOutputDeviceFromId(this.deviceId);
     this.soundioOutputStream = this.soundioDevice.openOutputStream({
       sampleRate: OPUS_ENCODER_RATE,
-      name: `${source.name}`,
+      name: shouldUseAudioStreamName() ? source.name : undefined,
       format: Soundio.SoundIoFormatFloat32LE,
       bufferDuration: 0.1,
     });

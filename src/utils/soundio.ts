@@ -14,6 +14,9 @@ export const getAudioDevices = async () => {
   return getSoundio().getDevices();
 };
 
+// WASAPI has a problem with utf8 conversion which break everything so we don't use the stream name on windows
+export const shouldUseAudioStreamName = () => getSoundio().getApi() !== 'WASAPI';
+
 export const audioApiSupportsLoopback = () => getSoundio().getApi() === 'WASAPI';
 export const getOutputDeviceFromId = async (deviceId: string) => {
   if (!deviceId) {
