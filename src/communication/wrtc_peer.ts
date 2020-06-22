@@ -1,6 +1,7 @@
 import { RTCPeerConnection } from 'wrtc';
 import freeice from 'freeice';
 
+import { Sentry } from '../utils/sentry';
 import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
@@ -172,6 +173,7 @@ export class WebrtcPeer extends Peer {
       }
     } catch (e) {
       this.log('Error while handling initiator message');
+      Sentry.captureException(e);
       console.error(e);
       this.destroy('Initiator message error');
     }

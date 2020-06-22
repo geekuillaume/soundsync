@@ -1,5 +1,14 @@
-import * as Sentry from '@sentry/node';
+/* eslint-disable global-require */
 import { BUILD_VERSION } from './version';
+
+// eslint-disable-next-line import/no-mutable-exports
+let Sentry;
+// @ts-ignore
+if (process.browser) {
+  Sentry = require('@sentry/browser');
+} else {
+  Sentry = require('@sentry/node');
+}
 
 try {
   Sentry.init({
@@ -9,3 +18,5 @@ try {
 } catch (e) {
   // do nothing as it is caused by electron not being available
 }
+
+export { Sentry };
