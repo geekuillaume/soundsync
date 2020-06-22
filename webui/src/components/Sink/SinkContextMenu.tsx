@@ -4,12 +4,11 @@ import { useSnackbar } from 'notistack';
 // import Dialog from '@material-ui/core/Dialog';
 // import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
-  withStyles, Popover, TextField, InputAdornment,
+  withStyles, Popover, TextField, InputAdornment, makeStyles,
 } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
-import Grid from '@material-ui/core/Grid';
 import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
 import VolumeUp from '@material-ui/icons/VolumeUp';
@@ -46,9 +45,22 @@ const PopoverTextField = withStyles(() => ({
   },
 }))(({ classes, InputProps, ...props }) => (<TextField {...props} InputProps={{ classes, ...InputProps }} />));
 
+const useStyles = makeStyles(() => ({
+  volumeContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    '& > .MuiSlider-root': {
+      margin: '0 13px',
+    },
+  },
+}));
+
+
 export const SinkContextMenu = ({
   isOpen, onClose, sink, anchor,
 }: { sink: AudioSink; isOpen: boolean; onClose: () => any; anchor: HTMLElement }) => {
+  const styles = useStyles();
   const [renameOpen, setRenameOpen] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -130,17 +142,11 @@ export const SinkContextMenu = ({
 
   const defaultModalContent = (
     <>
-      <Grid container spacing={2}>
-        <Grid item>
-          <VolumeDown />
-        </Grid>
-        <Grid item xs>
-          <Slider value={sink.volume} min={0} max={1} step={0.01} onChange={handleVolumeChange} aria-labelledby="continuous-slider" />
-        </Grid>
-        <Grid item>
-          <VolumeUp />
-        </Grid>
-      </Grid>
+      <div className={styles.volumeContainer}>
+        <VolumeDown />
+        <Slider value={sink.volume} min={0} max={1} step={0.01} onChange={handleVolumeChange} />
+        <VolumeUp />
+      </div>
       <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
       {isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
       <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
