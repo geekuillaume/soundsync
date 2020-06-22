@@ -10,3 +10,4 @@ app/*
 tmp*
 test.pcm
 test.sh
+*.pcm
