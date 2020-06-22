@@ -37,9 +37,15 @@ export const enableRendezvousServiceRegister = (port: number) => {
 };
 
 const getKnownRendezvousIps = async () => {
-  const { body } = await rendezvousApi
-    .get(`${RENDEZVOUS_SERVICE_URL}/api/ip_registry/peers`);
-  return body;
+  try {
+    const { body } = await rendezvousApi
+      .get(`${RENDEZVOUS_SERVICE_URL}/api/ip_registry/peers`);
+    return body;
+  } catch {
+    // an error here means that the rendezvous service is not reachable because of the internet connection or a CORS error if not loading from soundsync.app
+    // do nothing and treat it as an empty response
+    return [];
+  }
 };
 
 export const enableRendezvousServicePeersDetection = async (shouldConnectWithRendezvous = false) => {
