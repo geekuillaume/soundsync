@@ -31,7 +31,7 @@ export class LocalDeviceSource extends AudioSource {
   }
 
   async _getAudioEncodedStream() {
-    this.log(`Creating localdevice sink`);
+    this.log(`Creating localdevice source`);
     this.soundioDevice = await getInputDeviceFromId(this.deviceId);
     const inputStream = new PassThrough();
     this.soundioInputStream = this.soundioDevice.openInputStream({
