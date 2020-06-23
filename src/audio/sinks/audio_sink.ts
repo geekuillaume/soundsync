@@ -26,19 +26,18 @@ export abstract class AudioSink extends EventEmitter {
   local: boolean;
   peerUuid: string;
   pipedFrom?: SourceUUID;
-  pipedSource?: AudioSource;
   available: boolean;
   volume: number;
-
-  manager: AudioSourcesSinksManager;
-  decoder: NodeJS.ReadWriteStream;
-  log: debug.Debugger;
-  sourceStream: MiniPass;
-  decodedStream: ReturnType<typeof createAudioDecodedStream>;
-  instanceUuid ; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
-  inputStream: NodeJS.ReadableStream;
   latency = 0;
-  lastReceivedChunkIndex = -1;
+  instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
+
+  protected pipedSource?: AudioSource;
+  protected log: debug.Debugger;
+
+  private manager: AudioSourcesSinksManager;
+  private sourceStream: MiniPass;
+  private decodedStream: ReturnType<typeof createAudioDecodedStream>;
+  private lastReceivedChunkIndex = -1;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;

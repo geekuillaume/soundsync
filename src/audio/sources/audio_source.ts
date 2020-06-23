@@ -19,20 +19,22 @@ export abstract class AudioSource {
   type: SourceType;
   rate = 0;
   channels: number;
-  log: debug.Debugger;
   local: boolean;
   uuid: string;
   peerUuid: string;
-  manager: AudioSourcesSinksManager;
   instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
-  // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
-  // real source initialize, this simplify the code needed to handle the source being started twice at the same time
-  encodedAudioStream: MiniPass; // stream used to redistribute the audio chunks to every sink
-  protected directSourceStream: MiniPass; // internal stream from the source
   startedAt: number;
-  private consumersStreams: MiniPass[] = [];
   latency: number;
   available: boolean;
+
+  // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
+  // real source initialize, this simplify the code needed to handle the source being started twice at the same time
+  protected encodedAudioStream: MiniPass; // stream used to redistribute the audio chunks to every sink
+  protected directSourceStream: MiniPass; // internal stream from the source
+  protected log: debug.Debugger;
+
+  private consumersStreams: MiniPass[] = [];
+  private manager: AudioSourcesSinksManager;
 
   protected abstract _getAudioEncodedStream(): Promise<MiniPass> | MiniPass;
 
