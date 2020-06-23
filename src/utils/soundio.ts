@@ -1,4 +1,4 @@
-import { Soundio } from 'audioworklet';
+import { Soundio, SoundioDevice } from 'audioworklet';
 
 let soundio: Soundio;
 
@@ -30,4 +30,21 @@ export const getInputDeviceFromId = async (deviceId: string) => {
     return null;
   }
   return (await getAudioDevices()).inputDevices.find((device) => device.id === deviceId);
+};
+
+export const getClosestMatchingRate = (device: SoundioDevice, targetRate: number) => {
+  const rates = device.sampleRates;
+  const isMatching = rates.some(({ min, max }) => targetRate >= min && targetRate <= max);
+  if (isMatching) {
+    return targetRate;
+  }
+  return rates.reduce((currentClosest, { min, max }) => {
+    const currentClosestDiff = Math.abs(currentClosest - targetRate);
+    const diffWithMin = Math.abs(targetRate - min);
+    const diffWithMax = Math.abs(targetRate - max);
+    if (currentClosestDiff < diffWithMax && currentClosestDiff < diffWithMin) {
+      return currentClosest;
+    }
+    return diffWithMax < diffWithMin ? max : min;
+  }, 0);
 };

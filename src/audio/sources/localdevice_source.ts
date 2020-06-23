@@ -3,7 +3,7 @@ import {
   Soundio, SoundioDevice, SoundioInputStream,
 } from 'audioworklet';
 import { resolve } from 'path';
-import { getInputDeviceFromId, shouldUseAudioStreamName } from '../../utils/soundio';
+import { getInputDeviceFromId, shouldUseAudioStreamName, getClosestMatchingRate } from '../../utils/soundio';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
@@ -16,7 +16,7 @@ import { AudioInstance } from '../utils';
 export class LocalDeviceSource extends AudioSource {
   type: 'localdevice' = 'localdevice';
   local = true;
-  rate = 48000;
+  rate = OPUS_ENCODER_RATE;
   channels = 2;
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
@@ -33,9 +33,10 @@ export class LocalDeviceSource extends AudioSource {
   async _getAudioEncodedStream() {
     this.log(`Creating localdevice source`);
     this.soundioDevice = await getInputDeviceFromId(this.deviceId);
+    this.rate = getClosestMatchingRate(this.soundioDevice, OPUS_ENCODER_RATE);
     const inputStream = new PassThrough();
     this.soundioInputStream = this.soundioDevice.openInputStream({
-      sampleRate: OPUS_ENCODER_RATE,
+      sampleRate: this.rate,
       name: shouldUseAudioStreamName() ? this.name : undefined,
       format: Soundio.SoundIoFormatS16LE,
       bufferDuration: 2,
@@ -45,7 +46,7 @@ export class LocalDeviceSource extends AudioSource {
     worklet.on('message', (d) => {
       inputStream.write(Buffer.from(d.buffer));
     });
-    const stream = createAudioEncodedStream(inputStream, OPUS_ENCODER_RATE, 2);
+    const stream = createAudioEncodedStream(inputStream, this.rate, 2);
 
     this.cleanStream = () => {
       this.soundioInputStream.close();
