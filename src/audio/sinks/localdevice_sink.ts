@@ -34,13 +34,15 @@ export class LocalDeviceSink extends AudioSink {
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceId = descriptor.deviceId;
-    this.available = this.isDeviceAvailable();
-    setInterval(() => { // this should be changed to use events from soundio instead
-      this.updateInfo({ available: this.isDeviceAvailable() });
-    }, 5000);
+    this.available = false; // device is considered not available at first before this.updateAvailability
+    this.updateAvailability();
+    setInterval(this.updateAvailability, 5000);
   }
 
-  isDeviceAvailable = () => !!getOutputDeviceFromId(this.deviceId)
+  isDeviceAvailable = async () => !!(await getOutputDeviceFromId(this.deviceId))
+  private updateAvailability = async () => {
+    this.updateInfo({ available: await this.isDeviceAvailable() });
+  }
 
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
