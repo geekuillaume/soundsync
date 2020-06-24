@@ -43,10 +43,10 @@ export const SinkTypeSelection = ({ onTypeSelected }) => {
           <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />
           <span>Use another device</span>
         </Button>
-        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('hue')}>
+        {/* <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('hue')}>
           <img src={philipsHueLogo} alt="" className={styles.sourceTypeLogo} />
           <span>Use Philips Hue lights</span>
-        </Button>
+        </Button> */}
       </DialogContent>
     </>
   );
