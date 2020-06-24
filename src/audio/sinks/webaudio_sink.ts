@@ -18,6 +18,8 @@ export class WebAudioSink extends AudioSink {
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
+    this.available = typeof AudioContext === 'function' && typeof AudioWorkletNode === 'function';
+
     if (!isBrowser) {
       throw new Error('WebAudio sink can only be created on a browser');
     }
