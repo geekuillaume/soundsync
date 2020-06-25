@@ -6,7 +6,7 @@ import { redis } from '../lib/redis';
 
 const router = new Router<DefaultState, Context>();
 
-const allowedOriginsHostnames = ['localhost', '127.0.0.1'];
+const allowedOriginsHostnames = ['localhost', '127.0.0.1', 'soundsync.localtunnel.apps.besson.co'];
 router.use(cors({
   origin: (ctx) => {
     const origin = ctx.request.headers.origin;

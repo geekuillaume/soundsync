@@ -16,7 +16,7 @@ const sanitizeIp = (ip: string) => {
   return ip;
 };
 
-const allowedOriginsHostnames = ['localhost', '127.0.0.1'];
+const allowedOriginsHostnames = ['localhost', '127.0.0.1', 'soundsync.localtunnel.apps.besson.co'];
 router.use(cors({
   origin: (ctx) => {
     const origin = ctx.request.headers.origin;
