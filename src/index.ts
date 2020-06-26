@@ -52,6 +52,7 @@ const main = async () => {
       isDepAvailableForPlatform('shairport') && Capacity.Shairport,
       Capacity.HttpServerAccessible,
       Capacity.Hue,
+      Capacity.ChromecastInteraction,
     ].filter(Boolean),
   });
 

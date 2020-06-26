@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import AddIcon from '@material-ui/icons/Add';
 import Dialog from '@material-ui/core/Dialog';
 import {
-  makeStyles, DialogTitle, DialogContent, Button,
+  makeStyles, Button,
 } from '@material-ui/core';
 import { DownloadLinks } from '../FirstUse/DownloadLinks';
 import { SinkTypeSelection } from './SinkTypeSelection';
 import { AddHueSink } from './AddHueSink';
+import { AddChromecastPeer } from './AddChromecastSink';
 
 const useStyles = makeStyles({
   openDialogButton: {
@@ -41,16 +42,7 @@ export const AddSinkButton = () => {
         {dialogOpen === true && <SinkTypeSelection onTypeSelected={setDialogOpen} />}
         {dialogOpen === 'localDevice' && <DownloadLinks twoLinesLayout />}
         {dialogOpen === 'hue' && <AddHueSink onDialogClose={() => setDialogOpen(false)} />}
-        {/* <DialogContent>
-          <p>
-            Open
-            {' '}
-            <a href="https://soundsync.app/">soundsync.app</a>
-            {' '}
-            on another web browser or install the App on a new device:
-          </p>
-          <DownloadLinks twoLinesLayout />
-        </DialogContent> */}
+        {dialogOpen === 'chromecast' && <AddChromecastPeer onDialogClose={() => setDialogOpen(false)} />}
       </Dialog>
     </>
   );

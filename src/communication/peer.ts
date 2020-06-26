@@ -29,6 +29,7 @@ export enum Capacity {
   Shairport = 'shairport',
   HttpServerAccessible = 'http_server_accessible',
   Hue = 'hue',
+  ChromecastInteraction = 'chromecast_interaction',
 }
 
 export abstract class Peer extends EventEmitter {

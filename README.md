@@ -9,7 +9,7 @@ Soundsync is a web and desktop app to manage every audio source and every audio 
 - 🆓 Free to use
 - 🕸️ Work with any number of connected devices, audio sources, audio outputs and every link of your choosing
 - 🎶 Compatible with a lot of different audio sources (Spotify Connect with a premium account, Airplay, Hardware Audio input (line in / microphone), Linux system audio ; coming soon: Windows system audio, UPnP and more)
-- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi) or a web browser (Chrome, Firefox) and soon Chromecast and more
+- 🔊 Broadcast sound to any speaker connected to a computer (Windows, MacOS, Linux, RapsberryPi), a web browser (Chrome, Firefox) or a Chromecast and soon more
 - 🔗 Group speakers together to synchronize them to the same audio source
 - 🎛️ Control everything from a web browser
 - 🔓 Not linked to any external service, works offline, no account creation
@@ -58,7 +58,6 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Integration of media info on webui
 - Synchronize sound with Philips Hue light bulbs
 - Create a ready to use RaspberryPi image
-- Chromecast support
 - Windows loopback support
 - Sonos support
 - Stop audio device when no audio has been received for a while to save energy

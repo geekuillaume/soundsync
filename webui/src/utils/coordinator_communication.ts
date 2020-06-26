@@ -11,11 +11,13 @@ import { PeersManager } from '../../../src/communication/peers_manager';
 import { RENDEZVOUS_SERVICE_URL } from '../../../src/utils/constants';
 import { AudioSourcesSinksManager } from '../../../src/audio/audio_sources_sinks_manager';
 
+const IS_CHROMECAST = document.location.pathname === '/chromecast';
+
 initConfig();
 registerPeersManager(new PeersManager());
 registerAudioSourcesSinksManager(new AudioSourcesSinksManager());
 registerLocalPeer({
-  name: 'Web page',
+  name: IS_CHROMECAST ? 'Chromecast' : 'Web page',
   uuid: getConfigField('uuid'),
   capacities: [],
 });
@@ -36,7 +38,7 @@ export const initializeCoordinator = memoize(async () => {
   if (!audioSourcesSinksManager.sinks.filter((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio').length) {
     audioSourcesSinksManager.addSink({
       type: 'webaudio',
-      name: 'Web Page Output',
+      name: IS_CHROMECAST ? 'Chromecast' : 'Web Page Output',
       peerUuid: getLocalPeer().uuid,
       uuid: uuidv4(),
       volume: 1,

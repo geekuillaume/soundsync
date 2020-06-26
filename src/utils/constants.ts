@@ -26,3 +26,5 @@ export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every
 export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64');
 
 export const WILDCARD_DNS_DOMAIN_NAME = `sslip.io`;
+
+export const CHROMECAST_APPID = 'BEB12660';

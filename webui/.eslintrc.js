@@ -50,5 +50,6 @@ module.exports = {
     "jsx-filename-extension": 0,
     "no-nested-ternary": 0,
     "jsx-a11y/*": 0,
+    "react/jsx-filename-extension": 0
   },
 };

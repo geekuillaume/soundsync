@@ -4,6 +4,7 @@ import {
 } from '@material-ui/core';
 import computerIcon from '../../res/computer.svg';
 import philipsHueLogo from '../../res/philipshuelogo.png';
+import chromecastLogo from '../../res/chromecast.png';
 
 const useStyles = makeStyles(() => ({
   typeButton: {
@@ -47,6 +48,10 @@ export const SinkTypeSelection = ({ onTypeSelected }) => {
           <img src={philipsHueLogo} alt="" className={styles.sourceTypeLogo} />
           <span>Use Philips Hue lights</span>
         </Button> */}
+        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('chromecast')}>
+          <img src={chromecastLogo} alt="" className={styles.sourceTypeLogo} />
+          <span>Use a Chromecast</span>
+        </Button>
       </DialogContent>
     </>
   );

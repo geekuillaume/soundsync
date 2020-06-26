@@ -36,6 +36,7 @@ const config = {
       dgram: 'utils/polyfills/empty.js',
       'node-hue-api': 'utils/polyfills/empty.js',
       'node-dtls-client': 'utils/polyfills/empty.js',
+      'castv2-client': 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',
@@ -138,6 +139,8 @@ if (process.env.NODE_ENV === 'development') {
     historyApiFallback: true, // true for index.html upon 404, object for multiple paths
     // hot: true, // hot module replacement. Depends on HotModuleReplacementPlugin
     overlay: true,
+    host: '0.0.0.0',
+    disableHostCheck: true,
   };
 }
 
