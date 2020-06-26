@@ -4,7 +4,7 @@ import util from 'util';
 import { Application, Client, RequestResponseController } from 'castv2-client';
 
 import { delay } from './misc';
-import { CHROMECAST_APPID, CHROMECAST_MESSAGE_NAMESPACE } from './constants';
+import { CHROMECAST_APPID } from './constants';
 
 const CHROMECAST_DETECTION_TIMEOUT = 5 * 1000; // 5 seconds
 
@@ -60,14 +60,14 @@ export const startChromecastDetection = _.memoize(async () => {
 
 export const getDetectedChromecasts = () => detectedChromecast;
 
-function SoundsyncChromecastController(client, sourceId, destinationId) {
-  RequestResponseController.call(this, client, sourceId, destinationId, CHROMECAST_MESSAGE_NAMESPACE);
-}
-util.inherits(SoundsyncChromecastController, RequestResponseController);
+// function SoundsyncChromecastController(client, sourceId, destinationId) {
+//   RequestResponseController.call(this, client, sourceId, destinationId, CHROMECAST_MESSAGE_NAMESPACE);
+// }
+// util.inherits(SoundsyncChromecastController, RequestResponseController);
 function SoundsyncChromecastApplication(...args) {
   Application.call(this, ...args);
   //@ts-ignore
-  this.soundsyncController = this.createController(SoundsyncChromecastController);
+  // this.soundsyncController = this.createController(SoundsyncChromecastController);
 }
 SoundsyncChromecastApplication.APP_ID = CHROMECAST_APPID;
 util.inherits(SoundsyncChromecastApplication, Application);

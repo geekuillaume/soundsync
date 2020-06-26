@@ -4,7 +4,6 @@
 import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useScript } from '../../utils/useScript';
-// import { CHROMECAST_MESSAGE_NAMESPACE } from '../../../../src/utils/constants';
 import logo from '../../res/logo_only.svg';
 import gradients from '../../utils/gradients.json';
 
