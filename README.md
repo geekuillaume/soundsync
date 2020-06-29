@@ -61,19 +61,28 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Better explain Spotify integration options (user account being optional)
 - Find an alternative way to connect from rendez-vous service for device with DNS Rebinding Protection
 - Adds audio visualization for Chromecast view and add an option to use this view from webui
+- Resample the audio for each sink to handle drifting clocks instead of seeking to the corrected audio position and hearing an artifact
 - Audio integration with:
-  - Sonos
-  - HEOS
+  - Philips Hue (in progress)
   - Airplay as a audio output
-  - UPnP
   - Bluetooth as a audio input
   - Bluetooth as a audio output
-  - Philips Hue [in progress]
-  - Windows monitor
+  - Windows monitor (in progress)
+  - UPnP
+  - Sonos (blocked: I do not own a test device)
+  - HEOS (blocked: I do not own a test device)
+  - Amazon Echo (blocked: I do not own a test device)
+  - Yamaha MusicCast (blocked: I do not own a test device)
 
 ## FAQ
 
-- *Is it Open-source ?* Soundsync code is released under the Business Source License. It is not open-source but free to use as long as you don't use it for production work. It means you can use it at home, in your office but you cannot resell it or sell a service/product that directly use it. If you have special needs, [contact me](mailto:guillaume@besson.co) for a licence.
+- *Is it Open-source ?* <br/>Soundsync code is released under the Business Source License. It is a special open-source compatible license which is 100% free to use as long as you don't use it for production work. It means you can use it at home, in your office but you cannot resell it or sell a service/product that directly use it. I'm open to licensing it for a business usage, [contact me](mailto:guillaume+soundsync@besson.co) to work out the details.
+
+- *How to debug it?* <br/>You can activate the debug logs on the Webui with the command `window.soundsyncDebug()`. For the desktop version, you need to start the process from the command line (`/opt/Soundsync/soundsync` for Linux).
+
+- *I need an integration with X!* <br/> Soundsync being a free to use project, I cannot invest money into buying every kind of speakers to build integration for them. I've listed the possible integrations above and you can create an issue if you do not see what you need. As the goal os Soundsync is to support every speaker combination, I'll be happy to work on the integration if someone sends me a compatible device. [Contact me](mailto:guillaume+soundsync@besson.co) for the details.
+
+- *Is it available offline?* <br/> Every Soundsync peer (a device on which Soundsync is installed) can be used offline. Each peer will detect other peer on the local network with Bonjour and if connected to internet, will use a rendez-vous service to detect other peer with the same IP address. As Bonjour isn't available in a web browser, you need to connect to a peer on your local network with its IP and the port 6512 (for example `http://192.168.1.12:6512`). Also note that you won't be able to use the webpage as an audio output because the page cannot be served in a `https` context.
 
 ## Development
 
