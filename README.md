@@ -49,19 +49,27 @@ Now go to https://soundsync.app/ to control every Soundsync install on your home
 
 Soundsync is still in an early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
 
-- Bluetooth on linux
-- UPnP: gmrender-resurrect
 - Updating info for Spotify sink from WebUI
 - Allow changing the name of a peer from the webui
 - Group of sinks
 - Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
 - Integration of media info on webui
-- Synchronize sound with Philips Hue light bulbs
 - Create a ready to use RaspberryPi image
-- Windows loopback support
-- Sonos support
 - Stop audio device when no audio has been received for a while to save energy
 - Allow devices on multiple networks to be connected together
+- Improve linux script by detecting Pulseaudio process if run as root
+- Better explain Spotify integration options (user account being optional)
+- Find an alternative way to connect from rendez-vous service for device with DNS Rebinding Protection
+- Adds audio visualization for Chromecast view and add an option to use this view from webui
+- Audio integration with:
+  - Sonos
+  - HEOS
+  - Airplay as a audio output
+  - UPnP
+  - Bluetooth as a audio input
+  - Bluetooth as a audio output
+  - Philips Hue [in progress]
+  - Windows monitor
 
 ## FAQ
 
