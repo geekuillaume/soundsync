@@ -78,18 +78,18 @@ export class CircularTypedArray<T extends TypedArray> {
     return output;
   }
 
-  getAtReaderPointer(length: number): [T, number] {
+  getAtReaderPointer(length: number): T {
     const offset = this.advanceReaderPointer(length);
     const realOffset = offset % this.buffer.length;
     const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
     if (!overflow) {
       // @ts-ignore
-      return [this.buffer.subarray(realOffset, realOffset + length), offset];
+      return this.buffer.subarray(realOffset, realOffset + length);
     }
     const output = new this.TypedArrayConstructor(length);
     output.set(this.buffer.subarray(realOffset, this.buffer.length - overflow), 0);
     output.set(this.buffer.subarray(0, overflow), length - overflow);
-    return [output, offset];
+    return output;
   }
 
   // this will copy the info in another buffer passed in parameter and empty the current buffer for this offset + length

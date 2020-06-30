@@ -40,7 +40,6 @@ const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: n
 };
 
 export class SynchronizedAudioBuffer {
-  currentBufferReadPosition = 0;
   // stores diff between ideal and actual buffer position
   // if is > 0 it means the audio device is going too fast
   private driftData = new BasicNumericStatsTracker(20);
@@ -60,17 +59,17 @@ export class SynchronizedAudioBuffer {
   readNextChunk(chunkSizePerChannel: number) {
     const idealBufferPosition = this.idealPositionPerChannelGetter() * this.channels;
     let rateMultiplicator = 1;
-    if (this.currentBufferReadPosition === 0) {
-      this.currentBufferReadPosition = idealBufferPosition;
+    if (this.buffer.getReaderPointer() === 0) {
+      this.buffer.setReaderPointer(idealBufferPosition);
     }
-    this.driftData.push(idealBufferPosition - this.currentBufferReadPosition);
+    this.driftData.push(idealBufferPosition - this.buffer.getReaderPointer());
     if (this.driftData.full()) {
       // we got enough data history about the drift to start making hard or soft resync if necessary
       const drift = this.driftData.mean() / (OPUS_ENCODER_RATE / 1000);
       if (Math.abs(drift) > HARD_SYNC_MIN_AUDIO_DRIFT) {
         // the drift is too important, this can happens in case the CPU was locked for a while (after suspending the device for example)
         // this will induce a audible glitch
-        this.currentBufferReadPosition = idealBufferPosition;
+        this.buffer.setReaderPointer(idealBufferPosition);
         this.driftData.flush();
         this.log(`====== hard sync: ${drift}ms`);
       } else if (Math.abs(drift) > SOFT_SYNC_MIN_AUDIO_DRIFT) {
@@ -84,11 +83,10 @@ export class SynchronizedAudioBuffer {
     }
     const chunkToReadByChannel = Math.floor(chunkSizePerChannel * rateMultiplicator);
     const buffer = smartResizeAudioBuffer(
-      this.buffer.get(this.currentBufferReadPosition, chunkToReadByChannel * this.channels),
+      this.buffer.getAtReaderPointer(chunkToReadByChannel * this.channels),
       chunkSizePerChannel,
       this.channels,
     );
-    this.currentBufferReadPosition += chunkToReadByChannel * this.channels;
     return buffer;
   }
 }
