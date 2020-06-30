@@ -58,30 +58,31 @@ export class SynchronizedAudioBuffer {
 
   readNextChunk(chunkSizePerChannel: number) {
     const idealBufferPosition = this.idealPositionPerChannelGetter() * this.channels;
-    let rateMultiplicator = 1;
+    let chunkDelta = 0;
     if (this.buffer.getReaderPointer() === 0) {
       this.buffer.setReaderPointer(idealBufferPosition);
     }
     this.driftData.push(idealBufferPosition - this.buffer.getReaderPointer());
     if (this.driftData.full()) {
       // we got enough data history about the drift to start making hard or soft resync if necessary
-      const drift = this.driftData.mean() / (OPUS_ENCODER_RATE / 1000);
-      if (Math.abs(drift) > HARD_SYNC_MIN_AUDIO_DRIFT) {
+      const drift = this.driftData.mean();
+      const driftDuration = drift / (OPUS_ENCODER_RATE / 1000);
+      if (Math.abs(driftDuration) > HARD_SYNC_MIN_AUDIO_DRIFT) {
         // the drift is too important, this can happens in case the CPU was locked for a while (after suspending the device for example)
         // this will induce a audible glitch
         this.buffer.setReaderPointer(idealBufferPosition);
         this.driftData.flush();
-        this.log(`====== hard sync: ${drift}ms`);
-      } else if (Math.abs(drift) > SOFT_SYNC_MIN_AUDIO_DRIFT) {
+        this.log(`====== hard sync: ${driftDuration}ms`);
+      } else if (Math.abs(driftDuration) > SOFT_SYNC_MIN_AUDIO_DRIFT) {
         // we should be correcting for the drift but it's small enough that we can do this only by adding
         // or removing some samples in the output buffer
         // if drift is > 0, it means the audio device is going too fast
         // so we need to slow down the rate at which we read from the audio buffer to go back to the correct time
-        rateMultiplicator = drift < 0 ? 0.998 : 1.002;
-        this.log(`====== soft sync: ${drift}ms, chunk delta ${chunkSizePerChannel * (1 - rateMultiplicator)}`);
+        chunkDelta = Math.floor(Math.min(chunkSizePerChannel * 0.01, drift * 0.1)); // max 1% sample to remove or duplicate, or 10% of drift
+        this.log(`====== soft sync: ${driftDuration}ms, chunk delta ${chunkDelta}`);
       }
     }
-    const chunkToReadByChannel = Math.floor(chunkSizePerChannel * rateMultiplicator);
+    const chunkToReadByChannel = chunkSizePerChannel + chunkDelta;
     const buffer = smartResizeAudioBuffer(
       this.buffer.getAtReaderPointer(chunkToReadByChannel * this.channels),
       chunkSizePerChannel,
