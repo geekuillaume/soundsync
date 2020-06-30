@@ -6,11 +6,13 @@ import {
 } from 'audioworklet';
 
 import { resolve } from 'path';
+import debug from 'debug';
+import { now } from '../../utils/time';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO,
+  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId, shouldUseAudioStreamName } from '../../utils/soundio';
@@ -25,6 +27,7 @@ export class LocalDeviceSink extends AudioSink {
   local: true = true;
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
+  delayFromLocalNowBuffer = new Float64Array(new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT));
 
   private worklet: Worker;
   private cleanStream;
@@ -62,11 +65,13 @@ export class LocalDeviceSink extends AudioSink {
     this.buffer = new CircularTypedArray(Float32Array, bufferData);
 
     this.updateInfo({ latency: this.soundioOutputStream.getLatency() * 1000 });
-    this.setStreamTimeForWorklet();
+    this.setDelayFromLocalNow();
     this.worklet.postMessage({
       type: 'buffer',
       buffer: bufferData,
-      pointersBuffer: this.buffer.getPointersBuffer(),
+      delayFromLocalNowBuffer: this.delayFromLocalNowBuffer.buffer,
+      channels: this.channels,
+      debug: debug.enabled('soundsync:audioSinkDebug'),
     });
 
     const latencyInterval = setInterval(() => {
@@ -74,17 +79,17 @@ export class LocalDeviceSink extends AudioSink {
         return;
       }
       const newLatency = this.soundioOutputStream.getLatency() * 1000;
+      this.setDelayFromLocalNow();
       if (Math.abs(newLatency - this.latency) > MIN_SKEW_TO_RESYNC_AUDIO) {
         this.log(`Updating sink latency to ${newLatency}`);
         // TODO: use network latency here too
         this.updateInfo({ latency: newLatency });
-        this.setStreamTimeForWorklet();
       }
     }, 2000);
 
     const handleTimedeltaUpdate = () => {
       this.log(`Resynchronizing sink after timedelta`);
-      this.setStreamTimeForWorklet();
+      this.setDelayFromLocalNow();
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
     const syncDeviceVolume = () => {
@@ -92,21 +97,12 @@ export class LocalDeviceSink extends AudioSink {
     };
     this.on('update', syncDeviceVolume);
 
-    const resyncInterval = setInterval(() => {
-      const skew = this.buffer.getReaderPointer() - this.getIdealBufferReadPosition();
-      if (Math.abs(skew) > MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO * (OPUS_ENCODER_RATE / 1000) * this.channels) {
-        this.log(`Resync because of audio clock skew: ${skew / ((OPUS_ENCODER_RATE / 1000) * this.channels)}ms`);
-        this.setStreamTimeForWorklet();
-      }
-    }, 5000);
-
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
       }
       this.off('update', syncDeviceVolume);
       clearInterval(latencyInterval);
-      clearInterval(resyncInterval);
       this.soundioOutputStream.close();
       delete this.soundioOutputStream;
       delete this.soundioDevice;
@@ -133,13 +129,13 @@ export class LocalDeviceSink extends AudioSink {
     this.buffer.set(chunk, offset);
   }
 
-  getIdealBufferReadPosition = () => Math.floor(this.getCurrentStreamTime() * (OPUS_ENCODER_RATE / 1000)) * this.channels;
-
-  setStreamTimeForWorklet = () => {
-    if (!this.buffer) {
-      return;
-    }
-    this.buffer.setReaderPointer(this.getIdealBufferReadPosition());
+  setDelayFromLocalNow = () => {
+    // we are not using this.latency here because this.latency is not always updated (if diff with previous value is small)
+    // but here, we need the most precise measure of latency
+    this.delayFromLocalNowBuffer[0] = this.pipedSource.peer.getCurrentTime()
+      - this.pipedSource.startedAt
+      - this.pipedSource.latency
+      + (this.soundioOutputStream.getLatency() * 1000) - now();
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSinkDescriptor> => ({

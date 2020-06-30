@@ -21,6 +21,11 @@ export const SOUNDSYNC_VERSION = '0.1.0';
 export const MIN_SKEW_TO_RESYNC_AUDIO = 10;
 export const MIN_AUDIODEVICE_CLOCK_SKEW_TO_RESYNC_AUDIO = 50;
 
+// if more than 10ms of drift, start correcting with soft sync (inserting or removing samples in the stream)
+export const SOFT_SYNC_MIN_AUDIO_DRIFT = 10;
+// if more than 100ms of drift, correct by making a hard sync (pausing the output or discarding a chunk of samples)
+export const HARD_SYNC_MIN_AUDIO_DRIFT = 100;
+
 export const RENDEZVOUS_SERVICE_URL = process.env.RENDEZVOUS_SERVICE_URL ?? 'https://soundsync.app';
 export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every 4 hours
 export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64');
