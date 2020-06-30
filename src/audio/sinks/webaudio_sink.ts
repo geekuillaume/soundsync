@@ -77,31 +77,20 @@ export class WebAudioSink extends AudioSink {
     this.updateInfo({
       latency: this.context.baseLatency * 1000,
     });
-    this._synchronizeWorklet();
 
     const syncDeviceVolume = () => {
       volumeNode.gain.value = this.volume;
     };
     this.on('update', syncDeviceVolume);
-    const resyncInterval = setInterval(this._synchronizeWorklet, 5000);
     // TODO: handle the source latency change
     this.cleanAudioContext = () => {
       this.off('update', syncDeviceVolume);
-      clearInterval(resyncInterval);
       this.workletNode.disconnect();
       delete this.workletNode;
       this.context.suspend();
       delete this.context;
       this.cleanAudioContext = undefined;
     };
-  }
-
-  _synchronizeWorklet = () => {
-    if (!this.workletNode) {
-      return;
-    }
-    const currentStreamTime = this.getCurrentStreamTime();
-    this.workletNode.parameters.get('streamTime').setValueAtTime(currentStreamTime + 200, this.context.getOutputTimestamp().contextTime + 0.2);
   }
 
   _stopSink = () => {
@@ -119,6 +108,7 @@ export class WebAudioSink extends AudioSink {
       type: 'chunk',
       i: data.i,
       chunk,
+      currentTimeRelativeToAudioContext: this.getCurrentStreamTime() - (this.context.getOutputTimestamp().contextTime * 1000),
     }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
   }
 
