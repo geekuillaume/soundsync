@@ -43,6 +43,8 @@ export class SynchronizedAudioBuffer {
   // stores diff between ideal and actual buffer position
   // if is > 0 it means the audio device is going too fast
   private driftData = new BasicNumericStatsTracker(20);
+  private returnBuffer = Buffer.alloc(128 * Float32Array.BYTES_PER_ELEMENT * 2); // start with a reasonably large buffer that will be resized if necessary
+  private typedReturnBuffer = new Float32Array(this.returnBuffer.buffer);
 
   constructor(
     public buffer: CircularTypedArray<Float32Array>,
@@ -83,8 +85,13 @@ export class SynchronizedAudioBuffer {
       }
     }
     const chunkToReadByChannel = chunkSizePerChannel + chunkDelta;
+    if (this.returnBuffer.byteLength !== chunkToReadByChannel * this.channels * Float32Array.BYTES_PER_ELEMENT) {
+      this.returnBuffer = Buffer.alloc(chunkToReadByChannel * this.channels * Float32Array.BYTES_PER_ELEMENT);
+      this.typedReturnBuffer = new Float32Array(this.returnBuffer.buffer);
+    }
+    this.buffer.getAtReaderPointerInTypedArray(this.typedReturnBuffer, chunkToReadByChannel * this.channels);
     const buffer = smartResizeAudioBuffer(
-      this.buffer.getAtReaderPointer(chunkToReadByChannel * this.channels),
+      this.typedReturnBuffer,
       chunkSizePerChannel,
       this.channels,
     );

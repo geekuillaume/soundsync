@@ -92,6 +92,23 @@ export class CircularTypedArray<T extends TypedArray> {
     return output;
   }
 
+  // This will prevent a new buffer from being allocated and will empty read data
+  getAtReaderPointerInTypedArray(targetTypedArray: T, length: number): T {
+    const offset = this.advanceReaderPointer(length);
+    const realOffset = offset % this.buffer.length;
+    const overflow = Math.max(0, (realOffset + length) - this.buffer.length);
+    if (!overflow) {
+      targetTypedArray.set(this.buffer.subarray(realOffset, realOffset + length));
+      this.buffer.fill(0, realOffset, realOffset + length);
+    } else {
+      targetTypedArray.set(this.buffer.subarray(realOffset, this.buffer.length - overflow), 0);
+      this.buffer.fill(0, realOffset, this.buffer.length - overflow);
+      targetTypedArray.set(this.buffer.subarray(0, overflow), length - overflow);
+      this.buffer.fill(0, 0, overflow);
+    }
+    return targetTypedArray;
+  }
+
   // this will copy the info in another buffer passed in parameter and empty the current buffer for this offset + length
   getInTypedArray(targetTypedArray: T, offset: number, length: number) {
     const realOffset = offset % this.buffer.length;
