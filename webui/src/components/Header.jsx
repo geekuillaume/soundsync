@@ -10,6 +10,7 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 
 import { useShowHidden, useSetHiddenVisibility } from '../utils/useSoundSyncState';
 
+import GitHubIcon from '@material-ui/icons/GitHub';
 import logo from '../res/logo_only.svg';
 import { PeersListDialog } from './PeersList';
 
@@ -19,6 +20,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundImage: 'linear-gradient(141deg,#1f191a 0,#363636 71%,#46403f 100%)',
   },
   menuButton: {
+    color: 'white',
+    '&:hover': {
+      color: 'white'
+    }
   },
   title: {
     flexGrow: 1,
@@ -38,6 +43,14 @@ export const Header = () => {
         <Typography variant="h6" className={classes.title}>
           Soundsync
         </Typography>
+        <IconButton
+          color="inherit"
+          className={classes.menuButton}
+          aria-label="Get more information about Soundsync"
+          href="https://github.com/geekuillaume/soundsync"
+        >
+          <GitHubIcon />
+        </IconButton>
         <IconButton
           color="inherit"
           className={classes.menuButton}
