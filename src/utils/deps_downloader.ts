@@ -74,6 +74,8 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
   let path = depPath(depName);
   if (dep.isZip) {
     path = `${path}.zip`;
+  } else if (process.platform === 'win32') {
+    path += '.exe'; // the exe extension is required for a window executable
   }
   try {
     l(`Ensuring dep ${depName} at ${path}`);
