@@ -38,6 +38,12 @@ export class ShairportSource extends AudioSource {
         DYLD_LIBRARY_PATH: dirname(shairportPath),
       },
     });
+    if (this.shairportProcess.pid === undefined) {
+      throw new Error('Process didn\'t started');
+    }
+    this.shairportProcess.on('error', (e) => {
+      this.log('Error while starting shairport process', e);
+    });
     const shairportLog = this.log.extend('shairport');
     this.shairportProcess.stderr.on('data', (d) => shairportLog(d.toString()));
     this.shairportProcess.on('exit', (code) => {

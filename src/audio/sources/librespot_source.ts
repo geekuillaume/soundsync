@@ -37,6 +37,12 @@ export class LibrespotSource extends AudioSource {
         '-p', this.options.password,
       ] : []),
     ]);
+    if (this.librespotProcess.pid === undefined) {
+      throw new Error('Process didn\'t started');
+    }
+    this.librespotProcess.on('error', (e) => {
+      this.log('Error while starting librespot process', e);
+    });
     const librespotLog = this.log.extend('librespot');
     this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
     this.librespotProcess.on('exit', (code) => {
