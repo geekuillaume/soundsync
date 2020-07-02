@@ -214,8 +214,8 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  destroy = (resaon = 'unknown') => {
-    this.log(`Destroying peer, reason: ${resaon}`);
+  destroy = (reason = 'unknown') => {
+    this.log(`Destroying peer, reason: ${reason}`);
     this._destroy();
     this.state = 'deleted';
     this.removeAllListeners();
