@@ -26,10 +26,12 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.port.onmessage = this.handleMessage_.bind(this);
-    this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, false);
   }
 
   handleMessage_(event) {
+    if (event.data.type === 'init') {
+      this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, event.data.debug);
+    }
     if (event.data.type === 'chunk') {
       const offset = event.data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * CHANNELS;
       this.buffer.set(event.data.chunk, offset);
@@ -41,7 +43,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   getIdealAudioPosition = () => Math.floor((this.currentTimeRelativeToAudioContext + (currentTime * 1000)) * (OPUS_ENCODER_RATE / 1000))
 
   process(inputs, outputs) {
-    if (this.currentTimeRelativeToAudioContext === -1) {
+    if (!this.synchronizedBuffer || this.currentTimeRelativeToAudioContext === -1) {
       return true;
     }
     const chunkBuffer = this.synchronizedBuffer.readNextChunk(outputs[0][0].length);

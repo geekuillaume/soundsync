@@ -1,5 +1,6 @@
 // This is only used in a browser context
 
+import debug from 'debug';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { isBrowser } from '../../utils/isBrowser';
 import { AudioSink } from './audio_sink';
@@ -55,6 +56,10 @@ export class WebAudioSink extends AudioSink {
     const audioworkletPath = require('./audioworklets/webaudio_sink_processor.audioworklet.ts');
     await this.context.audioWorklet.addModule(audioworkletPath);
     this.workletNode = new RawPcmPlayerWorklet(this.context);
+    this.workletNode.port.postMessage({
+      type: 'init',
+      debug: debug.enabled('soundsync:audioSinkDebug'),
+    });
     const volumeNode = this.context.createGain();
     volumeNode.gain.value = this.volume;
     this.workletNode.connect(volumeNode);
