@@ -42,18 +42,21 @@ const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: n
 export class SynchronizedAudioBuffer {
   // stores diff between ideal and actual buffer position
   // if is > 0 it means the audio device is going too fast
-  private driftData = new BasicNumericStatsTracker(20);
+  private driftData: BasicNumericStatsTracker;
   private returnBuffer = Buffer.alloc(128 * Float32Array.BYTES_PER_ELEMENT * 2); // start with a reasonably large buffer that will be resized if necessary
   private typedReturnBuffer = new Float32Array(this.returnBuffer.buffer);
+  private delayedDriftCorrection = 0;
 
   constructor(
     public buffer: CircularTypedArray<Float32Array>,
     public channels: number,
     public idealPositionPerChannelGetter: () => number,
     debug = false,
+    driftHistorySize = 20,
   ) {
     // eslint-disable-next-line no-console
     this.log = debug ? console.log : () => null;
+    this.driftData = new BasicNumericStatsTracker(driftHistorySize);
   }
 
   log: (str: string) => void;
@@ -64,11 +67,20 @@ export class SynchronizedAudioBuffer {
     if (this.buffer.getReaderPointer() === 0) {
       this.buffer.setReaderPointer(idealBufferPosition);
     }
+    // this.log(`= ideal position ${idealBufferPosition}, current position ${this.buffer.getReaderPointer()}, diff ${idealBufferPosition - this.buffer.getReaderPointer()}`);
     this.driftData.push(idealBufferPosition - this.buffer.getReaderPointer());
-    if (this.driftData.full()) {
+    if (this.delayedDriftCorrection) {
+      chunkDelta = Math.floor(Math.min(chunkSizePerChannel * 0.02, Math.abs(this.delayedDriftCorrection) * 0.1)) * Math.sign(this.delayedDriftCorrection); // max 1% sample to remove or duplicate, or 10% of drift
+      this.delayedDriftCorrection -= chunkDelta;
+      if (chunkDelta === 0) {
+        this.delayedDriftCorrection = 0;
+        this.driftData.flush();
+      }
+      this.log(`====== delayed drift correction: chunk delta ${chunkDelta}, remaining ${this.delayedDriftCorrection}`);
+    } else if (this.driftData.full()) {
       // we got enough data history about the drift to start making hard or soft resync if necessary
       const drift = this.driftData.mean();
-      const driftDuration = drift / (OPUS_ENCODER_RATE / 1000);
+      const driftDuration = drift / (OPUS_ENCODER_RATE / 1000) / this.channels;
       if (Math.abs(driftDuration) > HARD_SYNC_MIN_AUDIO_DRIFT) {
         // the drift is too important, this can happens in case the CPU was locked for a while (after suspending the device for example)
         // this will induce a audible glitch
@@ -80,8 +92,10 @@ export class SynchronizedAudioBuffer {
         // or removing some samples in the output buffer
         // if drift is > 0, it means the audio device is going too fast
         // so we need to slow down the rate at which we read from the audio buffer to go back to the correct time
-        chunkDelta = Math.floor(Math.min(chunkSizePerChannel * 0.01, drift * 0.1)); // max 1% sample to remove or duplicate, or 10% of drift
-        this.log(`====== soft sync: ${driftDuration}ms, chunk delta ${chunkDelta}`);
+        chunkDelta = Math.floor(Math.min(chunkSizePerChannel * 0.02, Math.abs(drift) * 0.1)) * Math.sign(drift); // max 1% sample to remove or duplicate, or 10% of drift
+        this.driftData.flush();
+        this.delayedDriftCorrection = Math.floor((drift - chunkDelta) * 0.2);
+        this.log(`====== soft sync: ${driftDuration}ms, chunk delta ${chunkDelta}, without limiting ${drift * 0.1}`);
       }
     }
     const chunkToReadByChannel = chunkSizePerChannel + chunkDelta;

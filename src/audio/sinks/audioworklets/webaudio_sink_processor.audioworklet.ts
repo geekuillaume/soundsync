@@ -6,6 +6,8 @@ const BUFFER_SIZE_IN_SECONDS = 10;
 const CHANNELS = 2;
 const BUFFER_SIZE = BUFFER_SIZE_IN_SECONDS * OPUS_ENCODER_RATE * CHANNELS;
 
+const DRIFT_HISTORY_SIZE = Math.floor(300 / (128 / OPUS_ENCODER_RATE) / 1000); //300ms of drift history necessary before taking action
+
 declare const currentTime: number;
 declare const currentFrame: number;
 declare const sampleRate: number;
@@ -30,7 +32,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
 
   handleMessage_(event) {
     if (event.data.type === 'init') {
-      this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, event.data.debug);
+      this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, event.data.debug, DRIFT_HISTORY_SIZE);
     }
     if (event.data.type === 'chunk') {
       const offset = event.data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * CHANNELS;

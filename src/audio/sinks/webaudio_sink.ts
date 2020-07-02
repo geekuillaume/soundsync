@@ -49,7 +49,7 @@ export class WebAudioSink extends AudioSink {
         // We could use a higher latencyHint here to improve power consumption but because of
         // a chromium bug, a higher latencyHint lead to a really bad getOutputTimestamp accuracy
         // https://bugs.chromium.org/p/chromium/issues/detail?id=1086005
-        latencyHint: 0,
+        latencyHint: 0.01,
       });
     }
     // eslint-disable-next-line
