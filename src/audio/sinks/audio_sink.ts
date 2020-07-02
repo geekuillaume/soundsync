@@ -155,9 +155,9 @@ export abstract class AudioSink extends EventEmitter {
   }
 
   _handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
-    if (this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1) {
-      this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
-    }
+    // if (this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1) {
+    //   this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
+    // }
     this.lastReceivedChunkIndex = chunk.i;
     if ((chunk.i * OPUS_ENCODER_CHUNK_DURATION + this.pipedSource.startedAt) - this.pipedSource.peer.getCurrentTime() < -2000) {
       this.log(`Received old chunk, discarding it: ${chunk.i}`);
