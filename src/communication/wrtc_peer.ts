@@ -5,7 +5,6 @@ import { Sentry } from '../utils/sentry';
 import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
-import { onExit } from '../utils/on_exit';
 import {
   CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
@@ -39,7 +38,6 @@ export class WebrtcPeer extends Peer {
     super({
       uuid, name, instanceUuid,
     });
-    onExit(() => this.disconnect(true, 'exiting process'));
     this.initiator = initiatorConstructor(this.handleInitiatorMessage);
   }
 

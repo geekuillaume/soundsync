@@ -3,6 +3,7 @@ import debug from 'debug';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
+import { onExit } from '../utils/on_exit';
 import { assertNever } from '../utils/assert';
 import { HueLightSink } from './sinks/huelight_sink';
 import { ShairportSource } from './sources/shairport_souce';
@@ -46,6 +47,13 @@ export class AudioSourcesSinksManager extends EventEmitter {
 
     this.on('sinkUpdate', updateConfigForSink);
     this.on('newLocalSink', updateConfigForSink);
+    onExit(async () => {
+      await Promise.all(this.sinks.map(async (sink) => {
+        if (sink.local) {
+          await sink._stopSink();
+        }
+      }));
+    });
   }
 
   autodetectDevices = async () => {

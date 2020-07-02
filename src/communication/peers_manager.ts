@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import _ from 'lodash';
 import debug from 'debug';
 
+import { onExit } from '../utils/on_exit';
 import { getLocalPeer } from './local_peer';
 import { createHttpApiInitiator, HttpApiInitiator } from './initiators/httpApiInitiator';
 import { createRendezvousServiceInitiator, RendezVousServiceInitiator } from './initiators/rendezvousServiceInititor';
@@ -27,6 +28,9 @@ export class PeersManager extends EventEmitter {
         type: 'peerDiscovery',
         peersUuid: _.map(_.filter(this.peers, (p) => p.state === 'connected'), (p) => p.uuid),
       });
+    });
+    onExit(() => {
+      this.peers.forEach((peer) => peer.destroy('exiting'));
     });
     // TODO: handle clearing this.peers when peer is destroyed
   }
