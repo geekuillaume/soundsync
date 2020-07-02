@@ -1,12 +1,20 @@
-import { find } from 'lodash';
+import { find, partition } from 'lodash';
 import { dtls } from 'node-dtls-client';
+// import beats from 'beats';
+import smoothstep from 'smoothstep';
+
 import superagent from 'superagent';
+import Analyser from 'audio-analyser';
+
 import { AudioInstance } from '../utils';
+import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { HueLightStatus, HueLightSinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getAuthentifiedApi, getHueCredentialsByHost, get2BytesOfFractionNumber } from '../../utils/philipshue';
 import { delay } from '../../utils/misc';
+import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
+import { frequencyAverages } from '../../utils/audio-utils';
 
 const FPS = 50;
 
@@ -22,13 +30,28 @@ export class HueLightSink extends AudioSink {
   private hueSocket: dtls.Socket;
   private lights: {id: number; model: string; x: number; y: number}[];
 
+  private audioBuffer = [];
+  private analyser = new Analyser({
+    channel: 0,
+    channels: 2,
+    sampleRate: OPUS_ENCODER_RATE,
+    interleaved: true,
+    float: true,
+    fftSize: 2048,
+    smoothingTimeConstant: 0.6,
+    bufferSize: OPUS_ENCODER_RATE,
+  });
+
   constructor(descriptor: HueLightSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.hueHost = descriptor.hueHost;
     this.entertainmentZoneId = descriptor.entertainmentZoneId;
+    this.latency = 200;
+    // this.chunkTransformer.pipe(this.peakTransformer);
   }
 
   async _startSink() {
+    this.log('Connecting to Hue Bridge');
     const api = await getAuthentifiedApi(this.hueHost);
     const entertainmentGroup = await api.groups.getGroup(this.entertainmentZoneId);
     const lights = await api.lights.getAll();
@@ -51,7 +74,9 @@ export class HueLightSink extends AudioSink {
       light.y = (light.y - yBounds[0]) * (1 / (yBounds[1] - yBounds[0]));
     });
     const credentials = getHueCredentialsByHost(this.hueHost);
+    // @ts-ignore
     await superagent.put(`http://${this.hueHost}/api/${credentials.username}/groups/${this.entertainmentZoneId}`).send({ stream: { active: true } });
+    this.log('Connected to Hue Bridge, starting light pusher socket');
     this.hueSocket = dtls.createSocket({
       type: 'udp4',
       address: this.hueHost,
@@ -80,8 +105,50 @@ export class HueLightSink extends AudioSink {
   }
 
   lightPusher = async () => {
-    const currentLightsScene = {};
+    const frequencies = new Uint8Array(1024);
+    // const last = 0;
+    // const difference = 50;
+    // const rows = 15;
+    // eslint-disable-next-line no-return-assign
+    // const ranges = new Array(rows).fill(0).map(() => [last, last += difference]);
+    const ranges = [
+      [0, 50],
+      [50, 200],
+      [200, 500],
+      [500, 1000],
+      [1000, 5000],
+      [5000, 1000],
+    ];
+    // const bins = ranges.map((range) => ({
+    //   lo: freq2index(range[0], OPUS_ENCODER_RATE, 2048),
+    //   hi: freq2index(range[1], OPUS_ENCODER_RATE, 2048),
+    //   threshold: 0,
+    //   decay: 0.001,
+    // }));
+    const getAverage = frequencyAverages(OPUS_ENCODER_RATE, 2048);
+    // const detect = beats(bins);
+
     while (this.hueSocket) {
+      const currentTime = this.getCurrentStreamTime();
+      const [toEmitBuffer, remaining] = partition(this.audioBuffer, ({ i }) => i * OPUS_ENCODER_CHUNK_DURATION < currentTime);
+      this.audioBuffer = remaining;
+      toEmitBuffer.sort((a, b) => a.i - b.i);
+      toEmitBuffer.forEach((buffer) => {
+        this.analyser.write(buffer.chunk);
+      });
+
+      this.analyser.getByteFrequencyData(frequencies);
+      // console.log(frequencies);
+      // const result = detect(frequencies.map((i) => (i + 100) / 100));
+      // console.log(result);
+      // console.log(ranges.map((r) => getAverage(frequencies, r[0], r[1])));
+      // const highFrequenciesMean = Math.min(1, 1 + (mean(analysis.slice(analysis.length - 5)) / 100));
+      // const lowFrequenciesMean = Math.min(1, 1 + (mean(analysis.slice(0, 10)) / 100));
+      // console.log(lowFrequenciesMean);
+      const lowFrequenciesMean = smoothstep(0.4, 0.9, getAverage(frequencies, ranges[0][0], ranges[0][1]));
+      const midFrequenciesMean = smoothstep(0.4, 0.9, getAverage(frequencies, ranges[2][0], ranges[2][1]));
+      const highFrequenciesMean = smoothstep(0.4, 0.9, getAverage(frequencies, ranges[4][0], ranges[4][1]));
+      // console.log(lowFrequenciesMean, getAverage(frequencies, ranges[0][0], ranges[0][1]));
       const message = Buffer.concat([
         Buffer.from('HueStream', 'ascii'),
         Buffer.from([
@@ -95,7 +162,7 @@ export class HueLightSink extends AudioSink {
         ...this.lights.map(({
           id, model, x, y,
         }) => {
-          const c = currentLightsScene[id] || { r: 0.8, g: 0, b: 0 };
+          const c = { r: lowFrequenciesMean, g: midFrequenciesMean, b: highFrequenciesMean };
           return Buffer.from([
             0x00, 0x00, id, // Light ID
             ...get2BytesOfFractionNumber(c.r), ...get2BytesOfFractionNumber(c.g), ...get2BytesOfFractionNumber(c.b),
@@ -109,12 +176,14 @@ export class HueLightSink extends AudioSink {
     }
   }
 
-  _stopSink() {
+  _stopSink = async () => {
     if (this.closeHue) {
-      this.closeHue();
+      await this.closeHue();
     }
   }
-  handleAudioChunk() {}
+  handleAudioChunk = (data: AudioChunkStreamOutput) => {
+    this.audioBuffer.push(data);
+  }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<HueLightSinkDescriptor> => ({
     type: this.type,

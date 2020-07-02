@@ -9,6 +9,7 @@
   "dependencies": {
     "@koa/cors": "^3.0.0",
     "@sentry/node": "^5.17.0",
+    "audio-analyser": "^1.0.2",
     "audioworklet": "3.0.2",
     "auto-launch": "^5.0.5",
     "bonjour": "^3.5.0",
@@ -29,6 +30,7 @@
     "node-hue-api": "^4.0.6",
     "open": "^7.0.0",
     "perf_hooks": "^0.0.1",
+    "smoothstep": "^1.0.1",
     "speex-resampler": "1.0.14",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
