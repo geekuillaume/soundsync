@@ -62,8 +62,8 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Find an alternative way to connect from rendez-vous service for device with DNS Rebinding Protection
 - Adds audio visualization for Chromecast view and add an option to use this view from webui
 - Resample the audio for each sink to handle drifting clocks instead of seeking to the corrected audio position and hearing an artifact
+- Remember Chromecasts and add an option to auto-start them when the linked source become active
 - Audio integration with:
-  - Philips Hue (in progress)
   - Airplay as a audio output
   - Bluetooth as a audio input
   - Bluetooth as a audio output
