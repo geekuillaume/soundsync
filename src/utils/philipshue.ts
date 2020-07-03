@@ -1,14 +1,15 @@
 import hue from 'node-hue-api';
 import Api from 'node-hue-api/lib/api/Api';
-import { getConfigField, setConfig } from '../coordinator/config';
+import { getConfigField } from '../coordinator/config';
 import { delay } from './misc';
 import { getLocalPeer } from '../communication/local_peer';
 import { APP_NAME } from './constants';
+import { patchSharedState } from '../coordinator/shared_state';
 
 const apiByHost: {[host: string]: Api} = {};
 
 export const getHueCredentialsByHost = (hueBridgeHost: string) => {
-  const savedHueBridges = getConfigField('hueBridges');
+  const savedHueBridges = getConfigField('sharedState').hueBridges;
   const savedHueBridgeInfo = savedHueBridges.find((bridge) => bridge.host === hueBridgeHost && bridge.clientKey && bridge.username);
   return savedHueBridgeInfo;
 };
@@ -17,7 +18,7 @@ export const getAuthentifiedApi = async (hueBridgeHost: string) => {
   if (apiByHost[hueBridgeHost]) {
     return apiByHost[hueBridgeHost];
   }
-  const savedHueBridges = getConfigField('hueBridges');
+  const savedHueBridges = getConfigField('sharedState').hueBridges;
   const savedHueBridgeInfo = savedHueBridges.find((bridge) => bridge.host === hueBridgeHost && bridge.clientKey && bridge.username);
   if (savedHueBridgeInfo) {
     try {
@@ -43,14 +44,15 @@ export const getAuthentifiedApi = async (hueBridgeHost: string) => {
     }
   };
   const createdUser = await tryCreatingUser(45); // 45 seconds before failing
-  setConfig((config) => {
-    config.hueBridges = config.hueBridges || [];
-    config.hueBridges = config.hueBridges.filter((bridge) => bridge.host !== hueBridgeHost);
-    config.hueBridges.push({
+  patchSharedState((sharedState) => {
+    sharedState.hueBridges = sharedState.hueBridges || [];
+    sharedState.hueBridges = sharedState.hueBridges.filter((bridge) => bridge.host !== hueBridgeHost);
+    sharedState.hueBridges.push({
       host: hueBridgeHost,
       clientKey: createdUser.clientkey,
       username: createdUser.username,
     });
+    return sharedState;
   });
   const api = await hue.v3.api.createLocal(hueBridgeHost).connect(createdUser.username, createdUser.clientkey, null);
   apiByHost[hueBridgeHost] = api;

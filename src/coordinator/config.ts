@@ -15,6 +15,7 @@ import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
+import { SharedState } from './shared_state';
 
 const log = debug(`soundsync:config`);
 
@@ -28,11 +29,7 @@ interface ConfigData {
   peers: string[];
   detectPeersOnLocalNetwork: boolean;
   enableRendezvousService: boolean;
-  hueBridges: {
-    host: string;
-    username: string;
-    clientKey: string;
-  }[];
+  sharedState: SharedState;
 }
 
 const defaultConfig: ConfigData = {
@@ -45,7 +42,10 @@ const defaultConfig: ConfigData = {
   peers: [],
   detectPeersOnLocalNetwork: true,
   enableRendezvousService: true,
-  hueBridges: [],
+  sharedState: {
+    hueBridges: [],
+    lastUpdateTimestamp: -1,
+  },
 };
 
 let config: {

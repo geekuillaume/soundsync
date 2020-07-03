@@ -13,7 +13,7 @@ import {
 } from './messages';
 import { Peer } from './peer';
 import { createPeerRelayServiceInitiator, PeerRelayInitiator } from './initiators/peerRelayInitiator';
-
+import { RPCType, RPCRequestBody, RPCResponseBody } from './rpc/rpc';
 
 const log = debug('soundsync:wrtc');
 
@@ -113,4 +113,6 @@ export class PeersManager extends EventEmitter {
 
   getConnectedPeerByUuid = (uuid: string) => _.find(this.peers, (p) => p.uuid === uuid && p.state === 'connected');
   isConnectedToAtLeastOnePeer = () => _.some(this.peers, (p) => p !== getLocalPeer() && p.state === 'connected');
+
+  broadcastRpc = async <T extends RPCType>(type: T, message: RPCRequestBody<T>) => await Promise.all(this.peers.map((peer) => peer.sendRcp(type, message)))
 }

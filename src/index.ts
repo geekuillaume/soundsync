@@ -53,6 +53,7 @@ const main = async () => {
       Capacity.HttpServerAccessible,
       Capacity.Hue,
       Capacity.ChromecastInteraction,
+      Capacity.SharedStateKeeper,
     ].filter(Boolean),
   });
 

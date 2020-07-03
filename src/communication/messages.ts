@@ -1,3 +1,4 @@
+import { SharedState } from '../coordinator/shared_state';
 import { RPCType } from './rpc/rpc';
 import { Peer, PeerDescriptor } from './peer';
 import {
@@ -71,6 +72,7 @@ export interface PeerDiscoveryMessage extends BaseMessage {
 export interface PeerInfoMessage extends BaseMessage {
   type: 'peerInfo';
   peer: PeerDescriptor;
+  sharedState?: SharedState;
 }
 
 export interface RPCMessage extends BaseMessage {

@@ -9,10 +9,11 @@ import {
   CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
-import { Peer } from './peer';
+import { Peer, Capacity } from './peer';
 import { DataChannelStream } from '../utils/datachannel_stream';
 import { now } from '../utils/time';
 import { once } from '../utils/misc';
+import { getConfigField } from '../coordinator/config';
 
 const CONNECTION_RETRY_DELAY = 1000 * 2;
 
@@ -78,6 +79,7 @@ export class WebrtcPeer extends Peer {
       this.sendControllerMessage({
         type: 'peerInfo',
         peer: getLocalPeer().toDescriptor(),
+        sharedState: getLocalPeer().capacities.includes(Capacity.SharedStateKeeper) ? getConfigField('sharedState') : undefined,
       });
     });
 
