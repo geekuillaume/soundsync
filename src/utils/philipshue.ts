@@ -43,7 +43,7 @@ export const getAuthentifiedApi = async (hueBridgeHost: string) => {
       throw e;
     }
   };
-  const createdUser = await tryCreatingUser(45); // 45 seconds before failing
+  const createdUser = await tryCreatingUser(60); // 60 seconds before failing
   patchSharedState((sharedState) => {
     sharedState.hueBridges = sharedState.hueBridges || [];
     sharedState.hueBridges = sharedState.hueBridges.filter((bridge) => bridge.host !== hueBridgeHost);
