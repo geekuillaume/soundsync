@@ -57,11 +57,11 @@ export const AddShairportSource = ({ onDialogClose }) => {
       <DialogTitle>Create a new Airplay receiver</DialogTitle>
       <DialogContent>
         <p>
-          Use a computer as a Airplay receiver and stream from any Airplay compatible device. You need to choose a device to host the Airplay integration. This device will need to be on to use the Airplay integration. You can add multiple integrations.
+          Add a new Airplay receiver and stream from any Airplay compatible device to Soundsync. You can add multiple Airplay integrations.
         </p>
         <div className={styles.librespotForm}>
           <TextField
-            label="Name"
+            label="Name (shown on Airplay devices)"
             value={shairportName}
             onChange={(e) => setShairportName(e.target.value)}
             default="Soundsync"
@@ -69,7 +69,7 @@ export const AddShairportSource = ({ onDialogClose }) => {
           />
           <TextField
             select
-            label="Device"
+            label="Hosting device (needs to be on when using the integration)"
             required
             value={shairportHostId}
             onChange={(e) => setShairportHostId(e.target.value)}

@@ -57,7 +57,7 @@ export const AddChromecastPeer = ({ onDialogClose }) => {
     <>
       <DialogTitle>Connect to a Chromecast</DialogTitle>
       {detectedChromecasts.loading && <p className={styles.scanMessage}>Scanning local network...</p>}
-      {!detectedChromecasts.loading && !detectedChromecasts.chromecasts.length && <p className={styles.scanMessage}>No chromecast detected.</p>}
+      {!detectedChromecasts.loading && !detectedChromecasts.chromecasts.length && <p className={styles.scanMessage}>No Chromecast detected, try restarting the Chromecast.</p>}
       {!detectedChromecasts.loading && detectedChromecasts.chromecasts.length
         && (
         <List>

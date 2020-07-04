@@ -96,12 +96,12 @@ export const AddHueSink = ({ onDialogClose }) => {
       <DialogTitle>Connect to a Philips Hue Bridge</DialogTitle>
       <DialogContent>
         <p>
-          Use Philips Hue as light visualization for your music.
+          Add a new Philips Hue integration to use music from Soundsync as light visualization in your home. You need to create an entertainment zone with the Hue app to group the lights you want to use.
         </p>
         <div className={styles.hueForm}>
           <TextField
             select
-            label="Device"
+            label="Hosting device (needs to be on when using the integration)"
             required
             value={selectedHueHostId}
             onChange={(e) => setSelectedHueHostId(e.target.value)}
@@ -123,7 +123,7 @@ export const AddHueSink = ({ onDialogClose }) => {
               </MenuItem>
             ))}
           </TextField>
-          {userActionNeededForAuth && <div>Soundsync is connecting to your Philips Hue Bridge. To continue, please press the button on the top of the bridge device.</div>}
+          {userActionNeededForAuth && <p>Soundsync is connecting to your Philips Hue Bridge. To continue, please press the button on the top of the bridge device.</p>}
           <TextField
             select
             label="Zone"

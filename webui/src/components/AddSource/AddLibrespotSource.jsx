@@ -63,11 +63,11 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
       <DialogTitle>Add a new Spotify source</DialogTitle>
       <DialogContent>
         <p>
-          Use a computer as a Spotify player and control the playback from the Spotify App on your mobile or desktop. You need to choose a device to host the Spotify integration. This device will need to be on to use the Spotify integration. You can add multiple Spotify integrations. You can specify a Spotify account if you want to use this integration without needing to be connected to the same local network as Soundsync.
+          Add a new Spotify receiver and control the playback from the Spotify App on your mobile or desktop. You can add multiple Spotify integrations. You need a premium Spotify account to use this integration.
         </p>
         <div className={styles.librespotForm}>
           <TextField
-            label="Name"
+            label="Name (shown on Spotify apps)"
             value={librespotName}
             onChange={(e) => setLibrespotName(e.target.value)}
             default="Spotify"
@@ -75,7 +75,7 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
           />
           <TextField
             select
-            label="Device"
+            label="Hosting device (needs to be on when using the integration)"
             required
             value={librespotHostId}
             onChange={(e) => setLibrespotHostId(e.target.value)}
@@ -83,6 +83,7 @@ export const AddLibrespotSource = ({ onDialogClose }) => {
           >
             {librespotCapablePeers.map((p) => <MenuItem key={p.uuid} value={p.uuid}>{p.name}</MenuItem>)}
           </TextField>
+          <p>You can link the integration to a Spotify User to stream when not connected to your local network. This is optionnal and the login informations won't quit your device.</p>
           <TextField
             label="Spotify Username"
             value={librespotUsername}
