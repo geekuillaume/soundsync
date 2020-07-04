@@ -16,7 +16,6 @@ export const patchSharedState = (setter: (sharedState: SharedState) => SharedSta
     draft.lastUpdateTimestamp = new Date().getTime();
     return setter(draft);
   });
-  newSharedState.lastUpdateTimestamp = new Date().getTime();
   getPeersManager().broadcastRpc('updateSharedState', newSharedState);
 };
 
