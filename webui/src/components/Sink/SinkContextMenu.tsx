@@ -17,6 +17,8 @@ import { useRegisterForPipe, useUnpipeAction } from 'utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
 import { AudioSink } from '../../../../src/audio/sinks/audio_sink';
 
+const DELETABLE_SINK_TYPES = ['huelight'];
+
 const EditPopover = withStyles((t) => ({
   paper: {
     backgroundColor: 'rgba(0,0,0,.4)',
@@ -66,6 +68,7 @@ export const SinkContextMenu = ({
 
   const inputEl = useRef<HTMLInputElement>();
   const hidden = isHidden(sink.name);
+  const canBeDeleted = DELETABLE_SINK_TYPES.includes(sink.type);
 
   const isPiped = !!sink.pipedFrom;
 
@@ -140,6 +143,10 @@ export const SinkContextMenu = ({
     });
   };
 
+  const handleDelete = () => {
+    sink.peer.sendRcp('deleteSink', sink.uuid);
+  }
+
   const defaultModalContent = (
     <>
       <div className={styles.volumeContainer}>
@@ -151,6 +158,7 @@ export const SinkContextMenu = ({
       {isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
       <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
       <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
+      {canBeDeleted && <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>}
       {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(sink)}>Log info</PopoverButton>}
     </>
   );

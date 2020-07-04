@@ -5,6 +5,7 @@ import { onHueScanRPC, onHueGetEntertainmentZones } from './huelights';
 import { onCreateSink } from './createSink';
 import { onScanChromecast } from './scanChromecast';
 import { onSharedStateUpdate } from './sharedStateUpdate';
+import { onDeleteSink } from './deleteSink';
 
 // the lazy loading is mainly used for the WebUI
 const lazyLoader = (moduleGetter: () => any, accessor?: (module: any) => any) => {
@@ -24,6 +25,7 @@ export const rpcHandlers = {
   hueScan: lazyLoader(() => import('./huelights'), (m) => m.onHueScanRPC) as typeof onHueScanRPC,
   hueGetEntertainmentZones: lazyLoader(() => import('./huelights'), (m) => m.onHueGetEntertainmentZones) as typeof onHueGetEntertainmentZones,
   createSink: onCreateSink,
+  deleteSink: onDeleteSink,
   updateSharedState: onSharedStateUpdate,
   scanChromecast: lazyLoader(() => import(/* webpackChunkName: "chromecast" */ './scanChromecast'), (m) => m.onScanChromecast) as typeof onScanChromecast,
   startChromecast: lazyLoader(() => import(/* webpackChunkName: "chromecast" */ './startChromecast'), (m) => m.onStartChromecast) as typeof onStartChromecast,

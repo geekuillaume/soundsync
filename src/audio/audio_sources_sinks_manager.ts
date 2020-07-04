@@ -207,6 +207,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     this.emit('soundstateUpdated');
     if (sink.local) {
       this.emit('localSoundStateUpdated');
+      deleteConfigArrayItem('sinks', sink.toDescriptor());
     }
   }
 
