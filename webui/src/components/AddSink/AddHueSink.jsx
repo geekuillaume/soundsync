@@ -37,6 +37,7 @@ export const AddHueSink = ({ onDialogClose }) => {
   const [selectedHueHostId, setSelectedHueHostId] = useState(hueCapablePeers[0]?.uuid);
   const [selectedHueBridgeHost, setSelectedHueBridgeHost] = useState('');
   const [selectedHueEntertainmentZoneId, setSelectedHueEntertainmentZoneId] = useState('');
+  const [userActionNeededForAuth, setUserActionNeededForAuth] = useState(false);
 
   useEffect(() => {
     if (!hueCapablePeers.length) {
@@ -57,10 +58,18 @@ export const AddHueSink = ({ onDialogClose }) => {
       setHueEntertainmentZones([]);
       return;
     }
+    const userActionNeededTimeout = setTimeout(() => {
+      setUserActionNeededForAuth(true);
+    }, 2000); // if no response after 2s, we can assume the peer is trying to authenticate and needs a user interaction to do so
     peer.sendRcp('hueGetEntertainmentZones', selectedHueBridgeHost).then((zones) => {
+      clearTimeout(userActionNeededTimeout);
+      setUserActionNeededForAuth(false);
       setHueEntertainmentZones(zones);
       setSelectedHueEntertainmentZoneId((val) => val || zones[0]?.id);
     });
+    return () => {
+      clearTimeout(userActionNeededTimeout);
+    }
   }, [selectedHueBridgeHost]);
 
   const handleCreateHueSink = async () => {
@@ -114,6 +123,7 @@ export const AddHueSink = ({ onDialogClose }) => {
               </MenuItem>
             ))}
           </TextField>
+          {userActionNeededForAuth && <div>Soundsync is connecting to your Philips Hue Bridge. To continue, please press the button on the top of the bridge device.</div>}
           <TextField
             select
             label="Zone"
