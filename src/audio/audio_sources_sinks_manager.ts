@@ -79,6 +79,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
         name: device.name,
         peerUuid: getLocalPeer().uuid,
         available: true,
+        active: false,
       });
     });
   }

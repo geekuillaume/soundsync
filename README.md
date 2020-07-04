@@ -55,7 +55,6 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Use [waveform-data](https://www.npmjs.com/package/waveform-data) to show activity on webui
 - Integration of media info on webui
 - Create a ready to use RaspberryPi image
-- Stop audio device when no audio has been received for a while to save energy
 - Allow devices on multiple networks to be connected together
 - Improve linux script by detecting Pulseaudio process if run as root
 - Better explain Spotify integration options (user account being optional)

@@ -71,12 +71,14 @@ export class LocalDeviceSource extends AudioSource {
     uuid: this.uuid,
     deviceId: this.deviceId,
     channels: this.channels,
+
     ...(!sanitizeForConfigSave && {
       peerUuid: this.peerUuid,
       instanceUuid: this.instanceUuid,
       latency: this.latency,
       startedAt: this.startedAt,
       available: this.available,
+      active: this.active,
     }),
   })
 }

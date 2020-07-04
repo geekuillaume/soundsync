@@ -101,7 +101,13 @@ export abstract class AudioSink extends EventEmitter {
       return;
     }
     const sourceToPipeFrom = this.pipedFrom && this.manager.getSourceByUuid(this.pipedFrom);
-    if (!sourceToPipeFrom || !this.available) {
+    if (
+      !sourceToPipeFrom
+      || !sourceToPipeFrom.active
+      || !this.available
+      || !sourceToPipeFrom.peer
+      || sourceToPipeFrom.peer.state !== 'connected'
+    ) {
       // should not be piped from something, unlinking if it is
       this.unlinkSource();
       return;
@@ -110,11 +116,6 @@ export abstract class AudioSink extends EventEmitter {
     if (this.pipedSource && sourceToPipeFrom !== this.pipedSource) {
       // already piped but to the wrong source
       this.unlinkSource();
-    }
-
-    if (!sourceToPipeFrom.peer || sourceToPipeFrom.peer.state !== 'connected') {
-      this.unlinkSource();
-      return;
     }
 
     if (this.pipedSource && sourceToPipeFrom === this.pipedSource) {

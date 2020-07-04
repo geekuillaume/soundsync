@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
+import { INACTIVE_TIMEOUT } from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
@@ -26,6 +27,7 @@ export abstract class AudioSource {
   startedAt: number;
   latency: number;
   available: boolean;
+  active: boolean; // is source currently outputting sound or has been silent for INACTIVE_TIMEOUT ms
 
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
@@ -49,6 +51,8 @@ export abstract class AudioSource {
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.available = descriptor.available;
+    this.active = descriptor.active ?? false;
+    console.log(descriptor, this.active);
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -84,6 +88,10 @@ export abstract class AudioSource {
     }
   }
 
+  private setInactive = () => {
+    this.updateInfo({ active: false });
+  }
+
   async start(): Promise<MiniPass> {
     if (!this.encodedAudioStream) {
       this.log(`Starting audio source`);
@@ -91,8 +99,19 @@ export abstract class AudioSource {
       if (this.local) {
         this.updateInfo({ startedAt: Math.floor(now()) }); // no need for more than 1ms of precision
       }
+      let inactiveTimeout: NodeJS.Timeout = null;
       // we don't use pipe here because minipass cannot be unpiped but we still need to stop sending to ended consumersStreams
       this.encodedAudioStream.on('data', (d) => {
+        if (this.local) {
+          if (inactiveTimeout) {
+            clearTimeout(inactiveTimeout);
+            inactiveTimeout = null;
+          }
+          inactiveTimeout = setTimeout(this.setInactive, INACTIVE_TIMEOUT);
+          if (!this.active) {
+            this.updateInfo({ active: true });
+          }
+        }
         this.consumersStreams.forEach((stream) => stream.write(d));
       });
       try {
@@ -168,6 +187,7 @@ export abstract class AudioSource {
       startedAt: this.startedAt,
       instanceUuid: this.instanceUuid,
       available: this.available,
+      active: this.active,
     }),
   })
 }

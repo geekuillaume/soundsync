@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { useSnackbar } from 'notistack';
 import classnames from 'classnames';
 import { Zoom } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   usePeer, useSources, useRegisterForPipe, useShowHidden,
 } from '../utils/useSoundSyncState';
@@ -15,6 +16,7 @@ import airplayIcon from '../res/airplay.svg';
 import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
 import { HiddenIndicator } from './utils/HiddenIndicator';
 
+
 const logos = {
   librespot: SpotifyLogo,
   null: nullSinkLogo,
@@ -22,7 +24,21 @@ const logos = {
   shairport: airplayIcon,
 };
 
+
+const useStyles = makeStyles(() => ({
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 5,
+    left: 5,
+    borderRadius: '100%',
+    backgroundColor: 'rgba(0, 209, 178, 0.8)',
+    width: 7,
+    height: 7,
+  },
+}));
+
 export const Source = ({ source }) => {
+  const styles = useStyles();
   const [shouldShow, isSelectedElement, registerForPipe] = useRegisterForPipe('source', source);
   const peer = usePeer(source.peerUuid);
   const sourceLogo = logos[source.type];
@@ -63,6 +79,7 @@ export const Source = ({ source }) => {
           <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
           <p className="peer-name">{peer.name}</p>
           {hidden && <HiddenIndicator />}
+          {source.active && <div className={styles.activeIndicator} alt="Currently playing" />}
         </div>
         {modal}
       </div>

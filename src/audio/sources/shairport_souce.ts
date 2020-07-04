@@ -71,6 +71,7 @@ export class ShairportSource extends AudioSource {
       latency: this.latency,
       startedAt: this.startedAt,
       available: true, // TODO: check if shairport process is still running to get availability state
+      active: this.active,
     }),
   })
 }

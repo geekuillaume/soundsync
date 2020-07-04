@@ -9,6 +9,7 @@ export interface BaseSourceDescriptor {
   latency?: number;
   channels?: number;
   available: boolean;
+  active: boolean;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {
