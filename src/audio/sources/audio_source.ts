@@ -52,7 +52,6 @@ export abstract class AudioSource {
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.available = descriptor.available;
     this.active = descriptor.active ?? false;
-    console.log(descriptor, this.active);
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
