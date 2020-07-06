@@ -57,7 +57,8 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Create a ready to use RaspberryPi image
 - Allow devices on multiple networks to be connected together
 - Improve linux script by detecting Pulseaudio process if run as root
-- Better explain Spotify integration options (user account being optional)
+- Add a option to start Soundsync in kiosk mode for rPi
+- In kiosk mode, add a option to start Spotify WebUI in a [BrowserView](https://www.electronjs.org/docs/api/browser-view)
 - Find an alternative way to connect from rendez-vous service for device with DNS Rebinding Protection
 - Adds audio visualization for Chromecast view and add an option to use this view from webui
 - Resample the audio for each sink to handle drifting clocks instead of seeking to the corrected audio position and hearing an artifact
