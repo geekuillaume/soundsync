@@ -51,7 +51,7 @@ export abstract class AudioSource {
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.available = descriptor.available;
-    this.active = descriptor.active ?? false;
+    this.active = descriptor.active ?? true; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
