@@ -2,7 +2,7 @@ import SpeexResampler from 'speex-resampler';
 import MiniPass from 'minipass';
 import { OpusEncoder, OpusApplication, OpusDecoder } from './opus';
 import {
-  AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder,
+  AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder, AudioChunkStreamOrderer,
 } from './chunk_stream';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION } from './constants';
 
@@ -92,8 +92,10 @@ export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, so
 
 export const createAudioDecodedStream = (encodedStream: MiniPass, channels: number) => {
   const chunkDecoderStream = new AudioChunkStreamDecoder();
+  const orderer = new AudioChunkStreamOrderer(10); // opus codec expect an ordered chunk stream but the webrtc datachannel is in unordered mode so we need to try to reorder them to prevent audio glitches
   const opusDecoderStream = new OpusDecodeStream(OPUS_ENCODER_RATE, channels);
   return encodedStream
     .pipe(chunkDecoderStream)
+    .pipe(orderer)
     .pipe(opusDecoderStream);
 };

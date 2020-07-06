@@ -1,4 +1,3 @@
-import { Readable, Transform } from 'stream';
 import Minipass from 'minipass';
 import { now } from './time';
 
@@ -116,5 +115,51 @@ export class AudioChunkStreamDecoder extends Minipass {
       cb();
     }
     return returnVal;
+  }
+}
+
+// Used to reorder incoming chunk. If a chunk is missing, buffer up to [maxUnorderedChunks] chunks
+export class AudioChunkStreamOrderer extends Minipass {
+  buffer: AudioChunkStreamOutput[] = [];
+  private nextEmittableChunkIndex = -1;
+
+  constructor(public maxUnorderedChunks = 10) {
+    super({
+      objectMode: true,
+    });
+  }
+
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    if (this.nextEmittableChunkIndex === -1) {
+      this.nextEmittableChunkIndex = d.i;
+    }
+    if (d.i < this.nextEmittableChunkIndex) {
+      // late chunk, we already emitted more recent chunks, ignoring
+      return true;
+    }
+
+    if (this.nextEmittableChunkIndex === d.i) {
+      // ordered chunk, act as a passthrough
+      this.nextEmittableChunkIndex = d.i + 1;
+      super.write(d);
+    } else {
+      // unordered chunk, store chunk in buffer
+      this.buffer.push(d);
+      if (d.i - this.nextEmittableChunkIndex >= this.maxUnorderedChunks) {
+        this.buffer.sort((a, b) => a.i - b.i);
+        this.nextEmittableChunkIndex = this.buffer[0].i;
+        while (this.buffer.length && this.buffer[0].i === this.nextEmittableChunkIndex) {
+          super.write(this.buffer[0]);
+          this.nextEmittableChunkIndex = this.buffer[0].i + 1;
+          this.buffer.splice(0, 1);
+        }
+      }
+    }
+
+    if (cb) {
+      cb();
+    }
+
+    return true;
   }
 }
