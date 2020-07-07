@@ -45,11 +45,12 @@ export class HueLightSink extends AudioSink {
   });
 
   constructor(descriptor: HueLightSinkDescriptor, manager: AudioSourcesSinksManager) {
-    super(descriptor, manager);
+    super({
+      ...descriptor,
+      latency: 200,
+    }, manager);
     this.hueHost = descriptor.hueHost;
     this.entertainmentZoneId = descriptor.entertainmentZoneId;
-    this.latency = 200;
-    // this.chunkTransformer.pipe(this.peakTransformer);
   }
 
   async _startSink() {

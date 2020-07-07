@@ -55,6 +55,7 @@ export abstract class AudioSink extends EventEmitter {
     this.volume = descriptor.volume ?? 1;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
+    this.latency = descriptor.latency ?? 0;
     this.log = debug(`soundsync:audioSink:${this.uuid}`);
     this.log(`Created new audio sink of type ${descriptor.type}`);
     this.manager.on('soundstateUpdated', this._syncPipeState);
@@ -147,7 +148,9 @@ export abstract class AudioSink extends EventEmitter {
     }
     this._stopSink();
     delete this.pipedSource;
-    this.sourceStream.end();
+    if (this.sourceStream) {
+      this.sourceStream.end();
+    }
     delete this.sourceStream;
     if (this.decodedStream) {
       this.decodedStream.end();
