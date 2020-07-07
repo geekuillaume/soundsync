@@ -80,7 +80,7 @@ export class WebAudioSink extends AudioSink {
     }
     await this.pipedSource.peer.waitForFirstTimeSync();
     this.updateInfo({
-      latency: this.context.baseLatency * 1000,
+      latency: (this.context.outputLatency || this.context.baseLatency) * 1000,
     });
 
     const syncDeviceVolume = () => {
