@@ -35,7 +35,10 @@ export const initializeCoordinator = memoize(async () => {
   audioSourcesSinksManager.addFromConfig();
 
   getClientCoordinator();
-  if (!audioSourcesSinksManager.sinks.filter((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio').length) {
+  if (
+    !window.location.search.includes('disable-local-sink=true') &&
+    !audioSourcesSinksManager.sinks.filter((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio').length
+  ) {
     audioSourcesSinksManager.addSink({
       type: 'webaudio',
       name: IS_CHROMECAST ? 'Chromecast' : 'Web Page Output',

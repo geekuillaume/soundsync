@@ -20,6 +20,7 @@ import { Capacity } from './communication/peer';
 import { enableRendezvousServiceRegister, enableRendezvousServicePeersDetection } from './communication/rendezvous_service';
 import { PeersManager } from './communication/peers_manager';
 import { isDepAvailableForPlatform } from './utils/deps_downloader';
+import { startKioskMode } from './utils/kioskMode';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
@@ -37,6 +38,10 @@ const main = async () => {
     .option('launchAtStartup', {
       type: 'boolean',
       description: 'Register this process to be launched at startup',
+    })
+    .option('kiosk', {
+      type: 'boolean',
+      description: 'Start in kiosk mode with the webui in a separate window',
     })
     .completion()
     .parse(process.argv.slice(1));
@@ -108,6 +113,9 @@ const main = async () => {
   }
 
   getClientCoordinator();
+  if (argv.kiosk) {
+    startKioskMode();
+  }
 };
 
 main().catch((e) => {
