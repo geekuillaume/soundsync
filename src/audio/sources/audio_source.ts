@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
-import { INACTIVE_TIMEOUT } from '../../utils/constants';
+import { INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN } from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
@@ -12,7 +12,7 @@ import { getPeersManager } from '../../communication/get_peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 import { now } from '../../utils/time';
 
-const DEFAULT_LATENCY = 2000;
+const DEFAULT_LATENCY = 1000;
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
 export abstract class AudioSource {
@@ -138,6 +138,7 @@ export abstract class AudioSource {
       }
     });
     this.consumersStreams.push(instanceStream);
+    this.manager.on('soundstateUpdated', this.updateLatencyFromSinks);
     return instanceStream;
   }
 
@@ -160,7 +161,18 @@ export abstract class AudioSource {
       consumerStream.end();
     });
     this.consumersStreams = [];
+    this.manager.off('soundstateUpdated', this.updateLatencyFromSinks);
     this._stop();
+  }
+
+  private updateLatencyFromSinks = () => {
+    const pipedSinks = this.manager.sinks.filter((s) => s.pipedFrom === this.uuid);
+    const maxLatency = Math.max(...pipedSinks.map(({ latency }) => latency)) + LATENCY_MARGIN;
+    if (this.latency > maxLatency || this.latency - maxLatency > SOURCE_MIN_LATENCY_DIFF_TO_RESYNC) {
+      this.updateInfo({
+        latency: maxLatency,
+      });
+    }
   }
 
   toObject = () => ({

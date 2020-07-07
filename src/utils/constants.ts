@@ -26,6 +26,9 @@ export const SOFT_SYNC_MIN_AUDIO_DRIFT = 10;
 // if more than 100ms of drift, correct by making a hard sync (pausing the output or discarding a chunk of samples)
 export const HARD_SYNC_MIN_AUDIO_DRIFT = 100;
 
+export const SOURCE_MIN_LATENCY_DIFF_TO_RESYNC = 300; // if sinks (connected to a source) latencies are reduced by this much, reduce the latency of the source are resync everyone
+export const LATENCY_MARGIN = 300; // latency added by default to each source to prevent glitches because of network drops
+
 export const RENDEZVOUS_SERVICE_URL = process.env.RENDEZVOUS_SERVICE_URL ?? 'https://soundsync.app';
 export const RENDEZVOUS_SERVICE_REGISTER_INTERVAL = 1000 * 60 * 60 * 4; // every 4 hours
 export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64');
