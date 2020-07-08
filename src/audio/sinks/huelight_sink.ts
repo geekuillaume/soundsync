@@ -98,7 +98,9 @@ export class HueLightSink extends AudioSink {
     this.lightPusher();
     this.closeHue = async () => {
       this.closeHue = null;
-      this.hueSocket.close();
+      try {
+        this.hueSocket.close();
+      } catch {} // ignore error as it means the socket is already closed
       delete this.hueSocket;
       delete this.lights;
       await superagent.put(`http://${this.hueHost}/api/${credentials.username}/groups/${this.entertainmentZoneId}`).send({
