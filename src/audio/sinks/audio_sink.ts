@@ -132,24 +132,26 @@ export abstract class AudioSink extends EventEmitter {
       return;
     }
 
-
     // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
     // is called multiple times before this.pipedSource.start() has finished
     this.pipedSource = sourceToPipeFrom;
     this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
+
     this.sourceStream = await this.pipedSource.start();
-    this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
-    try {
-      await this._startSink(this.pipedSource);
-    } catch (e) {
-      this.decodedStream.end();
-      this.log(`Error while starting sink`, e);
-    }
-    this.decodedStream.on('data', this._handleAudioChunk);
     this.sourceStream.on('end', () => {
       this.log('Source stream has closed, unlinking');
       this.unlinkSource();
     });
+
+    this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
+    this.decodedStream.on('data', this._handleAudioChunk);
+
+    try {
+      await this._startSink(this.pipedSource);
+    } catch (e) {
+      this.sourceStream.end();
+      this.log(`Error while starting sink`, e);
+    }
   }
 
   unlinkSource() {
