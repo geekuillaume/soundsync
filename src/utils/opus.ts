@@ -2,6 +2,7 @@
 
 /* eslint-disable @typescript-eslint/camelcase */
 import Opus from './opus_wasm';
+import { OPUS_ENCODER_CHUNK_DURATION } from './constants';
 
 interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
   _opus_decoder_create(samplingRate: number, channels: number, error_ptr: number): number;
@@ -60,7 +61,7 @@ export class OpusDecoder {
         throw new Error(this.module.AsciiToString(this.module._opus_strerror(errNum)));
       }
 
-      this.frameSize = (this.sampleRate / 1000) * 120; /* max frame duration[ms] */
+      this.frameSize = (this.sampleRate / 1000) * OPUS_ENCODER_CHUNK_DURATION;
       const pcmSamples = this.frameSize * this.channels;
       const bufSize = this.frameSize * this.channels;
       this.pcmPtr = this.module._malloc(4 * pcmSamples);
@@ -76,7 +77,12 @@ export class OpusDecoder {
       throw new Error('Decoder should be setup before usage');
     }
     this.buf.set(data);
-    const decodedSamplesPerChannel = this.module._opus_decode_float(this.handle, this.bufPtr, data.length, this.pcmPtr, this.frameSize, 0);
+    let decodedSamplesPerChannel;
+    if (data.length === 0) {
+      decodedSamplesPerChannel = this.module._opus_decode_float(this.handle, 0, 0, this.pcmPtr, this.frameSize, 0);
+    } else {
+      decodedSamplesPerChannel = this.module._opus_decode_float(this.handle, this.bufPtr, data.length, this.pcmPtr, this.frameSize, 0);
+    }
     if (decodedSamplesPerChannel < 0) {
       throw new Error(this.module.AsciiToString(this.module._opus_strerror(decodedSamplesPerChannel)));
     }

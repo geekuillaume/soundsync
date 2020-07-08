@@ -1,5 +1,8 @@
 import Minipass from 'minipass';
+import debug from 'debug';
 import { now } from './time';
+
+const l = debug('soundsync:audioSinkDebug');
 
 export interface AudioChunkStreamOutput {
   i: number;
@@ -129,6 +132,18 @@ export class AudioChunkStreamOrderer extends Minipass {
     });
   }
 
+  private emitNextChunksInBuffer = () => {
+    while (this.buffer.length && this.buffer[0].i === this.nextEmittableChunkIndex) {
+      this.emitChunk(this.buffer[0]);
+      this.buffer.splice(0, 1);
+    }
+  }
+
+  private emitChunk = (chunk) => {
+    super.write(chunk);
+    this.nextEmittableChunkIndex = chunk.i + 1;
+  }
+
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
     if (this.nextEmittableChunkIndex === -1) {
       this.nextEmittableChunkIndex = d.i;
@@ -140,20 +155,33 @@ export class AudioChunkStreamOrderer extends Minipass {
 
     if (this.nextEmittableChunkIndex === d.i) {
       // ordered chunk, act as a passthrough
-      this.nextEmittableChunkIndex = d.i + 1;
-      super.write(d);
+      this.emitChunk(d);
     } else {
       // unordered chunk, store chunk in buffer
+      // console.log(`GAP, next emitable ${this.nextEmittableChunkIndex}, received: ${d.i}`);
       this.buffer.push(d);
-      if (d.i - this.nextEmittableChunkIndex >= this.maxUnorderedChunks) {
-        this.buffer.sort((a, b) => a.i - b.i);
-        this.nextEmittableChunkIndex = this.buffer[0].i;
-        while (this.buffer.length && this.buffer[0].i === this.nextEmittableChunkIndex) {
-          super.write(this.buffer[0]);
-          this.nextEmittableChunkIndex = this.buffer[0].i + 1;
-          this.buffer.splice(0, 1);
-        }
+    }
+
+    this.buffer.sort((a, b) => a.i - b.i);
+    this.emitNextChunksInBuffer();
+
+    // gap is too big, giving up on waiting for the chunk to be received
+    if (this.buffer.length && this.buffer.length >= this.maxUnorderedChunks) {
+      // console.log(`== gap too big, starting emitting, next emitable ${this.nextEmittableChunkIndex}`);
+      if (this.buffer[0].i - this.nextEmittableChunkIndex === 1) {
+        l(`Conceilling missing chunk ${this.nextEmittableChunkIndex}`);
+        // there is only one missing chunk, we can send empty packet to let OPUS try to coneal this
+        this.emitChunk({
+          i: this.nextEmittableChunkIndex,
+          chunk: Buffer.alloc(0),
+        });
       }
+      if (this.nextEmittableChunkIndex !== this.buffer[0].i) {
+        l(`Missed ${this.buffer[0].i - this.nextEmittableChunkIndex} chunks, continuing without`);
+      }
+      // force consumming the buffer starting from the oldest chunk
+      this.nextEmittableChunkIndex = this.buffer[0].i;
+      this.emitNextChunksInBuffer();
     }
 
     if (cb) {
