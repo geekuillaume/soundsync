@@ -2,7 +2,7 @@ import React, {
   useCallback, useEffect, createContext, useReducer, useContext,
 } from 'react';
 
-import { sortBy, some } from 'lodash-es';
+import { some, partition } from 'lodash-es';
 import { createAction, handleActions } from 'redux-actions';
 import produce from 'immer';
 import { isHidden } from './hiddenUtils';
@@ -10,6 +10,8 @@ import { onSoundStateChange, onPeersChange } from './coordinator_communication';
 import { getAudioSourcesSinksManager } from '../../../src/audio/get_audio_sources_sinks_manager';
 import { getPeersManager } from '../../../src/communication/get_peers_manager';
 import { PeersManager } from '../../../src/communication/peers_manager';
+import { AudioSource } from '../../../src/audio/sources/audio_source';
+import { AudioSink } from '../../../src/audio/sinks/audio_sink';
 
 const initialState = {
   stateVersion: 0,
@@ -75,18 +77,18 @@ export const SoundSyncProvider = ({ children }) => {
 
 export const useIsConnected = () => some(useContext(soundSyncContext).peersManagers.peers, (peer) => !peer.isLocal && peer.state === 'connected');
 
-const audioSourceSinkGetter = (collection, withHidden) => {
-  const orderedCollection = sortBy(collection, ({ name, uuid }) => (isHidden(name) ? 10000 : uuid)).filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
-  if (!withHidden) {
-    return orderedCollection.filter(({ name }) => !isHidden(name));
-  }
-  return orderedCollection;
+const audioSourceSinkGetter = (collection) => {
+  let inputCollection = Array.from(collection) as (AudioSource | AudioSink)[];
+  const sortedCollection = inputCollection.sort((a, b) => a.name.localeCompare(b.name));
+  const availableCollection = sortedCollection.filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
+  const [visible, hidden] = partition(availableCollection, (s) => !isHidden(s.name));
+  return [...visible, ...hidden];
 };
 
 export const getContextAudioSourcesSinksManager = () => useContext(soundSyncContext).audioSourcesSinksManager;
 
-export const useSinks = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks, withHidden);
-export const useSources = ({ withHidden = true } = {}) => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources, withHidden);
+export const useSinks = () => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks);
+export const useSources = () => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources);
 export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
 
 export const usePeersManager = () => useContext(soundSyncContext).peersManagers as PeersManager;
