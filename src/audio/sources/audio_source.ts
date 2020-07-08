@@ -93,11 +93,11 @@ export abstract class AudioSource {
     this.updateInfo({ active: false });
   }
 
-  async start(): Promise<MiniPass> {
+  startReading = async () => {
     if (!this.encodedAudioStream) {
-      this.updateInfo({ started: true });
       this.log(`Starting audio source`);
       this.encodedAudioStream = new MiniPass();
+      this.updateInfo({ started: true });
       if (this.local) {
         this.updateInfo({ startedAt: Math.floor(now()) }); // no need for more than 1ms of precision
       }
@@ -132,7 +132,10 @@ export abstract class AudioSource {
         this.log('Error while starting source', e);
       }
     }
+  }
 
+  async start(): Promise<MiniPass> {
+    await this.startReading();
     const instanceStream = new MiniPass();
     instanceStream.on('end', () => {
       this.consumersStreams = this.consumersStreams.filter((s) => s !== instanceStream);
