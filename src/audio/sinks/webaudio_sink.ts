@@ -66,6 +66,22 @@ export class WebAudioSink extends AudioSink {
     volumeNode.connect(this.context.destination);
 
     this.context.resume();
+
+    const syncDeviceVolume = () => {
+      volumeNode.gain.value = this.volume;
+    };
+    this.on('update', syncDeviceVolume);
+    // this should be set before any await to make sure we have the clean method available if _stopSink is called between _startSink ends
+    this.cleanAudioContext = () => {
+      this.off('update', syncDeviceVolume);
+      this.workletNode.disconnect();
+      delete this.workletNode;
+      this.context.suspend();
+      delete this.context;
+      this.cleanAudioContext = undefined;
+    };
+
+
     // The context can be blocked from starting because of new webaudio changes
     // we need to wait for a user input to start it
     if (this.context.state === 'suspended') {
@@ -82,20 +98,7 @@ export class WebAudioSink extends AudioSink {
     this.updateInfo({
       latency: (this.context.outputLatency || this.context.baseLatency) * 1000,
     });
-
-    const syncDeviceVolume = () => {
-      volumeNode.gain.value = this.volume;
-    };
-    this.on('update', syncDeviceVolume);
     // TODO: handle the source latency change
-    this.cleanAudioContext = () => {
-      this.off('update', syncDeviceVolume);
-      this.workletNode.disconnect();
-      delete this.workletNode;
-      this.context.suspend();
-      delete this.context;
-      this.cleanAudioContext = undefined;
-    };
   }
 
   _stopSink = () => {
