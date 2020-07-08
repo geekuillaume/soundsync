@@ -76,7 +76,7 @@ export const SoundSyncProvider = ({ children }) => {
 export const useIsConnected = () => some(useContext(soundSyncContext).peersManagers.peers, (peer) => !peer.isLocal && peer.state === 'connected');
 
 const audioSourceSinkGetter = (collection, withHidden) => {
-  const orderedCollection = sortBy(collection, ({ name }) => (isHidden(name) ? 10 : 0)).filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
+  const orderedCollection = sortBy(collection, ({ name, uuid }) => (isHidden(name) ? 10000 : uuid)).filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
   if (!withHidden) {
     return orderedCollection.filter(({ name }) => !isHidden(name));
   }
