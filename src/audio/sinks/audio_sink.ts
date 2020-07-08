@@ -104,7 +104,6 @@ export abstract class AudioSink extends EventEmitter {
     const sourceToPipeFrom = this.pipedFrom && this.manager.getSourceByUuid(this.pipedFrom);
     if (
       !sourceToPipeFrom
-      || !sourceToPipeFrom.active
       || !this.available
       || !sourceToPipeFrom.peer
       || sourceToPipeFrom.peer.state !== 'connected'
@@ -119,10 +118,21 @@ export abstract class AudioSink extends EventEmitter {
       this.unlinkSource();
     }
 
+    if (sourceToPipeFrom.active === false) {
+      this.unlinkSource();
+      if (!sourceToPipeFrom.started) {
+        // if the source is not running, it will be inactive by default so we need to start it to check if it is active or not
+        sourceToPipeFrom.peer.sendRcp('startSource', sourceToPipeFrom.uuid);
+      }
+      return;
+    }
+
     if (this.pipedSource && sourceToPipeFrom === this.pipedSource) {
       // nothing to do
       return;
     }
+
+
     // this.pipedSource should be set before any "await" to prevent a race condition if _syncPipeState
     // is called multiple times before this.pipedSource.start() has finished
     this.pipedSource = sourceToPipeFrom;

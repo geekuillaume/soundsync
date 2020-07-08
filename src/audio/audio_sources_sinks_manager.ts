@@ -80,6 +80,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
         peerUuid: getLocalPeer().uuid,
         available: true,
         active: false,
+        started: false,
       });
     });
   }

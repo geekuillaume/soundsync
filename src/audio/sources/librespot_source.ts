@@ -71,6 +71,7 @@ export class LibrespotSource extends AudioSource {
       startedAt: this.startedAt,
       available: true, // TODO: check if librespot process is still running to get availability state
       active: this.active,
+      started: this.started,
     }),
   })
 }

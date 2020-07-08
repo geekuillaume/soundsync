@@ -72,6 +72,7 @@ export class ShairportSource extends AudioSource {
       startedAt: this.startedAt,
       available: true, // TODO: check if shairport process is still running to get availability state
       active: this.active,
+      started: this.started,
     }),
   })
 }

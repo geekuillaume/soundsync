@@ -27,6 +27,7 @@ export abstract class AudioSource {
   startedAt: number;
   latency: number;
   available: boolean;
+  started: boolean;
   active: boolean; // is source currently outputting sound or has been silent for INACTIVE_TIMEOUT ms
 
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
@@ -51,7 +52,8 @@ export abstract class AudioSource {
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.available = descriptor.available;
-    this.active = descriptor.active ?? true; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
+    this.active = descriptor.active ?? false; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
+    this.started = descriptor.started ?? false;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -93,6 +95,7 @@ export abstract class AudioSource {
 
   async start(): Promise<MiniPass> {
     if (!this.encodedAudioStream) {
+      this.updateInfo({ started: true });
       this.log(`Starting audio source`);
       this.encodedAudioStream = new MiniPass();
       if (this.local) {
@@ -167,6 +170,9 @@ export abstract class AudioSource {
 
   private updateLatencyFromSinks = () => {
     const pipedSinks = this.manager.sinks.filter((s) => s.pipedFrom === this.uuid);
+    if (!pipedSinks.length) {
+      return;
+    }
     const maxLatency = Math.max(...pipedSinks.map(({ latency }) => latency)) + LATENCY_MARGIN;
     if (this.latency > maxLatency || this.latency - maxLatency > SOURCE_MIN_LATENCY_DIFF_TO_RESYNC) {
       this.updateInfo({
@@ -193,6 +199,7 @@ export abstract class AudioSource {
     channels: this.channels,
 
     ...(!sanitizeForConfigSave && {
+      started: this.started,
       latency: this.latency,
       peerUuid: this.peerUuid,
       startedAt: this.startedAt,

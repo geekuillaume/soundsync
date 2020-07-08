@@ -9,7 +9,8 @@ export interface BaseSourceDescriptor {
   latency?: number;
   channels?: number;
   available: boolean;
-  active: boolean;
+  started: boolean;
+  active: boolean; // has emitted an audio chunk in the last [INACTIVE_TIMEOUT]ms
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {

@@ -79,6 +79,7 @@ export class LocalDeviceSource extends AudioSource {
       startedAt: this.startedAt,
       available: this.available,
       active: this.active,
+      started: this.started,
     }),
   })
 }

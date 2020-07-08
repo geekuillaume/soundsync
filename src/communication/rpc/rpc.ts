@@ -1,5 +1,6 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
+import { onStartSource } from './startSource';
 import { onStartChromecast } from './startChromecast';
 import { onHueScanRPC, onHueGetEntertainmentZones } from './huelights';
 import { onCreateSink } from './createSink';
@@ -29,6 +30,7 @@ export const rpcHandlers = {
   updateSharedState: onSharedStateUpdate,
   scanChromecast: lazyLoader(() => import(/* webpackChunkName: "chromecast" */ './scanChromecast'), (m) => m.onScanChromecast) as typeof onScanChromecast,
   startChromecast: lazyLoader(() => import(/* webpackChunkName: "chromecast" */ './startChromecast'), (m) => m.onStartChromecast) as typeof onStartChromecast,
+  startSource: onStartSource, // used to start a source when it's considered inactive to determine if it's active or not (for example for a localdevice source)
 };
 
 export type RPCType = keyof typeof rpcHandlers;
