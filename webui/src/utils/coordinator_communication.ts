@@ -49,7 +49,7 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  if (localStorage.getItem('soundsync:disableRendezvousService') === null) {
+  if (localStorage.getItem('soundsync:disableRendezvousService') === null || localStorage.getItem('soundsync:disableRendezvousService') === 'false') {
     enableRendezvousServicePeersDetection(true);
     setInterval(() => {
       if (!getPeersManager().isConnectedToAtLeastOnePeer()) {
