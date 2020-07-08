@@ -174,7 +174,7 @@ export abstract class AudioSource {
       return;
     }
     const maxLatency = Math.max(...pipedSinks.map(({ latency }) => latency)) + LATENCY_MARGIN;
-    if (this.latency > maxLatency || this.latency - maxLatency > SOURCE_MIN_LATENCY_DIFF_TO_RESYNC) {
+    if (maxLatency > this.latency || this.latency - maxLatency > SOURCE_MIN_LATENCY_DIFF_TO_RESYNC) {
       this.updateInfo({
         latency: maxLatency,
       });
