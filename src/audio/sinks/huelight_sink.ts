@@ -159,9 +159,20 @@ export class HueLightSink extends AudioSink {
           ...get2BytesOfFractionNumber(color.b),
         ])),
       ]);
-      await new Promise((resolve) => {
-        this.hueSocket.send(message, resolve);
-      });
+      try {
+        await new Promise((resolve, reject) => {
+          this.hueSocket.send(message, (err, bytes) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(bytes);
+            }
+          });
+        });
+      } catch (e) {
+        this.log(`Error while sending message to Hue bridge, disconnecting`, e);
+        break;
+      }
       await delay(1000 / FPS);
     }
   }
