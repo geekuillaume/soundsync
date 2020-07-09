@@ -193,6 +193,10 @@ body {
   grid-column: 3;
 }
 .connecting-message {
-  grid-column: 1 / 4;
   text-align: center;
+  margin-top: 50px;
+  p {
+    max-width: 500px;
+    margin: 20px auto 20px auto;
+  }
 }

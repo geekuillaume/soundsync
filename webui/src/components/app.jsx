@@ -9,7 +9,6 @@ import {
 import { SoundState } from './SoundState';
 import { SoundSyncProvider } from '../utils/useSoundSyncState';
 import { Header } from './Header';
-import { FirstUse } from './FirstUse/FirstUse';
 import { ChromecastView } from './ChromecastView/ChromecastView.tsx';
 import { hasNecessaryApi } from '../utils/hasNecessaryApi';
 
@@ -32,7 +31,6 @@ export const App = () => {
             <Route path="/">
               <Header />
               <SoundState />
-              <FirstUse />
             </Route>
           </Switch>
         </Router>

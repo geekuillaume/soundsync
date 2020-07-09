@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {
@@ -9,6 +9,7 @@ import { Sink } from './Sink';
 import { Pipe } from './Pipe';
 import { AddSinkButton } from './AddSink/AddSinkButton';
 import { AddSourceButton } from './AddSource';
+import { FirstUse } from './FirstUse/FirstUse';
 
 export const SoundState = () => {
   const pipes = usePipes();
@@ -23,8 +24,7 @@ export const SoundState = () => {
         <div className="sinks-title">
           Speakers
         </div>
-        {isConnected
-          ? (
+        {isConnected && (
             <>
               <SourcesList sources={sources} />
               <PipesList pipes={pipes} />
@@ -32,13 +32,9 @@ export const SoundState = () => {
               <AddSourceButton />
               <AddSinkButton />
             </>
-          ) : (
-            <div className="connecting-message">
-              <CircularProgress />
-              <p>Connecting...</p>
-            </div>
           )}
       </div>
+      {!isConnected && <ConnectingIndicator />}
     </div>
   );
 };
@@ -60,3 +56,26 @@ const PipesList = ({ pipes }) => (
     <Pipe pipe={pipe} key={`${pipe.sourceUuid}-${pipe.sinkUuid}`} />
   ))
 );
+
+const ConnectingIndicator = () => {
+  const [longConnect, setLongConnect] = useState(false);
+  useEffect(() => {
+    const handle = setTimeout(() => setLongConnect(true), 4000);
+    return () => {
+      clearTimeout(handle);
+    }
+  }, []);
+
+  return (
+    <>
+      <div className="connecting-message">
+        <CircularProgress />
+        <p>Connecting...</p>
+        {longConnect && <p>
+          Soundsync is scanning your local network for Soundsync enabled devices. Make sure Soundsync is started on your computer and that you are connected to the same network / wifi as the other devices. If this doesn't work, try using the "Open Controller" button in the Soundsync menu on your computer system tray.
+        </p>}
+      </div>
+      <FirstUse />
+    </>
+  );
+}
