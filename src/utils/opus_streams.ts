@@ -1,4 +1,4 @@
-import SpeexResampler from 'speex-resampler';
+import { SpeexResamplerTransform } from 'speex-resampler';
 import MiniPass from 'minipass';
 import { OpusEncoder, OpusApplication, OpusDecoder } from './opus';
 import {
@@ -75,7 +75,7 @@ export class OpusDecodeStream extends MiniPass {
 export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
   let source = sourceStream;
   if (sourceRate !== OPUS_ENCODER_RATE) {
-    const resampler = new SpeexResampler.TransformStream(channels, sourceRate, OPUS_ENCODER_RATE);
+    const resampler = new SpeexResamplerTransform(channels, sourceRate, OPUS_ENCODER_RATE);
     source = source.pipe(resampler);
   }
   const chunkStream = new AudioChunkStream(

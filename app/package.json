@@ -31,7 +31,7 @@
     "open": "^7.0.0",
     "perf_hooks": "^0.0.1",
     "smoothstep": "^1.0.1",
-    "speex-resampler": "1.0.14",
+    "speex-resampler": "2.0.0",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
     "unzipper": "^0.10.11",
