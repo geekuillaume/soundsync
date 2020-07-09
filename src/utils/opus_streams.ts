@@ -4,7 +4,9 @@ import { OpusEncoder, OpusApplication, OpusDecoder } from './opus';
 import {
   AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder, AudioChunkStreamOrderer,
 } from './chunk_stream';
-import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION } from './constants';
+import {
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION, SPEEX_RESAMPLER_QUALITY,
+} from './constants';
 
 export class OpusEncodeStream extends MiniPass {
   encoder: OpusEncoder;
@@ -75,7 +77,7 @@ export class OpusDecodeStream extends MiniPass {
 export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
   let source = sourceStream;
   if (sourceRate !== OPUS_ENCODER_RATE) {
-    const resampler = new SpeexResamplerTransform(channels, sourceRate, OPUS_ENCODER_RATE);
+    const resampler = new SpeexResamplerTransform(channels, sourceRate, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY);
     source = source.pipe(resampler);
   }
   const chunkStream = new AudioChunkStream(

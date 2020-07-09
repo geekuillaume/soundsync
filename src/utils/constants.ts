@@ -38,3 +38,5 @@ export const WILDCARD_DNS_DOMAIN_NAME = `sslip.io`;
 export const CHROMECAST_APPID = 'BEB12660';
 
 export const INACTIVE_TIMEOUT = 30 * 1000; // 30 seconds, after this period without sound, a source will be marked as inactive and all linked sinks will be stopped
+
+export const SPEEX_RESAMPLER_QUALITY = 5;
