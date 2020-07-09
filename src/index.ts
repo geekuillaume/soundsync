@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/order
+import { fatalErrorHandler } from './utils/electronErrorHandler';
 import './utils/sentry';
 import yargs from 'yargs';
 import debug from 'debug';
@@ -121,20 +123,4 @@ const main = async () => {
   }
 };
 
-main().catch((e) => {
-  // eslint-disable-next-line no-console
-  console.error(e);
-  process.exit(1);
-});
-
-process.on('uncaughtException', (e) => {
-  // eslint-disable-next-line no-console
-  console.error(e);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (e) => {
-  // eslint-disable-next-line no-console
-  console.error(e);
-  process.exit(1);
-});
+main().catch(fatalErrorHandler);
