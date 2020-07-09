@@ -291,7 +291,8 @@ export class WebrtcPeer extends Peer {
 
   closeAudioSourceChanel = (sourceUuid: string) => {
     if (!this.datachannelsBySourceUuid[sourceUuid]) {
-      throw new Error('No channel for this source exist');
+      this.log(`Trying to close already closed channel`);
+      return;
     }
     this.datachannelsBySourceUuid[sourceUuid].close();
     delete this.datachannelsBySourceUuid[sourceUuid];
