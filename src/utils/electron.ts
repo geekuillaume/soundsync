@@ -1,12 +1,10 @@
 /* eslint-disable global-require */
-import Electron from 'electron';
+import electron from 'electron';
 
-export const onElectronReady = (callback: (electron: typeof Electron) => any) => {
-  import('electron').then((electron) => {
-    if (electron.app) {
-      electron.app.on('ready', () => {
-        callback(electron);
-      });
-    }
-  });
+export const onElectronReady = (callback: (Electron: typeof electron) => any) => {
+  if (electron.app) {
+    electron.app.on('ready', () => {
+      callback(electron);
+    });
+  }
 };

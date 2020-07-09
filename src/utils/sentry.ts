@@ -1,8 +1,9 @@
 /* eslint-disable global-require */
+import SentryType from '@sentry/node';
 import { BUILD_VERSION } from './version';
 
 // eslint-disable-next-line import/no-mutable-exports
-let Sentry;
+let Sentry: typeof SentryType;
 // @ts-ignore
 if (process.browser) {
   Sentry = require('@sentry/browser');
