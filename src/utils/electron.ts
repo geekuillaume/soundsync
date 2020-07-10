@@ -1,8 +1,20 @@
 /* eslint-disable global-require */
-import electron from 'electron';
+import Electron from 'electron';
 
-export const onElectronReady = (callback: (Electron: typeof electron) => any) => {
-  if (electron.app) {
+export const tryImportElectron = (): typeof Electron => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const electron = require('electron');
+    if (electron.app) {
+      return electron;
+    }
+  } catch (e) {}
+  return undefined;
+};
+
+export const onElectronReady = (callback: (electron: typeof Electron) => any) => {
+  const electron = tryImportElectron();
+  if (electron) {
     electron.app.on('ready', () => {
       callback(electron);
     });

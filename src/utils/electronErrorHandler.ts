@@ -1,10 +1,9 @@
-import electron from 'electron';
 import open from 'open';
 import { Sentry } from './sentry';
-
-const isFromElectron = !!electron.app;
+import { tryImportElectron } from './electron';
 
 export const fatalErrorHandler = (e: Error) => {
+  const electron = tryImportElectron();
   const dialogTitle = `There has been an error with Soundsync`;
   let dialogText = e.stack;
   if (e.stack.includes('module could not be found') && process.platform === 'win32') {
@@ -13,7 +12,7 @@ export const fatalErrorHandler = (e: Error) => {
   // eslint-disable-next-line no-console
   console.error(dialogText);
   Sentry.captureException(e);
-  if (isFromElectron) {
+  if (electron) {
     if (electron.app.isReady()) {
       const buttonIndex = electron.dialog.showMessageBoxSync({
         type: 'error',
