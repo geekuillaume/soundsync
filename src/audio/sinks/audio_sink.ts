@@ -149,7 +149,6 @@ export abstract class AudioSink extends EventEmitter {
     try {
       await this._startSink(this.pipedSource);
     } catch (e) {
-      this.sourceStream.end();
       this.log(`Error while starting sink`, e);
     }
   }
