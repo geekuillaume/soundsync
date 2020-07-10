@@ -32,6 +32,7 @@ export class PeersManager extends EventEmitter {
     onExit(() => {
       this.peers.forEach((peer) => peer.destroy('exiting'));
     });
+    this.setMaxListeners(500);
     // TODO: handle clearing this.peers when peer is destroyed
   }
 

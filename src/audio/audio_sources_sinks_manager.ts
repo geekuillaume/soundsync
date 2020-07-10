@@ -54,6 +54,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
         }
       }));
     });
+    this.setMaxListeners(500);
   }
 
   autodetectDevices = async () => {
