@@ -7,7 +7,7 @@ const isFromElectron = !!electron.app;
 export const fatalErrorHandler = (e: Error) => {
   // eslint-disable-next-line no-console
   console.error(e);
-  // Sentry.captureException(e);
+  Sentry.captureException(e);
   if (isFromElectron) {
     if (electron.app.isReady()) {
       const buttonIndex = electron.dialog.showMessageBoxSync({
