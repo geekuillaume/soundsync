@@ -5,15 +5,20 @@ import { Sentry } from './sentry';
 const isFromElectron = !!electron.app;
 
 export const fatalErrorHandler = (e: Error) => {
+  const dialogTitle = `There has been an error with Soundsync`;
+  let dialogText = e.stack;
+  if (e.stack.includes('module could not be found') && process.platform === 'win32') {
+    dialogText = `Please try installing Visual C++ 2019 redistributable from Microsoft website and try again.\nError details: ${e.stack}`;
+  }
   // eslint-disable-next-line no-console
-  console.error(e);
+  console.error(dialogText);
   Sentry.captureException(e);
   if (isFromElectron) {
     if (electron.app.isReady()) {
       const buttonIndex = electron.dialog.showMessageBoxSync({
         type: 'error',
-        message: `There has been an error with Soundsync`,
-        detail: e.stack,
+        message: dialogTitle,
+        detail: dialogText,
         buttons: [
           'Ok',
           'Copy error',
@@ -26,7 +31,7 @@ export const fatalErrorHandler = (e: Error) => {
         open(`https://github.com/geekuillaume/soundsync/issues/new?body=${encodeURI(e.stack)}`);
       }
     } else {
-      electron.dialog.showErrorBox(`There has been an error with Soundsync`, e.stack);
+      electron.dialog.showErrorBox(dialogTitle, dialogText);
     }
   }
   Sentry.close(2000).then(() => {
