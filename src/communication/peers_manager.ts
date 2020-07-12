@@ -112,7 +112,7 @@ export class PeersManager extends EventEmitter {
 
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
 
-  getConnectedPeerByUuid = (uuid: string) => _.find(this.peers, (p) => p.uuid === uuid && p.state === 'connected');
+  getConnectedPeerByUuid = (uuid: string) => this.peers.find((p) => p.uuid === uuid && p.state === 'connected');
   isConnectedToAtLeastOnePeer = () => _.some(this.peers, (p) => p !== getLocalPeer() && p.state === 'connected');
 
   broadcastRpc = async <T extends RPCType>(type: T, message: RPCRequestBody<T>) => await Promise.all(this.peers.map((peer) => peer.sendRcp(type, message)))
