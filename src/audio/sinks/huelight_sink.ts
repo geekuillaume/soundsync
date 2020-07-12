@@ -19,6 +19,7 @@ import { frequencyAverages } from '../../utils/audio-utils';
 
 const FPS = 40; // Hue API docs indicate that the bridge will push new colors at 25Hz but, as we are sending with UDP, we should send packets faster than this
 const COLOR_ROTATE_LOOP_DURATION = 1000 * 60; // the colors associated with low/mid/high frequency band will change continuously and rotate fully in 60 seconds
+const SILENCE_CHUNK = Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * 2 /* channels */ * Float32Array.BYTES_PER_ELEMENT);
 
 export class HueLightSink extends AudioSink {
   local: true = true;
@@ -120,14 +121,16 @@ export class HueLightSink extends AudioSink {
 
     while (this.hueSocket) {
       const currentTime = this.getCurrentStreamTime();
-      const [toEmitBuffer, remaining] = partition(this.audioBuffer, ({ i }) => i * OPUS_ENCODER_CHUNK_DURATION < currentTime);
-      this.audioBuffer = remaining;
-      toEmitBuffer.sort((a, b) => a.i - b.i);
-      toEmitBuffer.forEach((buffer) => {
-        this.analyser.write(buffer.chunk);
-      });
-      if (toEmitBuffer.length === 0) {
-        this.analyser.write(Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT));
+      const bufferCountToEmit = this.audioBuffer.findIndex(({ i }) => i * OPUS_ENCODER_CHUNK_DURATION > currentTime);
+      if (bufferCountToEmit !== -1) {
+        // we can emit buffers
+        for (let i = 0; i < bufferCountToEmit; i++) {
+          this.analyser.write(this.audioBuffer[i].chunk);
+        }
+        this.audioBuffer.splice(0, bufferCountToEmit);
+      } else {
+        // we received no buffer for this period, treat it as a silence
+        this.analyser.write(SILENCE_CHUNK);
       }
       this.analyser.getByteFrequencyData(frequencies);
 
