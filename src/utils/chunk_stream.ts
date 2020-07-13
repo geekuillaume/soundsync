@@ -1,5 +1,6 @@
 import Minipass from 'minipass';
 import debug from 'debug';
+import SpeexResampler from 'speex-resampler';
 import { now } from './time';
 
 const l = debug('soundsync:audioSinkDebug');
@@ -18,7 +19,11 @@ export class AudioChunkStream extends Minipass {
   creationTime: number = now();
   lastEmittedChunkIndex: number;
 
-  constructor(public sourceStream: NodeJS.ReadableStream, public chunkDuration: number, public chunkSize: number) {
+  constructor(
+    public sourceStream: NodeJS.ReadableStream,
+    public chunkDuration: number,
+    public chunkSize: number,
+  ) {
     super({
       objectMode: true,
     });
@@ -188,6 +193,31 @@ export class AudioChunkStreamOrderer extends Minipass {
       cb();
     }
 
+    return true;
+  }
+}
+
+export class AudioChunkStreamResampler extends Minipass {
+  resampler: SpeexResampler;
+
+  constructor(public channels: number, public inRate: number, public outRate: number, public quality: number) {
+    super({
+      objectMode: true,
+    });
+    this.resampler = new SpeexResampler(channels, inRate, outRate, quality);
+  }
+
+  write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    const callback = typeof encoding === 'function' ? encoding : cb;
+
+    const res = this.resampler.processChunk(d.chunk);
+    super.write({
+      i: d.i,
+      chunk: res,
+    });
+    if (callback) {
+      callback();
+    }
     return true;
   }
 }

@@ -2748,10 +2748,10 @@ source-map@~0.1.33:
   dependencies:
     amdefine ">=0.0.4"
 
-speex-resampler@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-2.0.2.tgz#abba0b42b51e3f55e8950ee09912d87dfce940e6"
-  integrity sha512-Tya5Vy1/qm6D3BK4qnPOjzu9TCUAFyVo4XOVzEOwtKVHhROn1JE6BZkQlhQJvgBHvM2I9WTb6CLaoAamlmlMoQ==
+speex-resampler@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-3.0.0.tgz#3db0884ef4fa8af0f2cc9295ef3985818d384499"
+  integrity sha512-YpCHbOmJqmidvJ9sa/eynZ04HVIxpWJiJAXVUmgy/I/GUf2nAPmebDtz9JMNbs1j3fv5vlQzHyZPnUXlV5r50A==
 
 splitargs@0:
   version "0.0.7"

@@ -1,11 +1,10 @@
-import { SpeexResamplerTransform } from 'speex-resampler';
 import MiniPass from 'minipass';
 import { OpusEncoder, OpusApplication, OpusDecoder } from './opus';
 import {
-  AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder, AudioChunkStreamOrderer,
+  AudioChunkStream, AudioChunkStreamOutput, AudioChunkStreamEncoder, AudioChunkStreamDecoder, AudioChunkStreamOrderer, AudioChunkStreamResampler,
 } from './chunk_stream';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_CHUNK_DURATION, SPEEX_RESAMPLER_QUALITY,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION, SPEEX_RESAMPLER_QUALITY, OPUS_ENCODER_CHUNKS_PER_SECONDS,
 } from './constants';
 
 export class OpusEncodeStream extends MiniPass {
@@ -75,19 +74,18 @@ export class OpusDecodeStream extends MiniPass {
 }
 
 export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
-  let source = sourceStream;
-  if (sourceRate !== OPUS_ENCODER_RATE) {
-    const resampler = new SpeexResamplerTransform(channels, sourceRate, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY);
-    source = source.pipe(resampler);
-  }
   const chunkStream = new AudioChunkStream(
-    source,
+    sourceStream,
     OPUS_ENCODER_CHUNK_DURATION,
-    OPUS_ENCODER_CHUNK_SAMPLES_COUNT * channels * 2,
-  ); // *2 because this is 16bits so 2 bytes
+    (sourceRate / OPUS_ENCODER_CHUNKS_PER_SECONDS) * channels * Uint16Array.BYTES_PER_ELEMENT,
+  );
+  let finalStream: MiniPass = chunkStream;
+  if (sourceRate !== OPUS_ENCODER_RATE) {
+    finalStream = finalStream.pipe(new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY));
+  }
   const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_AUDIO);
   const chunkEncoder = new AudioChunkStreamEncoder();
-  return chunkStream
+  return finalStream
     .pipe(opusEncoderStream)
     .pipe(chunkEncoder);
 };

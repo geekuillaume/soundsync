@@ -3,6 +3,7 @@ import { fatalErrorHandler } from './utils/electronErrorHandler';
 import './utils/sentry';
 import yargs from 'yargs';
 import debug from 'debug';
+import SpeexResampler from 'speex-resampler';
 
 import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
@@ -34,6 +35,7 @@ const l = debug('soundsync');
 
 const main = async () => {
   l('Starting soundsync');
+  await SpeexResampler.initPromise;
   const argv = yargs
     .help('h')
     .option('configDir', {
