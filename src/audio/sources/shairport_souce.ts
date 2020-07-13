@@ -50,7 +50,7 @@ export class ShairportSource extends AudioSource {
       this.log('Shairport excited with code:', code);
     });
 
-    return createAudioEncodedStream(this.shairportProcess.stdout, this.rate, this.channels);
+    return createAudioEncodedStream(this.startedAt, this.shairportProcess.stdout, this.rate, this.channels);
   }
 
   _stop = () => {

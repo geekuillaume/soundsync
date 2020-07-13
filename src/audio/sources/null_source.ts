@@ -13,7 +13,7 @@ export class NullSource extends AudioSource {
   async _getAudioEncodedStream() {
     // Used for testing purposes, will use the test.pcm file which should be a 44.1kHz 2 channels PCM file
     if (await promisify(exists)('./test.pcm')) {
-      return createAudioEncodedStream(createReadStream('./test.pcm'), this.rate, this.channels);
+      return createAudioEncodedStream(this.startedAt, createReadStream('./test.pcm'), this.rate, this.channels);
     }
     const nullStream = new Readable({
       read() {
@@ -25,7 +25,7 @@ export class NullSource extends AudioSource {
         }
       },
     });
-    const stream = createAudioEncodedStream(nullStream, OPUS_ENCODER_RATE, 2);
+    const stream = createAudioEncodedStream(this.startedAt, nullStream, OPUS_ENCODER_RATE, 2);
     return stream;
   }
 }

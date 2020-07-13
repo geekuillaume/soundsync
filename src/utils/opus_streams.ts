@@ -73,8 +73,9 @@ export class OpusDecodeStream extends MiniPass {
   }
 }
 
-export const createAudioEncodedStream = (sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
+export const createAudioEncodedStream = (startTime: number, sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
   const chunkStream = new AudioChunkStream(
+    startTime,
     sourceStream,
     OPUS_ENCODER_CHUNK_DURATION,
     (sourceRate / OPUS_ENCODER_CHUNKS_PER_SECONDS) * channels * Uint16Array.BYTES_PER_ELEMENT,

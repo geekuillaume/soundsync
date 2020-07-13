@@ -16,10 +16,10 @@ export interface AudioChunkStreamOutput {
 // if the source stream is interrupted (nothing can be read anymore), the next time a chunk is available, the index will be recalculated from the time
 export class AudioChunkStream extends Minipass {
   private readInterval: NodeJS.Timeout;
-  creationTime: number = now();
   lastEmittedChunkIndex: number;
 
   constructor(
+    public startTime: number,
     public sourceStream: NodeJS.ReadableStream,
     public chunkDuration: number,
     public chunkSize: number,
@@ -46,7 +46,7 @@ export class AudioChunkStream extends Minipass {
     }
   }
 
-  private now = () => now() - this.creationTime;
+  private now = () => now() - this.startTime;
 
   _pushNecessaryChunks = () => {
     while (true) {
@@ -209,7 +209,6 @@ export class AudioChunkStreamResampler extends Minipass {
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
     const callback = typeof encoding === 'function' ? encoding : cb;
-
     const res = this.resampler.processChunk(d.chunk);
     super.write({
       i: d.i,

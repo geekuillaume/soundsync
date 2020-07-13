@@ -49,7 +49,7 @@ export class LibrespotSource extends AudioSource {
       this.log('Librespot excited with code:', code);
     });
 
-    return createAudioEncodedStream(this.librespotProcess.stdout, this.rate, this.channels);
+    return createAudioEncodedStream(this.startedAt, this.librespotProcess.stdout, this.rate, this.channels);
   }
 
   _stop = () => {

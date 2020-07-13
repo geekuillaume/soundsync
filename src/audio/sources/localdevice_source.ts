@@ -46,7 +46,7 @@ export class LocalDeviceSource extends AudioSource {
     worklet.on('message', (d) => {
       inputStream.write(Buffer.from(d.buffer));
     });
-    const stream = createAudioEncodedStream(inputStream, this.rate, 2);
+    const stream = createAudioEncodedStream(this.startedAt, inputStream, this.rate, 2);
 
     this.cleanStream = () => {
       this.soundioInputStream.close();
