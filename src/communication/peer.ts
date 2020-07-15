@@ -16,9 +16,10 @@ import {
 } from './messages';
 import { now } from '../utils/time';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
+import { BasicNumericStatsTracker } from '../utils/basicNumericStatsTracker';
 
 
-const TIME_DELTAS_TO_KEEP = 10;
+const TIME_DELTAS_TO_KEEP = 30;
 // if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
 // this is used to not reupdate the sound sinks for every small difference in the timedelta but only if there is too much diff
 const MS_DIFF_TO_UPDATE_TIME_DELTA = 20;
@@ -40,7 +41,7 @@ export abstract class Peer extends EventEmitter {
   name: string;
   state: 'disconnected' | 'connecting' | 'connected' | 'deleted' = 'disconnected';
   timeDelta = 0;
-  private _previousTimeDeltas: number[] = [];
+  private timedeltas = new BasicNumericStatsTracker(30);
   log: Debugger;
   private logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
@@ -71,13 +72,15 @@ export abstract class Peer extends EventEmitter {
       const roundtripTime = receivedAt - message.sentAt;
       const receivedByPeerAt = message.sentAt + (roundtripTime / 2);
       const delta = message.respondedAt - receivedByPeerAt;
-      this._previousTimeDeltas.unshift(delta);
-      this._previousTimeDeltas.splice(TIME_DELTAS_TO_KEEP);
-      const realTimeDelta = _.mean(this._previousTimeDeltas);
-      if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
-        this.log(`Updating timedelta to ${realTimeDelta}, diff was ${(realTimeDelta - this.timeDelta).toFixed(2)}ms`);
-        this.timeDelta = realTimeDelta;
-        this.emit('timedeltaUpdated');
+      this.timedeltas.push(delta);
+      if (this.timedeltas.full(this.timeDelta === 0 ? TIMESYNC_INIT_REQUEST_COUNT : TIME_DELTAS_TO_KEEP)) {
+        // we have enough measures to calculate a precise time delta between peers
+        const realTimeDelta = this.timedeltas.mean();
+        if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
+          this.log(`Updating timedelta to ${realTimeDelta}, diff was ${(realTimeDelta - this.timeDelta).toFixed(2)}ms`);
+          this.timeDelta = realTimeDelta;
+          this.emit('timedeltaUpdated');
+        }
       }
       this.emit('timesyncStateUpdated');
       // networkLatency = roundtripTime / 2;
@@ -136,7 +139,7 @@ export abstract class Peer extends EventEmitter {
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
-        this._previousTimeDeltas = [];
+        this.timedeltas.flush();
       }
       if (this.state === 'connected') {
         getPeersManager().emit('newConnectedPeer', this);
@@ -210,7 +213,7 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  isTimeSynchronized = () => this === getLocalPeer() || this._previousTimeDeltas.length >= TIMESYNC_INIT_REQUEST_COUNT
+  isTimeSynchronized = () => this === getLocalPeer() || this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)
   getCurrentTime = () => (this === getLocalPeer() ? now() : now() + this.timeDelta);
   private _sendTimekeepRequest = () => {
     this.sendControllerMessage({
