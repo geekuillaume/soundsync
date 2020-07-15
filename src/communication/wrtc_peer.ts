@@ -35,10 +35,10 @@ export class WebrtcPeer extends Peer {
 
   constructor({
     uuid, name, instanceUuid, initiatorConstructor,
-  }: WebrtcPeerConstructorParams) {
+  }: WebrtcPeerConstructorParams, { onRemoteDisconnect = () => {} } = {}) {
     super({
       uuid, name, instanceUuid,
-    });
+    }, { onRemoteDisconnect });
     this.initiator = initiatorConstructor(this.handleInitiatorMessage);
   }
 
@@ -83,7 +83,7 @@ export class WebrtcPeer extends Peer {
       });
     });
 
-    this.controllerChannel.addEventListener('close', () => this.disconnect(false, 'controller channel is closed'));
+    this.controllerChannel.addEventListener('close', () => this.destroy('controller channel is closed', { canTryReconnect: true, advertiseDestroy: true }));
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
@@ -204,23 +204,7 @@ export class WebrtcPeer extends Peer {
   _destroy = () => {
     this.initiator.destroy();
     this.cleanWebrtcState();
-    this.disconnect();
-  }
-
-  disconnect = async (advertiseDisconnect = false, cause = 'unknown') => {
-    if (this.state === 'disconnected') {
-      return;
-    }
-    this.log(`Connection closed, cause: ${cause}`);
-    this.setState('disconnected');
-
-    if (advertiseDisconnect) {
-      await this.sendControllerMessage({ type: 'disconnect' });
-    }
-
-    this.cleanWebrtcState();
-    // retry connection to this peer in 10 seconds
-    setTimeout(this.connect, CONNECTION_RETRY_DELAY);
+    // TODO: create new peer if necessary to handle auto reconnect
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {
@@ -229,14 +213,14 @@ export class WebrtcPeer extends Peer {
       return;
     }
     if (message.type === 'disconnect') {
-      this.disconnect(false, 'received disconnect message from peer');
+      this.destroy('received disconnect message from peer');
       return;
     }
     this._onReceivedMessage(message);
   }
 
   private handleNoHeartbeat = () => {
-    this.disconnect(false, 'no heartbeat received');
+    this.destroy('no heartbeat received', { advertiseDestroy: true, canTryReconnect: true });
   }
 
   sendControllerMessage(message: ControllerMessage) {

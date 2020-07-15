@@ -13,7 +13,7 @@ import {
 } from './messages';
 import { Peer } from './peer';
 import { createPeerRelayServiceInitiator, PeerRelayInitiator } from './initiators/peerRelayInitiator';
-import { RPCType, RPCRequestBody, RPCResponseBody } from './rpc/rpc';
+import { RPCType, RPCRequestBody } from './rpc/rpc';
 
 const log = debug('soundsync:wrtc');
 
@@ -30,10 +30,9 @@ export class PeersManager extends EventEmitter {
       });
     });
     onExit(() => {
-      this.peers.forEach((peer) => peer.destroy('exiting'));
+      this.peers.forEach((peer) => peer.destroy('exiting', { advertiseDestroy: true }));
     });
     this.setMaxListeners(500);
-    // TODO: handle clearing this.peers when peer is destroyed
   }
 
   joinPeerWithHttpApi = async (httpEndpoint: string) => {
@@ -49,7 +48,7 @@ export class PeersManager extends EventEmitter {
       uuid: `placeholderForHttpApiJoin_${httpEndpoint}`,
       instanceUuid: 'placeholder',
       initiatorConstructor: createHttpApiInitiator(httpEndpoint),
-    });
+    }, { onRemoteDisconnect: () => this.joinPeerWithHttpApi(httpEndpoint) });
     this.peers.push(peer);
     await peer.connect();
   }
@@ -67,7 +66,7 @@ export class PeersManager extends EventEmitter {
       uuid: `placeholderForRendezvousJoin_${host}`,
       instanceUuid: 'placeholder',
       initiatorConstructor: createRendezvousServiceInitiator(host),
-    });
+    }, { onRemoteDisconnect: () => this.joinPeerWithRendezvousApi(host) });
     this.peers.push(peer);
     await peer.connect();
   }
@@ -98,6 +97,9 @@ export class PeersManager extends EventEmitter {
 
   registerPeer = (peer: Peer) => {
     this.peers.push(peer);
+  }
+  unregisterPeer = (peer: Peer) => {
+    _.remove(this.peers, (p) => p === peer);
   }
 
   async broadcast(message: ControllerMessage, ignorePeerByUuid: string[] = []) {

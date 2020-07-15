@@ -39,7 +39,7 @@ export abstract class Peer extends EventEmitter {
   uuid: string;
   instanceUuid: string;
   name: string;
-  state: 'disconnected' | 'connecting' | 'connected' | 'deleted' = 'disconnected';
+  state: 'connecting' | 'connected' | 'deleted' = 'connecting';
   timeDelta = 0;
   private timedeltas = new BasicNumericStatsTracker(30);
   log: Debugger;
@@ -47,10 +47,12 @@ export abstract class Peer extends EventEmitter {
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
   capacities: Capacity[];
   isLocal: boolean;
+  private onRemoteDisconnect: () => any;
+  private timekeepInterval: NodeJS.Timeout;
 
   constructor({
     uuid, name, capacities, instanceUuid,
-  }: PeerDescriptor) {
+  }: PeerDescriptor, { onRemoteDisconnect = () => {} } = {}) {
     super();
     this.setMaxListeners(1000);
     this.isLocal = false;
@@ -59,6 +61,7 @@ export abstract class Peer extends EventEmitter {
     this.log = debug(`soundsync:peer:${uuid}`);
     this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
+    this.onRemoteDisconnect = onRemoteDisconnect;
     this.log(`Created new peer`);
     this.onControllerMessage(`timekeepRequest`, (message) => {
       this.sendControllerMessage({
@@ -85,7 +88,7 @@ export abstract class Peer extends EventEmitter {
       this.emit('timesyncStateUpdated');
       // networkLatency = roundtripTime / 2;
     });
-    setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
+    this.timekeepInterval = setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
 
     this.onControllerMessage('peerInfo', (message) => {
       const existingPeer = getPeersManager().getConnectedPeerByUuid(message.peer.uuid);
@@ -95,7 +98,7 @@ export abstract class Peer extends EventEmitter {
           return;
         }
         // this is a new instance of the same peer, disconnect previous instance
-        existingPeer.destroy('New instance of peer connected');
+        existingPeer.destroy('New instance of peer connected', { advertiseDestroy: true });
       }
       this.instanceUuid = message.peer.instanceUuid;
       this.name = message.peer.name;
@@ -153,7 +156,7 @@ export abstract class Peer extends EventEmitter {
     getPeersManager().emit('peerChange', this);
   }
 
-  setState = (state: 'disconnected' | 'connecting' | 'connected' | 'deleted') => {
+  setState = (state: 'connecting' | 'connected' | 'deleted') => {
     if (this.state === state) {
       return;
     }
@@ -222,11 +225,23 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  destroy = (reason = 'unknown') => {
+  destroy = (reason = 'unknown', { advertiseDestroy = false, canTryReconnect = false } = {}) => {
+    if (this.state === 'deleted') {
+      return;
+    }
+    if (advertiseDestroy) {
+      this.sendControllerMessage({ type: 'disconnect' });
+    }
+    this.setState('deleted');
     this.log(`Destroying peer, reason: ${reason}`);
     this._destroy();
-    this.state = 'deleted';
+    getPeersManager().unregisterPeer(this);
+    clearInterval(this.timekeepInterval);
     this.removeAllListeners();
+    getPeersManager().emit('peerChange');
+    if (this.onRemoteDisconnect && canTryReconnect) {
+      this.onRemoteDisconnect();
+    }
   }
 
   _destroy = () => undefined;
