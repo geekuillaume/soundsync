@@ -28,7 +28,15 @@ export class DataChannelStream extends MiniPass {
 
   write(d: any) {
     if (this.datachannel.readyState === 'open') {
-      this.datachannel.send(d);
+      try {
+        this.datachannel.send(d);
+      } catch (e) {
+        // sometimes, the check for the readyState of the datachannel indicate open but still throws an error
+        // if this happens, we ignore it
+        if (!e.message.includes('InvalidStateError')) {
+          throw e;
+        }
+      }
     }
     return true;
   }
