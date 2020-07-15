@@ -73,10 +73,10 @@ export class SynchronizedAudioBuffer {
       chunkDelta = Math.floor(Math.min(chunkSizePerChannel * 0.02, Math.abs(this.delayedDriftCorrection) * 0.1)) * Math.sign(this.delayedDriftCorrection); // max 1% sample to remove or duplicate, or 10% of drift
       this.delayedDriftCorrection -= chunkDelta;
       if (chunkDelta === 0) {
+        this.log(`====== finished delayed drift correction`);
         this.delayedDriftCorrection = 0;
         this.driftData.flush();
       }
-      this.log(`====== delayed drift correction: chunk delta ${chunkDelta}, remaining ${this.delayedDriftCorrection}`);
     } else if (this.driftData.full()) {
       // we got enough data history about the drift to start making hard or soft resync if necessary
       const drift = this.driftData.mean();
