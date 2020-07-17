@@ -16,6 +16,7 @@ interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
 
   _opus_encoder_create(samplingRate: number, channels: number, application: number, error_ptr: number): number;
   _opus_encode(handle: number, pcm: number, frameSize: number, data: number, maxDataBytes: number): number;
+  _opus_encode_float(handle: number, pcm: number, frameSize: number, data: number, maxDataBytes: number): number;
   _opus_encoder_destroy(handle: number): void;
 
   _opus_strerror(err: number): number;
@@ -119,7 +120,7 @@ export class OpusEncoder {
       }
 
       this.frameSize = (this.sampleRate * 60) /* max frame duration[ms] */ / 1000;
-      this.bufSize = this.frameSize * this.channels * 2; // 2 bytes per sample
+      this.bufSize = this.frameSize * this.channels * 4; // 4 bytes per sample = Float32
       this.bufPtr = this.module._malloc(this.bufSize);
       this.pcmPtr = this.module._malloc(this.bufSize);
       this.buf = this.module.HEAPU8.subarray(this.bufPtr, this.bufPtr + this.bufSize);
@@ -135,6 +136,20 @@ export class OpusEncoder {
     this.pcm.set(pcm);
     const frameSize = pcm.length / 2 / this.channels;
     const encodedLength = this.module._opus_encode(this.handle, this.pcmPtr, frameSize, this.bufPtr, this.bufSize);
+    if (encodedLength < 0) {
+      throw new Error(this.module.AsciiToString(this.module._opus_strerror(encodedLength)));
+    }
+    const encoded = Buffer.from(this.buf.slice(0, encodedLength).buffer);
+    return encoded;
+  }
+
+  encodeFloat(pcm: Buffer) {
+    if (!this.handle) {
+      throw new Error('Encoder should be setup before usage');
+    }
+    this.pcm.set(pcm);
+    const frameSize = pcm.length / Float32Array.BYTES_PER_ELEMENT / this.channels;
+    const encodedLength = this.module._opus_encode_float(this.handle, this.pcmPtr, frameSize, this.bufPtr, this.bufSize);
     if (encodedLength < 0) {
       throw new Error(this.module.AsciiToString(this.module._opus_strerror(encodedLength)));
     }

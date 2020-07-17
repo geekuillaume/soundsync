@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import { createReadStream, exists } from 'fs';
 import { promisify } from 'util';
 import { AudioSource } from './audio_source';
-import { createAudioEncodedStream } from '../../utils/opus_streams';
+import { createAudioChunkStream } from '../../utils/chunk_stream';
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
 
 export class NullSource extends AudioSource {
@@ -10,10 +10,10 @@ export class NullSource extends AudioSource {
   rate = 44100;
   channels = 2;
 
-  async _getAudioEncodedStream() {
+  async _getAudioChunkStream() {
     // Used for testing purposes, will use the test.pcm file which should be a 44.1kHz 2 channels PCM file
     if (await promisify(exists)('./test.pcm')) {
-      return createAudioEncodedStream(this.startedAt, createReadStream('./test.pcm'), this.rate, this.channels);
+      return createAudioChunkStream(this.startedAt, createReadStream('./test.pcm'), this.rate, this.channels);
     }
     const nullStream = new Readable({
       read() {
@@ -25,7 +25,7 @@ export class NullSource extends AudioSource {
         }
       },
     });
-    const stream = createAudioEncodedStream(this.startedAt, nullStream, OPUS_ENCODER_RATE, 2);
+    const stream = createAudioChunkStream(this.startedAt, nullStream, OPUS_ENCODER_RATE, 2);
     return stream;
   }
 }

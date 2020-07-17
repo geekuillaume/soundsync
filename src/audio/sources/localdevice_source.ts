@@ -10,7 +10,7 @@ import { OPUS_ENCODER_RATE } from '../../utils/constants';
 import { AudioSource } from './audio_source';
 import { LocalDeviceSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioEncodedStream } from '../../utils/opus_streams';
+import { createAudioChunkStream } from '../../utils/chunk_stream';
 import { AudioInstance } from '../utils';
 
 export class LocalDeviceSource extends AudioSource {
@@ -30,7 +30,7 @@ export class LocalDeviceSource extends AudioSource {
     this.deviceId = descriptor.deviceId;
   }
 
-  async _getAudioEncodedStream() {
+  async _getAudioChunkStream() {
     this.log(`Creating localdevice source`);
     this.soundioDevice = await getInputDeviceFromId(this.deviceId);
     this.rate = getClosestMatchingRate(this.soundioDevice, OPUS_ENCODER_RATE);
@@ -46,7 +46,7 @@ export class LocalDeviceSource extends AudioSource {
     worklet.on('message', (d) => {
       inputStream.write(Buffer.from(d.buffer));
     });
-    const stream = createAudioEncodedStream(this.startedAt, inputStream, this.rate, 2);
+    const stream = createAudioChunkStream(this.startedAt, inputStream, this.rate, 2);
 
     this.cleanStream = () => {
       this.soundioInputStream.close();

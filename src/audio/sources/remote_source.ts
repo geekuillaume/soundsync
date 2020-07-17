@@ -2,6 +2,7 @@ import { AudioSource } from './audio_source';
 import { SourceDescriptor } from './source_type';
 import { WebrtcPeer } from '../../communication/wrtc_peer';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
+import { createAudioDecodedStream } from '../../utils/chunk_stream';
 
 export class RemoteSource extends AudioSource {
   local: false = false;
@@ -25,7 +26,7 @@ export class RemoteSource extends AudioSource {
     }
   }
 
-  _getAudioEncodedStream = async () => {
+  _getAudioChunkStream = async () => {
     if (!this.peer) {
       throw new Error('Unknown peer');
     }
@@ -34,8 +35,10 @@ export class RemoteSource extends AudioSource {
       throw new Error('Peer of remote source is not a WebRTC Peer, this should never happen');
     }
     const stream = await this.peer.createAudioSourceChannel(this.uuid);
+    const decodedStream = createAudioDecodedStream(this.channels);
+    stream.pipe(decodedStream.input);
     this.log(`Created audio channel with source peer`);
-    return stream;
+    return decodedStream.output;
   }
 
   handleNoMoreReadingSink = () => {
@@ -47,10 +50,10 @@ export class RemoteSource extends AudioSource {
       }
       peer.closeAudioSourceChanel(this.uuid);
     }
-    if (this.encodedAudioStream) {
-      this.encodedAudioStream.end();
+    if (this.sourceStream) {
+      this.sourceStream.end();
     }
-    delete this.encodedAudioStream;
+    delete this.sourceStream;
     if (this.directSourceStream) {
       this.directSourceStream.end();
     }

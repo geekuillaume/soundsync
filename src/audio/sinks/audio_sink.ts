@@ -9,7 +9,6 @@ import { AudioSource } from '../sources/audio_source';
 import {
   SinkDescriptor, SinkType, BaseSinkDescriptor, SinkUUID,
 } from './sink_type';
-import { createAudioDecodedStream } from '../../utils/opus_streams';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/get_peers_manager';
@@ -35,8 +34,7 @@ export abstract class AudioSink extends EventEmitter {
   protected log: debug.Debugger;
 
   private manager: AudioSourcesSinksManager;
-  private sourceStream: MiniPass;
-  private decodedStream: ReturnType<typeof createAudioDecodedStream>;
+  private sourceStream: MiniPass; // stream returned asynchronously by the audio source
   private lastReceivedChunkIndex = -1;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
@@ -137,14 +135,18 @@ export abstract class AudioSink extends EventEmitter {
     this.pipedSource = sourceToPipeFrom;
     this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
 
-    this.sourceStream = await this.pipedSource.start();
+    const sourceStream = await this.pipedSource.start();
+    if (this.pipedSource !== sourceToPipeFrom) {
+      // used to prevent race condition if pipedSource is changed during the time we are waiting for the sourceStream to be returned
+      sourceStream.end();
+      return;
+    }
+    this.sourceStream = sourceStream;
     this.sourceStream.on('end', () => {
       this.log('Source stream has closed, unlinking');
       this.unlinkSource();
     });
-
-    this.decodedStream = createAudioDecodedStream(this.sourceStream, this.channels);
-    this.decodedStream.on('data', this._handleAudioChunk);
+    this.sourceStream.on('data', this._handleAudioChunk);
 
     try {
       await this._startSink(this.pipedSource);
@@ -154,19 +156,16 @@ export abstract class AudioSink extends EventEmitter {
   }
 
   unlinkSource() {
-    if (!this.sourceStream) {
+    if (!this.pipedSource) {
       return;
     }
     this._stopSink();
-    delete this.pipedSource;
     if (this.sourceStream) {
       this.sourceStream.end();
     }
     delete this.sourceStream;
-    if (this.decodedStream) {
-      this.decodedStream.end();
-    }
-    delete this.decodedStream;
+    // we should delete this.pipedSource at the end of this method because this._stopSink can still rely on it
+    delete this.pipedSource;
   }
 
   _handleAudioChunk = (chunk: AudioChunkStreamOutput) => {

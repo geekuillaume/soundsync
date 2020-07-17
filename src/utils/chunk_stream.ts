@@ -2,6 +2,11 @@ import Minipass from 'minipass';
 import debug from 'debug';
 import SpeexResampler from 'speex-resampler';
 import { now } from './time';
+import {
+  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY,
+} from './constants';
+import { OpusApplication } from './opus';
+import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
 
 const l = debug('soundsync:audioSinkDebug');
 
@@ -115,9 +120,11 @@ export class AudioChunkStreamDecoder extends Minipass {
     });
   }
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    const input = d as Buffer;
     const returnVal = super.write({
-      i: d.readUInt32LE(0),
-      chunk: d.subarray(4),
+      i: input.readUInt32LE(0),
+      // this is necessary to make a copy of the buffer instead of creating a view to the same data
+      chunk: Buffer.from(Uint8Array.prototype.slice.apply(input, [4]).buffer),
     });
     if (cb) {
       cb();
@@ -220,3 +227,53 @@ export class AudioChunkStreamResampler extends Minipass {
     return true;
   }
 }
+
+export class AudioFloatTransformer extends Minipass {
+  write(d: any) {
+    const data = d as AudioChunkStreamOutput;
+    const input = new Int16Array(data.chunk.buffer);
+    const output = new Float32Array(input.length);
+    for (let i = 0; i < input.length; i++) {
+      output[i] = input[i] / 32768;
+    }
+
+    super.write({
+      i: data.i,
+      chunk: Buffer.from(output.buffer),
+    });
+    return true;
+  }
+}
+
+export const createAudioChunkStream = (startTime: number, sourceStream: NodeJS.ReadableStream, sourceRate: number, channels: number) => {
+  const chunkStream = new AudioChunkStream(
+    startTime,
+    sourceStream,
+    OPUS_ENCODER_CHUNK_DURATION,
+    (sourceRate / OPUS_ENCODER_CHUNKS_PER_SECONDS) * channels * Uint16Array.BYTES_PER_ELEMENT,
+  );
+  let finalStream: Minipass = chunkStream;
+  if (sourceRate !== OPUS_ENCODER_RATE) {
+    finalStream = finalStream.pipe(new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY));
+  }
+  const audioFloatTransformer = new AudioFloatTransformer();
+  return finalStream
+    .pipe(audioFloatTransformer);
+  // .pipe(opusEncoderStream)
+  // .pipe(chunkEncoder);
+};
+
+export const createAudioEncodedStream = (channels: number) => {
+  const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_AUDIO);
+  const chunkEncoder = new AudioChunkStreamEncoder();
+  opusEncoderStream.pipe(chunkEncoder);
+  return { input: opusEncoderStream, output: chunkEncoder };
+};
+
+export const createAudioDecodedStream = (channels: number) => {
+  const chunkDecoderStream = new AudioChunkStreamDecoder();
+  const orderer = new AudioChunkStreamOrderer(10); // opus codec expect an ordered chunk stream but the webrtc datachannel is in unordered mode so we need to try to reorder them to prevent audio glitches
+  const opusDecoderStream = new OpusDecodeStream(OPUS_ENCODER_RATE, channels);
+  chunkDecoderStream.pipe(orderer).pipe(opusDecoderStream);
+  return { input: chunkDecoderStream, output: opusDecoderStream };
+};

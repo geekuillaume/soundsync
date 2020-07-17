@@ -5,7 +5,7 @@ import { dirname } from 'path';
 import { AudioSource } from './audio_source';
 import { ShairportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioEncodedStream } from '../../utils/opus_streams';
+import { createAudioChunkStream } from '../../utils/chunk_stream';
 import { ensureDep } from '../../utils/deps_downloader';
 import { AudioInstance } from '../utils';
 
@@ -24,7 +24,7 @@ export class ShairportSource extends AudioSource {
     this.start(); // start right away to let devices detect and send audio to the shairport process
   }
 
-  async _getAudioEncodedStream() {
+  async _getAudioChunkStream() {
     const shairportPath = await ensureDep('shairport');
     this.log(`Starting shairport process`);
     this.shairportProcess = spawn(shairportPath, [
@@ -50,7 +50,7 @@ export class ShairportSource extends AudioSource {
       this.log('Shairport excited with code:', code);
     });
 
-    return createAudioEncodedStream(this.startedAt, this.shairportProcess.stdout, this.rate, this.channels);
+    return createAudioChunkStream(this.startedAt, this.shairportProcess.stdout, this.rate, this.channels);
   }
 
   _stop = () => {

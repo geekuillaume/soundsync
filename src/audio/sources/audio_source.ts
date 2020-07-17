@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
+import { createAudioEncodedStream } from '../../utils/chunk_stream';
 import { INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN } from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
@@ -32,14 +33,16 @@ export abstract class AudioSource {
 
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
-  protected encodedAudioStream: MiniPass; // stream used to redistribute the audio chunks to every sink
   protected directSourceStream: MiniPass; // internal stream from the source
+  protected sourceStream: MiniPass; // stream used to redistribute the audio chunks to every sink
+  protected encodedSourceStream: ReturnType<typeof createAudioEncodedStream>; // encoded and compressed audio stream
   protected log: debug.Debugger;
 
   private consumersStreams: MiniPass[] = [];
+  private encodedConsumersStreams: MiniPass[] = [];
   private manager: AudioSourcesSinksManager;
 
-  protected abstract _getAudioEncodedStream(): Promise<MiniPass> | MiniPass;
+  protected abstract _getAudioChunkStream(): Promise<MiniPass> | MiniPass;
 
   constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
     this.manager = manager;
@@ -94,16 +97,16 @@ export abstract class AudioSource {
   }
 
   startReading = async () => {
-    if (!this.encodedAudioStream) {
+    if (!this.sourceStream) {
       this.log(`Starting audio source`);
-      this.encodedAudioStream = new MiniPass();
+      this.sourceStream = new MiniPass();
       this.updateInfo({ started: true });
       if (this.local) {
         this.updateInfo({ startedAt: Math.floor(now()) }); // no need for more than 1ms of precision
       }
       let inactiveTimeout: NodeJS.Timeout = null;
       // we don't use pipe here because minipass cannot be unpiped but we still need to stop sending to ended consumersStreams
-      this.encodedAudioStream.on('data', (d) => {
+      this.sourceStream.on('data', (d) => {
         if (this.local) {
           if (inactiveTimeout) {
             clearTimeout(inactiveTimeout);
@@ -115,35 +118,57 @@ export abstract class AudioSource {
           }
         }
         this.consumersStreams.forEach((stream) => stream.write(d));
+        if (this.encodedConsumersStreams.length) {
+          if (!this.encodedSourceStream) {
+            // create the opus encoder only if needed to optimize memory usage
+            this.initAudioEncodedStream();
+          }
+          this.encodedSourceStream.input.write(d);
+        }
       });
       try {
-        this.directSourceStream = await this._getAudioEncodedStream();
+        this.directSourceStream = await this._getAudioChunkStream();
         this.directSourceStream.on('finish', () => {
           this.log('Source stream finished, cleaning source');
           // when the readable stream finishes => when the source program exit / source file finishes
-          if (this.encodedAudioStream) {
-            this.encodedAudioStream.end();
+          if (this.sourceStream) {
+            this.sourceStream.end();
           }
-          delete this.encodedAudioStream;
+          delete this.sourceStream;
           delete this.directSourceStream;
         });
-        this.directSourceStream.pipe(this.encodedAudioStream);
+        this.directSourceStream.pipe(this.sourceStream);
       } catch (e) {
         this.log('Error while starting source', e);
       }
     }
   }
 
-  async start(): Promise<MiniPass> {
+  private initAudioEncodedStream = () => {
+    this.encodedSourceStream = createAudioEncodedStream(this.channels);
+    this.encodedSourceStream.output.on('data', (d) => {
+      this.encodedConsumersStreams.forEach((s) => s.write(d));
+    });
+  }
+
+  async start(encodedForTransport = false): Promise<MiniPass> {
     await this.startReading();
     const instanceStream = new MiniPass();
     instanceStream.on('end', () => {
-      this.consumersStreams = this.consumersStreams.filter((s) => s !== instanceStream);
-      if (this.consumersStreams.length === 0) {
+      if (encodedForTransport) {
+        _.remove(this.encodedConsumersStreams, (s) => s === instanceStream);
+      } else {
+        _.remove(this.consumersStreams, (s) => s === instanceStream);
+      }
+      if (this.consumersStreams.length === 0 && this.encodedConsumersStreams.length === 0) {
         this.handleNoMoreReadingSink();
       }
     });
-    this.consumersStreams.push(instanceStream);
+    if (encodedForTransport) {
+      this.encodedConsumersStreams.push(instanceStream);
+    } else {
+      this.consumersStreams.push(instanceStream);
+    }
     this.manager.on('soundstateUpdated', this.updateLatencyFromSinks);
     return instanceStream;
   }
@@ -158,10 +183,10 @@ export abstract class AudioSource {
   protected _stop() {}
 
   stop() {
-    if (this.encodedAudioStream) {
-      this.encodedAudioStream.end();
+    if (this.sourceStream) {
+      this.sourceStream.end();
     }
-    delete this.encodedAudioStream;
+    delete this.sourceStream;
     delete this.directSourceStream;
     this.consumersStreams.forEach((consumerStream) => {
       consumerStream.end();
