@@ -478,19 +478,6 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-audio-analyser@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/audio-analyser/-/audio-analyser-1.0.2.tgz#c8302bdf95c764342b3f7d9bf6a780f927375933"
-  integrity sha1-yDAr35XHZDQrP32b9qeA+Sc3WTM=
-  dependencies:
-    decibels "^1.0.1"
-    inherits "^2.0.1"
-    ndarray "^1.0.18"
-    ndarray-fft "^1.0.0"
-    pcm-util "^1.1.10"
-    scijs-window-functions "^2.0.2"
-    xtend "^4.0.1"
-
 audioworklet@3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-3.0.2.tgz#a35da8dd9500939c9f175a4dc5114f2683053cce"
@@ -972,11 +959,6 @@ decamelize@^1.0.0, decamelize@^1.1.1, decamelize@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
   integrity sha1-9lNNFRSCabIDUue+4m9QH5oZEpA=
-
-decibels@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/decibels/-/decibels-1.0.1.tgz#ff90e6b2ce0edc69cef2249f1a3e95381753a8cc"
-  integrity sha1-/5Dmss4O3GnO8iSfGj6VOBdTqMw=
 
 decompress-response@^4.2.0:
   version "4.2.1"
@@ -1570,7 +1552,7 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-inherits@2, inherits@2.0.4, inherits@^2.0.1, inherits@^2.0.3, inherits@^2.0.4, inherits@~2.0.0, inherits@~2.0.1, inherits@~2.0.3:
+inherits@2, inherits@2.0.4, inherits@^2.0.3, inherits@^2.0.4, inherits@~2.0.0, inherits@~2.0.1, inherits@~2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
@@ -2048,7 +2030,7 @@ napi-build-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/napi-build-utils/-/napi-build-utils-1.0.2.tgz#b1fddc0b2c46e380a0b7a76f984dd47c41a13806"
   integrity sha512-ONmRUqK7zj7DWX0D9ADe03wbwOBZxNAfF20PlGfCWQcD3+/MakShIHrMqx9YwPTfxDdF1zLeL+RGZiR9kGMLdg==
 
-ndarray-fft@^1.0.0:
+ndarray-fft@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/ndarray-fft/-/ndarray-fft-1.0.3.tgz#dc5bba18e3ab82c997adbaebb78e79f82c93a22a"
   integrity sha1-3Fu6GOOrgsmXrbrrt455+CyToio=
@@ -2066,7 +2048,7 @@ ndarray-ops@^1.2.2:
   dependencies:
     cwise-compiler "^1.0.0"
 
-ndarray@^1.0.15, ndarray@^1.0.18:
+ndarray@^1.0.15, ndarray@^1.0.19:
   version "1.0.19"
   resolved "https://registry.yarnpkg.com/ndarray/-/ndarray-1.0.19.tgz#6785b5f5dfa58b83e31ae5b2a058cfd1ab3f694e"
   integrity sha512-B4JHA4vdyZU30ELBw3g7/p9bZupyew5a7tX1Y/gGeF2hafrPaQZhgrGQfsvgfYbgdFZjYwuEcnaobeM/WMW+HQ==
@@ -2354,11 +2336,6 @@ path-to-regexp@^1.1.1:
   integrity sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==
   dependencies:
     isarray "0.0.1"
-
-pcm-util@^1.1.10:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/pcm-util/-/pcm-util-1.5.0.tgz#f5391f9e00192dd68a9a2055d71e342c427565b1"
-  integrity sha1-9TkfngAZLdaKmiBV1x40LEJ1ZbE=
 
 perf_hooks@^0.0.1:
   version "0.0.1"
@@ -3263,11 +3240,6 @@ wrtc@0.4.5:
     node-pre-gyp "^0.13.0"
   optionalDependencies:
     domexception "^1.0.1"
-
-xtend@^4.0.1:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
-  integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
 xtend@~2.1.1:
   version "2.1.2"

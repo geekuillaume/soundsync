@@ -1,10 +1,9 @@
-import { find, partition } from 'lodash';
+import { find } from 'lodash';
 import { dtls } from 'node-dtls-client';
 // import beats from 'beats';
 import smoothstep from 'smoothstep';
 
 import superagent from 'superagent';
-import Analyser from 'audio-analyser';
 
 import { RGBtoHSV, HSVtoRGB } from '../../utils/colors';
 import { AudioInstance } from '../utils';
@@ -16,6 +15,7 @@ import { getAuthentifiedApi, getHueCredentialsByHost, get2BytesOfFractionNumber 
 import { delay } from '../../utils/misc';
 import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
 import { frequencyAverages } from '../../utils/audio-utils';
+import { FFTStream } from '../../utils/fftStream';
 
 const FPS = 40; // Hue API docs indicate that the bridge will push new colors at 25Hz but, as we are sending with UDP, we should send packets faster than this
 const COLOR_ROTATE_LOOP_DURATION = 1000 * 60; // the colors associated with low/mid/high frequency band will change continuously and rotate fully in 60 seconds
@@ -34,16 +34,8 @@ export class HueLightSink extends AudioSink {
   private lights: {id: number; model: string; x: number; y: number}[];
 
   private audioBuffer: AudioChunkStreamOutput[] = [];
-  private analyser = new Analyser({
-    channel: 0,
-    channels: 2,
-    sampleRate: OPUS_ENCODER_RATE,
-    interleaved: true,
-    float: true,
-    fftSize: 2048,
-    smoothingTimeConstant: 0.6,
-    bufferSize: OPUS_ENCODER_RATE,
-  });
+  private analyser: FFTStream;
+
 
   constructor(descriptor: HueLightSinkDescriptor, manager: AudioSourcesSinksManager) {
     super({
@@ -52,6 +44,7 @@ export class HueLightSink extends AudioSink {
     }, manager);
     this.hueHost = descriptor.hueHost;
     this.entertainmentZoneId = descriptor.entertainmentZoneId;
+    this.analyser = new FFTStream(2048, 0.4, this.channels, 0);
   }
 
   async _startSink() {
@@ -111,7 +104,6 @@ export class HueLightSink extends AudioSink {
   }
 
   lightPusher = async () => {
-    const frequencies = new Uint8Array(1024);
     const ranges = [
       [20, 80],
       [80, 1500],
@@ -132,11 +124,9 @@ export class HueLightSink extends AudioSink {
         // we received no buffer for this period, treat it as a silence
         this.analyser.write(SILENCE_CHUNK);
       }
-      this.analyser.getByteFrequencyData(frequencies);
-
-      const lowFrequenciesMean = smoothstep(0.3, 1, getAverage(frequencies, ranges[0][0], ranges[0][1]));
-      const midFrequenciesMean = smoothstep(0.4, 0.8, getAverage(frequencies, ranges[1][0], ranges[1][1]));
-      const highFrequenciesMean = smoothstep(0.4, 0.7, getAverage(frequencies, ranges[2][0], ranges[2][1]));
+      const lowFrequenciesMean = smoothstep(0.3, 1, getAverage(this.analyser.frequencyData, ranges[0][0], ranges[0][1]));
+      const midFrequenciesMean = smoothstep(0.4, 0.8, getAverage(this.analyser.frequencyData, ranges[1][0], ranges[1][1]));
+      const highFrequenciesMean = smoothstep(0.4, 0.7, getAverage(this.analyser.frequencyData, ranges[2][0], ranges[2][1]));
 
       const hsvRawColor = RGBtoHSV(lowFrequenciesMean, midFrequenciesMean, highFrequenciesMean);
       const color = HSVtoRGB(
