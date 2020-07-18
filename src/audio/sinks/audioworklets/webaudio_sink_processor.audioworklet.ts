@@ -6,7 +6,8 @@ const BUFFER_SIZE_IN_SECONDS = 10;
 const CHANNELS = 2;
 const BUFFER_SIZE = BUFFER_SIZE_IN_SECONDS * OPUS_ENCODER_RATE * CHANNELS;
 
-const DRIFT_HISTORY_SIZE = Math.floor(300 / (128 / OPUS_ENCODER_RATE) / 1000); //300ms of drift history necessary before taking action
+const DRIFT_HISTORY_TIME_PERIOD = 10 * 1000; // 10s drift history necessary before taking action (soft or hard sync)
+const DRIFT_HISTORY_SIZE = Math.floor(DRIFT_HISTORY_TIME_PERIOD / (128 / OPUS_ENCODER_RATE) / 1000);
 
 declare const currentTime: number;
 declare const currentFrame: number;
