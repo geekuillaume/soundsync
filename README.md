@@ -45,6 +45,10 @@ Download and install Soundsync for you operating system on every device in your 
 
 Now go to https://soundsync.app/ to control every Soundsync install on your home network.
 
+## Need help? Have new ideas? Want to contribute?
+
+[Join the Discord server!](https://discord.gg/j2BZ5KC)
+
 ## Project status
 
 Soundsync is still in an early stage. It's evolving quickly but there is still a lot to do. Here are some features that are being considered:
