@@ -84,6 +84,8 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 
 - *Is it available offline?* <br/> Every Soundsync peer (a device on which Soundsync is installed) can be used offline. Each peer will detect other peer on the local network with Bonjour and if connected to internet, will use a rendez-vous service to detect other peer with the same IP address. As Bonjour isn't available in a web browser, you need to connect to a peer on your local network with its IP and the port 6512 (for example `http://192.168.1.12:6512`). Also note that you won't be able to use the webpage as an audio output because the page cannot be served in a `https` context.
 
+- *How to install on a headless RaspberryPi Install?* <br/> Assuming you're using raspbian, first download the package with `wget https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb`, install it with `sudo dpkg -i ./soundsync_0.1.0_armv7l.deb`, if some dependencies are missing install them with `sudo apt-get install -f` than start Soundsync and activate it to be started at startup with `sudo systemctl enable --now soundsync.service`.
+
 ## Development
 
 ### Building opus
