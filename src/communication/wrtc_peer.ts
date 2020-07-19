@@ -227,8 +227,11 @@ export class WebrtcPeer extends Peer {
     if (!this.controllerChannel || this.controllerChannel.readyState !== 'open') {
       return Promise.resolve(false);
     }
+    if (!this.logPerMessageType[message.type]) {
+      this.logPerMessageType[message.type] = this.log.extend(message.type);
+    }
     if (message.type !== 'ping' && message.type !== 'pong') {
-      this.log.extend(message.type)('Sending controller message', message);
+      this.logPerMessageType[message.type]('Sending controller message', message);
     }
     return this.controllerChannel.send(JSON.stringify(message));
   }

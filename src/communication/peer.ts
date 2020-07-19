@@ -43,7 +43,7 @@ export abstract class Peer extends EventEmitter {
   timeDelta = 0;
   private timedeltas = new BasicNumericStatsTracker(30);
   log: Debugger;
-  private logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
+  protected logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
   capacities: Capacity[];
   isLocal: boolean;
