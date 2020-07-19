@@ -15,8 +15,12 @@ export const tryImportElectron = (): typeof Electron => {
 export const onElectronReady = (callback: (electron: typeof Electron) => any) => {
   const electron = tryImportElectron();
   if (electron) {
-    electron.app.on('ready', () => {
+    if (electron.app.isReady) {
       callback(electron);
-    });
+    } else {
+      electron.app.on('ready', () => {
+        callback(electron);
+      });
+    }
   }
 };
