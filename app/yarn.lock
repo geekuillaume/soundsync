@@ -2725,11 +2725,6 @@ source-map@~0.1.33:
   dependencies:
     amdefine ">=0.0.4"
 
-speex-resampler@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/speex-resampler/-/speex-resampler-3.0.1.tgz#ee3efc2f4dfed67a74a1602058f6a869c3fc9b2f"
-  integrity sha512-3y2tVfEobW1tn6HYhUMdsZ3xILVVwBNKN60YeEKmTPRuuhr747NIgCFMgttLjBOsDrbZizxsTVA3l4bbbVFWvQ==
-
 splitargs@0:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/splitargs/-/splitargs-0.0.7.tgz#fe9f7ae657371b33b10cb80da143cf8249cf6b3b"
@@ -3153,6 +3148,11 @@ verror@1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
+
+wasm-audio-resampler@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/wasm-audio-resampler/-/wasm-audio-resampler-0.0.2.tgz#49d0d3ccf3c455f30b913a7550eeba0df0770443"
+  integrity sha512-pt0+Soua/YQVejfLoQk548AdDyQxVNqPdA6GSkKnED/5B91LtlKa3m+DCAjjqckhuLXHqzlxjpmgmZeSzjKWBg==
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

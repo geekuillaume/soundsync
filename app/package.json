@@ -33,11 +33,11 @@
     "perf_hooks": "^0.0.1",
     "scijs-window-functions": "^2.0.2",
     "smoothstep": "^1.0.1",
-    "speex-resampler": "3.0.1",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
     "unzipper": "^0.10.11",
     "uuid": "^3.3.3",
+    "wasm-audio-resampler": "^0.0.2",
     "wrtc": "0.4.5",
     "yargs": "^15.1.0"
   },

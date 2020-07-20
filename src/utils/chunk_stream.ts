@@ -1,6 +1,6 @@
 import Minipass from 'minipass';
 import debug from 'debug';
-import SpeexResampler from 'speex-resampler';
+import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
 import { now } from './time';
 import {
   OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY,
@@ -205,13 +205,13 @@ export class AudioChunkStreamOrderer extends Minipass {
 }
 
 export class AudioChunkStreamResampler extends Minipass {
-  resampler: SpeexResampler;
+  resampler: SoxrResampler;
 
   constructor(public channels: number, public inRate: number, public outRate: number, public quality: number) {
     super({
       objectMode: true,
     });
-    this.resampler = new SpeexResampler(channels, inRate, outRate, quality);
+    this.resampler = new SoxrResampler(channels, inRate, outRate, SoxrDatatype.SOXR_INT16);
   }
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
