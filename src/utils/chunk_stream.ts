@@ -3,7 +3,7 @@ import debug from 'debug';
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
 import { now } from './time';
 import {
-  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY,
+  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE,
 } from './constants';
 import { OpusApplication } from './opus';
 import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
@@ -207,7 +207,7 @@ export class AudioChunkStreamOrderer extends Minipass {
 export class AudioChunkStreamResampler extends Minipass {
   resampler: SoxrResampler;
 
-  constructor(public channels: number, public inRate: number, public outRate: number, public quality: number) {
+  constructor(public channels: number, public inRate: number, public outRate: number) {
     super({
       objectMode: true,
     });
@@ -254,7 +254,7 @@ export const createAudioChunkStream = (startTime: number, sourceStream: NodeJS.R
   );
   let finalStream: Minipass = chunkStream;
   if (sourceRate !== OPUS_ENCODER_RATE) {
-    finalStream = finalStream.pipe(new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE, SPEEX_RESAMPLER_QUALITY));
+    finalStream = finalStream.pipe(new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE));
   }
   const audioFloatTransformer = new AudioFloatTransformer();
   return finalStream

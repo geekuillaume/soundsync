@@ -64,7 +64,6 @@
   ],
   "alias": {
     "perf_hooks": "/utils/perf_hooks.js",
-    "speex-resampler": "/utils/speex-resampler.js",
     "wrtc": "/utils/wrtc.js"
   },
   "staticFiles": {

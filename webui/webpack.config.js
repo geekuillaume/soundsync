@@ -21,7 +21,7 @@ const config = {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
     alias: {
       perf_hooks: 'utils/polyfills/perf_hooks.js',
-      'speex-resampler': 'utils/polyfills/speex-resampler.js',
+      'wasm-audio-resampler': 'utils/polyfills/empty.js',
       wrtc: 'utils/polyfills/wrtc.js',
       os: 'utils/polyfills/os.js',
       buffer_polyfill: 'utils/polyfills/buffer.js',
