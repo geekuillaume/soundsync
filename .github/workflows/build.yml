@@ -1,4 +1,4 @@
-name: Build/release
+name: build
 
 on: push
 
@@ -89,6 +89,18 @@ jobs:
           path: bin
 
       - uses: ./.github/actions/create-dev-release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          prerelease: true
+          files_glob: bin/*
+          asset_content_type: application/zip
+
+      - uses: ./.github/actions/create-dev-release
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
