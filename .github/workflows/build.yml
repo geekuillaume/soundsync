@@ -125,9 +125,6 @@ jobs:
 
     - name: Build for raspberrypi
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        IS_GITHUB_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
       run: ./scripts/compile_for_raspberrypi.sh
 
     - name: Clean build directory
@@ -140,10 +137,24 @@ jobs:
         name: soundsync-linux-armv7l
         path: bin/
 
-    - uses: svenstaro/upload-release-action@v1-release
+    - uses: ./.github/actions/create-dev-release
+      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        overwrite: true
-        file_glob: true
-        tag: bleeding-edge
-        file: bin/*
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        prerelease: false
+        files_glob: bin/*
+        asset_content_type: application/zip
+
+    - uses: ./.github/actions/create-dev-release
+      if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: bleeding-edge
+        release_name: Bleeding edge
+        prerelease: true
+        files_glob: bin/*
+        asset_content_type: application/zip
