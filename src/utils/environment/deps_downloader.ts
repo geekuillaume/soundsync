@@ -3,8 +3,8 @@ import { promises as fsPromises, createWriteStream, createReadStream } from 'fs'
 
 import debug from 'debug';
 import { Extract } from 'unzipper';
-import { getConfigDir } from '../coordinator/config';
-import { sha1sum, once } from './misc';
+import { getConfigDir } from '../../coordinator/config';
+import { sha1sum, once } from '../misc';
 
 // fsPromise is undefined when executed in a web browser context
 const { readFile, chmod } = fsPromises || {};

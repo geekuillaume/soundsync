@@ -14,7 +14,7 @@ import {
   ControllerMessageHandler,
   RPCMessage,
 } from './messages';
-import { now } from '../utils/time';
+import { now } from '../utils/misc';
 import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 import { BasicNumericStatsTracker } from '../utils/basicNumericStatsTracker';
 

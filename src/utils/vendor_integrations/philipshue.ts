@@ -1,10 +1,10 @@
 import hue from 'node-hue-api';
 import Api from 'node-hue-api/lib/api/Api';
-import { getConfigField } from '../coordinator/config';
-import { delay } from './misc';
-import { getLocalPeer } from '../communication/local_peer';
-import { APP_NAME } from './constants';
-import { patchSharedState } from '../coordinator/shared_state';
+import { getConfigField } from '../../coordinator/config';
+import { delay } from '../misc';
+import { getLocalPeer } from '../../communication/local_peer';
+import { APP_NAME } from '../constants';
+import { patchSharedState } from '../../coordinator/shared_state';
 
 const apiByHost: {[host: string]: Api} = {};
 

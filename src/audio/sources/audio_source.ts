@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
-import { createAudioEncodedStream } from '../../utils/chunk_stream';
+import { createAudioEncodedStream } from '../../utils/audio/chunk_stream';
 import { INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN } from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
@@ -11,7 +11,7 @@ import {
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/get_peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
-import { now } from '../../utils/time';
+import { now } from '../../utils/misc';
 
 const DEFAULT_LATENCY = 1000;
 

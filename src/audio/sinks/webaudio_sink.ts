@@ -1,8 +1,8 @@
 // This is only used in a browser context
 
 import debug from 'debug';
-import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
-import { isBrowser } from '../../utils/isBrowser';
+import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
+import { isBrowser } from '../../utils/environment/isBrowser';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import { WebAudioSinkDescriptor } from './sink_type';

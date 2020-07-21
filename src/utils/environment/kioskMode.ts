@@ -1,7 +1,7 @@
 import debug from 'debug';
 
 import { onElectronReady } from './electron';
-import { getConfigField } from '../coordinator/config';
+import { getConfigField } from '../../coordinator/config';
 
 const l = debug('soundsync');
 

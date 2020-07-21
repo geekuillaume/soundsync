@@ -5,8 +5,8 @@ import { dirname } from 'path';
 import { AudioSource } from './audio_source';
 import { ShairportSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioChunkStream } from '../../utils/chunk_stream';
-import { ensureDep } from '../../utils/deps_downloader';
+import { createAudioChunkStream } from '../../utils/audio/chunk_stream';
+import { ensureDep } from '../../utils/environment/deps_downloader';
 import { AudioInstance } from '../utils';
 
 export class ShairportSource extends AudioSource {

@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
 import _ from 'lodash';
 import produce from 'immer';
-import { isBrowser } from '../utils/isBrowser';
+import { isBrowser } from '../utils/environment/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
 import { AudioSource } from '../audio/sources/audio_source';

@@ -1,6 +1,6 @@
 import { CircularTypedArray } from '../../../utils/circularTypedArray';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT } from '../../../utils/constants';
-import { SynchronizedAudioBuffer } from '../../../utils/synchronizedAudioBuffer';
+import { SynchronizedAudioBuffer } from '../../../utils/audio/synchronizedAudioBuffer';
 
 const BUFFER_SIZE_IN_SECONDS = 10;
 const CHANNELS = 2;

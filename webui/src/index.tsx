@@ -4,7 +4,7 @@ import { App } from './components/app';
 import 'bulma';
 import './styles.scss';
 import 'typeface-roboto';
-import '../../src/utils/sentry';
+import '../../src/utils/vendor_integrations/sentry';
 
 const mountNode = document.getElementById('app');
 ReactDOM.render(<App />, mountNode);

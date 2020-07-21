@@ -3,7 +3,7 @@ import debug from 'debug';
 import { InitiatorMessage } from './initiators/initiator';
 import { getPeersManager } from './get_peers_manager';
 import { RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL, WILDCARD_DNS_DOMAIN_NAME } from '../utils/constants';
-import { getInternalIps } from '../utils/ip';
+import { getInternalIps } from '../utils/network/ip';
 
 const log = debug('soundsync:rendezvous');
 

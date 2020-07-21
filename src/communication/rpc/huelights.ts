@@ -1,7 +1,7 @@
 import hue from 'node-hue-api';
 import { find } from 'lodash';
 import { Peer } from '../peer';
-import { getAuthentifiedApi } from '../../utils/philipshue';
+import { getAuthentifiedApi } from '../../utils/vendor_integrations/philipshue';
 
 export const onHueScanRPC = async () => {
   const bridges = await hue.v3.discovery.nupnpSearch();

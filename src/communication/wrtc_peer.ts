@@ -1,7 +1,7 @@
 import { RTCPeerConnection } from 'wrtc';
 import freeice from 'freeice';
 
-import { Sentry } from '../utils/sentry';
+import { Sentry } from '../utils/vendor_integrations/sentry';
 import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
@@ -10,9 +10,8 @@ import {
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer, Capacity } from './peer';
-import { DataChannelStream } from '../utils/datachannel_stream';
-import { now } from '../utils/time';
-import { once } from '../utils/misc';
+import { DataChannelStream } from '../utils/network/datachannel_stream';
+import { now, once } from '../utils/misc';
 import { getConfigField } from '../coordinator/config';
 
 const CONNECTION_RETRY_DELAY = 1000 * 2;

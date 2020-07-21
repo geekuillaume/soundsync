@@ -7,15 +7,15 @@ import {
 
 import { resolve } from 'path';
 import debug from 'debug';
-import { now } from '../../utils/time';
-import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
+import { now } from '../../utils/misc';
+import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
   OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
-import { getOutputDeviceFromId, shouldUseAudioStreamName } from '../../utils/soundio';
+import { getOutputDeviceFromId, shouldUseAudioStreamName } from '../../utils/audio/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from '../../utils/circularTypedArray';

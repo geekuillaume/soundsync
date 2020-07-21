@@ -1,20 +1,20 @@
 // eslint-disable-next-line import/order
-import { fatalErrorHandler } from './utils/electronErrorHandler';
-import './utils/sentry';
+import { fatalErrorHandler } from './utils/environment/electronErrorHandler';
+import './utils/vendor_integrations/sentry';
 import yargs from 'yargs';
 import debug from 'debug';
 import SoxrResampler from 'wasm-audio-resampler';
 
 import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
-import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/launchAtStartup';
+import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/environment/launchAtStartup';
 import { getHttpServer } from './communication/http_server';
 import { getPeersManager, registerPeersManager } from './communication/get_peers_manager';
 import { AudioSourcesSinksManager } from './audio/audio_sources_sinks_manager';
 import { getClientCoordinator } from './coordinator/client_coordinator';
 // import { ApiController } from './api/api';
 import { initConfig, getConfigField } from './coordinator/config';
-import { createSystray, refreshMenu } from './utils/systray';
+import { createSystray, refreshMenu } from './utils/environment/systray';
 import {
   startDetection, publishService, onDetectionChange,
 } from './communication/bonjour';
@@ -22,8 +22,8 @@ import { registerLocalPeer } from './communication/local_peer';
 import { Capacity } from './communication/peer';
 import { enableRendezvousServiceRegister, enableRendezvousServicePeersDetection } from './communication/rendezvous_service';
 import { PeersManager } from './communication/peers_manager';
-import { isDepAvailableForPlatform } from './utils/deps_downloader';
-import { startKioskMode } from './utils/kioskMode';
+import { isDepAvailableForPlatform } from './utils/environment/deps_downloader';
+import { startKioskMode } from './utils/environment/kioskMode';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');

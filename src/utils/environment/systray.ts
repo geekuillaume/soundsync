@@ -6,7 +6,7 @@ import {
   disableAutolaunchAtStartup,
   enableAutolaunchAtStartup,
 } from './launchAtStartup';
-import { Sentry } from './sentry';
+import { Sentry } from '../vendor_integrations/sentry';
 
 let updateMenu;
 

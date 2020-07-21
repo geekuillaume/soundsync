@@ -3,9 +3,9 @@
 // at the right time for the audio output device
 // It  will hard or soft sync depending on the clock drift between the audio device and the ideal time
 
-import { CircularTypedArray } from './circularTypedArray';
-import { BasicNumericStatsTracker } from './basicNumericStatsTracker';
-import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from './constants';
+import { CircularTypedArray } from '../circularTypedArray';
+import { BasicNumericStatsTracker } from '../basicNumericStatsTracker';
+import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from '../constants';
 
 // this method handle an audio buffer and will resize it to the target length by either
 // dropping samples if the source buffer is too big or duplicating samples if the source buffer is too small

@@ -2,7 +2,7 @@ import { AudioSource } from './audio_source';
 import { SourceDescriptor } from './source_type';
 import { WebrtcPeer } from '../../communication/wrtc_peer';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioDecodedStream } from '../../utils/chunk_stream';
+import { createAudioDecodedStream } from '../../utils/audio/chunk_stream';
 
 export class RemoteSource extends AudioSource {
   local: false = false;

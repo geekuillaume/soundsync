@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/camelcase */
 import Opus from './opus_wasm';
-import { OPUS_ENCODER_CHUNK_DURATION } from './constants';
+import { OPUS_ENCODER_CHUNK_DURATION } from '../constants';
 
 interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
   _opus_decoder_create(samplingRate: number, channels: number, error_ptr: number): number;

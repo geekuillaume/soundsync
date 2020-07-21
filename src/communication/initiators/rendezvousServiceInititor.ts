@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 import { onSniRequest } from '../https_sni_request';
-import { assert } from '../../utils/assert';
+import { assert } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';

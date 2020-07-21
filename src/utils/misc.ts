@@ -30,3 +30,28 @@ export const sha1sum = (buf: Buffer) => {
 };
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const assert = (condition: any, message: string) => {
+  if (!condition) {
+    throw new Error(message);
+  }
+};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+export const assertNever = (_val: never) => {
+  throw new Error('This should never happens');
+};
+
+export function destructuredPromise<T>(): [Promise<T>, (res?: T) => any, (e: any) => any] {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return [promise, resolve, reject] as [Promise<any>, () => any, () => any];
+}
+
+const performance = typeof window === 'undefined' ? require('perf_hooks').performance : window.performance;
+
+export const now = () => performance.now();

@@ -1,8 +1,8 @@
 import { AudioWorkletProcessor } from 'audioworklet';
 import { OPUS_ENCODER_RATE } from '../../../utils/constants';
 import { CircularTypedArray } from '../../../utils/circularTypedArray';
-import { SynchronizedAudioBuffer } from '../../../utils/synchronizedAudioBuffer';
-import { now } from '../../../utils/time';
+import { SynchronizedAudioBuffer } from '../../../utils/audio/synchronizedAudioBuffer';
+import { now } from '../../../utils/misc';
 
 class NodeAudioworklet extends AudioWorkletProcessor {
   buffer: CircularTypedArray<Float32Array>;

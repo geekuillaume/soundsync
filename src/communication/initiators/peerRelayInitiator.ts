@@ -1,6 +1,6 @@
 import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
-import { assert } from '../../utils/assert';
+import { assert } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';

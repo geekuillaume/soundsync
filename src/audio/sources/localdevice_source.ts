@@ -3,14 +3,14 @@ import {
   Soundio, SoundioDevice, SoundioInputStream,
 } from 'audioworklet';
 import { resolve } from 'path';
-import { getInputDeviceFromId, shouldUseAudioStreamName, getClosestMatchingRate } from '../../utils/soundio';
+import { getInputDeviceFromId, shouldUseAudioStreamName, getClosestMatchingRate } from '../../utils/audio/soundio';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
 import { AudioSource } from './audio_source';
 import { LocalDeviceSourceDescriptor } from './source_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { createAudioChunkStream } from '../../utils/chunk_stream';
+import { createAudioChunkStream } from '../../utils/audio/chunk_stream';
 import { AudioInstance } from '../utils';
 
 export class LocalDeviceSource extends AudioSource {

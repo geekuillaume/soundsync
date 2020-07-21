@@ -1,5 +1,5 @@
 import open from 'open';
-import { Sentry } from './sentry';
+import { Sentry } from '../vendor_integrations/sentry';
 import { tryImportElectron } from './electron';
 
 export const fatalErrorHandler = (e: Error) => {

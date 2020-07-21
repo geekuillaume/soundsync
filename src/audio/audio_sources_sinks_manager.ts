@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { onExit } from '../utils/on_exit';
-import { assertNever } from '../utils/assert';
+import { assertNever } from '../utils/misc';
 import { HueLightSink } from './sinks/huelight_sink';
 import { ShairportSource } from './sources/shairport_souce';
 import { WebAudioSink } from './sinks/webaudio_sink';
@@ -17,7 +17,7 @@ import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
 import { LocalDeviceSink } from './sinks/localdevice_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem, deleteConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices } from '../utils/soundio';
+import { getAudioDevices } from '../utils/audio/soundio';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';

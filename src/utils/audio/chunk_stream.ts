@@ -1,10 +1,10 @@
 import Minipass from 'minipass';
 import debug from 'debug';
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
-import { now } from './time';
+import { now } from '../misc';
 import {
   OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
-} from './constants';
+} from '../constants';
 import { OpusApplication } from './opus';
 import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
 

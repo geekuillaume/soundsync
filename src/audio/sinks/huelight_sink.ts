@@ -11,11 +11,11 @@ import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNK_SAMP
 import { HueLightStatus, HueLightSinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
-import { getAuthentifiedApi, getHueCredentialsByHost, get2BytesOfFractionNumber } from '../../utils/philipshue';
+import { getAuthentifiedApi, getHueCredentialsByHost, get2BytesOfFractionNumber } from '../../utils/vendor_integrations/philipshue';
 import { delay } from '../../utils/misc';
-import { AudioChunkStreamOutput } from '../../utils/chunk_stream';
-import { frequencyAverages } from '../../utils/audio-utils';
-import { FFTStream } from '../../utils/fftStream';
+import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
+import { frequencyAverages } from '../../utils/audio/audio-utils';
+import { FFTStream } from '../../utils/audio/fftStream';
 
 const FPS = 40; // Hue API docs indicate that the bridge will push new colors at 25Hz but, as we are sending with UDP, we should send packets faster than this
 const COLOR_ROTATE_LOOP_DURATION = 1000 * 60; // the colors associated with low/mid/high frequency band will change continuously and rotate fully in 60 seconds

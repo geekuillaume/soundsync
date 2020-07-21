@@ -1,5 +1,5 @@
-import { ICE_GATHERING_TIMEOUT } from './constants';
-import { delay } from './misc';
+import { ICE_GATHERING_TIMEOUT } from '../constants';
+import { delay } from '../misc';
 
 export async function waitUntilIceGatheringStateComplete(peerConnection: RTCPeerConnection) {
   if (peerConnection.iceGatheringState === 'complete') {

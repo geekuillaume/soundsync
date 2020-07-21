@@ -1,10 +1,10 @@
 import bonjour from 'bonjour';
 import _ from 'lodash';
 import util from 'util';
-import { Application, Client, RequestResponseController } from 'castv2-client';
+import { Application, Client } from 'castv2-client';
 
-import { delay } from './misc';
-import { CHROMECAST_APPID } from './constants';
+import { delay } from '../misc';
+import { CHROMECAST_APPID } from '../constants';
 
 const CHROMECAST_DETECTION_TIMEOUT = 5 * 1000; // 5 seconds
 
