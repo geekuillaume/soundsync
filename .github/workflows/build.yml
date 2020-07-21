@@ -69,14 +69,6 @@ jobs:
         uses: samuelmeuli/action-electron-builder@v1
         env:
           USE_HARD_LINKS: false # because of https://github.com/electron-userland/electron-builder/issues/3179
-        with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
-
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Clean build directory
         shell: bash
@@ -95,7 +87,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          prerelease: true
+          prerelease: false
           files_glob: bin/*
           asset_content_type: application/zip
 
