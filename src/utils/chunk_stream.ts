@@ -3,7 +3,7 @@ import debug from 'debug';
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
 import { now } from './time';
 import {
-  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE,
+  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
 } from './constants';
 import { OpusApplication } from './opus';
 import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
@@ -217,10 +217,16 @@ export class AudioChunkStreamResampler extends Minipass {
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
     const callback = typeof encoding === 'function' ? encoding : cb;
     const res = this.resampler.processChunk(d.chunk);
-    super.write({
-      i: d.i,
-      chunk: res,
-    });
+    if (res.length === OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Uint16Array.BYTES_PER_ELEMENT) {
+      super.write({
+        i: d.i,
+        chunk: res,
+      });
+    } else {
+      // length can be different than target chunk length if the stream is starting and the resampler doesn't have enough data to start the process
+      // in this case, we just ignore the chunk
+      // TODO: store incomplete chunk and use data from next chunk to complete it
+    }
     if (callback) {
       callback();
     }
