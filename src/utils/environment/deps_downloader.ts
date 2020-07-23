@@ -17,20 +17,20 @@ const deps = {
     isZip: false,
     executableName: null,
     'linux-x64': {
-      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-linux-x64-featureless',
-      sha1: '87a6996858157bf6d38fe250e60c5618cea3e231',
+      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.2/librespot-linux-x64-featureless',
+      sha1: 'a761b8f9ef1d0721c80c3840d3c12426ecabd11d',
     },
     'linux-arm': {
-      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-linux-arm-featureless',
-      sha1: '95a3414d546bd106145f87943d6ed83bc347f339',
+      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.2/librespot-linux-arm-featureless',
+      sha1: '3822d7304641d3928c6a8d08553dcdebfbc82f9b',
     },
     'darwin-x64': {
-      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-macos-x64-featureless',
-      sha1: 'f210c14cc3b95f104065f1fa1b756bc803a030cd',
+      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.2/librespot-macos-x64-featureless',
+      sha1: '30be36216fd832e36df88cbdc129bd2562479fb4',
     },
     'win32-x64': {
-      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.1/librespot-windows-x64-featureless.exe',
-      sha1: 'e8408216d6acf0a9b9c704f44bb0fba4e2cf7905',
+      url: 'https://github.com/geekuillaume/librespot/releases/download/v0.1.2/librespot-windows-x64-featureless.exe',
+      sha1: 'fefe3d846bc2e4cf263a4c2f139202e78db7ccc2',
     },
   },
   shairport: {
