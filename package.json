@@ -52,6 +52,7 @@
   "build": {
     "appId": "geekuillaume.soundsync",
     "productName": "Soundsync",
+    "artifactName": "soundsync-${arch}-${version}.${ext}",
     "asar": false,
     "directories": {
       "output": "bin"
