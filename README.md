@@ -45,6 +45,10 @@ Download and install Soundsync for you operating system on every device in your 
 
 Now go to https://soundsync.app/ to control every Soundsync install on your home network.
 
+## Download last development version
+
+Want to try the latest features and help with debugging? Download the [latest build](https://github.com/geekuillaume/soundsync/releases/tag/bleeding-edge)! Each commit will generate a new installer with the latest version of the code (but the version number won't be increased).
+
 ## Need help? Have new ideas? Want to contribute?
 
 [Join the Discord server!](https://discord.gg/j2BZ5KC)
