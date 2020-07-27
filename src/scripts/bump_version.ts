@@ -40,7 +40,7 @@ const main = async () => {
   let readmeContent = (await readFile(readmePath)).toString();
   readmeContent = readmeContent.replace(
     /"https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)"/g,
-    `https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
+    `"https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
   );
   await writeFile(readmePath, readmeContent.toString());
 
@@ -49,7 +49,7 @@ const main = async () => {
   let downloadLinksContent = (await readFile(webuiDownloadLinksPath)).toString();
   downloadLinksContent = downloadLinksContent.replace(
     /"https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)"/g,
-    `https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
+    `"https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
   );
   await writeFile(webuiDownloadLinksPath, downloadLinksContent.toString());
   await execPromisify(`npm run gitmoji-changelog`);
