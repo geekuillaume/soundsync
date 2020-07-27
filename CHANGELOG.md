@@ -1,5 +1,14 @@
 # Changelog
 
+<a name="0.2.4"></a>
+## 0.2.4 (2020-07-27)
+
+### Fixed
+
+- 🐛 Fix memory leak [[81e92af](https://github.com/geekuillaume/soundsync/commit/81e92af121ee25a1082d579bd7842cc045cd7313)]
+- 🐛 fix windows executable link [[4f8a922](https://github.com/geekuillaume/soundsync/commit/4f8a922866fe6bcac080424afd7de3f9f3c47f78)]
+
+
 <a name="0.2.3"></a>
 ## 0.2.3 (2020-07-27)
 
