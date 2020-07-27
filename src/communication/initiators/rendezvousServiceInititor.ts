@@ -1,12 +1,14 @@
 import Router from 'koa-router';
+import debug from 'debug';
 import { onSniRequest } from '../https_sni_request';
-import { assert } from '../../utils/misc';
+import { assert, addDashesToUuid } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
 import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
 import { fetchRendezvousMessages, postRendezvousMessage, notifyPeerOfRendezvousMessage } from '../rendezvous_service';
+import { Mdns } from '../../utils/network/mdns';
 
 const POLLING_INTERVAL = 3000;
 const initiatorsListener: {[initiatorUuid: string]: (message: InitiatorMessage) => Promise<void>} = {};
@@ -20,6 +22,7 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
     uuid: string,
     public handleReceiveMessage: (message: InitiatorMessage) => Promise<void>,
     public host: string,
+    public peerUuid?: string,
     public isPrimary?: boolean, // the primary is the peer which sent the first request
   ) {
     super(uuid, handleReceiveMessage);
@@ -39,7 +42,7 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
       ...message,
     } as InitiatorMessage, this.isPrimary);
     try {
-      await notifyPeerOfRendezvousMessage(this.uuid, this.host);
+      await notifyPeerOfRendezvousMessage(this.uuid, this.host, this.peerUuid);
       const fetchedMessages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
       for (const fetchedMessage of fetchedMessages) {
         await this.handleReceiveMessage(fetchedMessage);
@@ -73,9 +76,9 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
   }
 }
 
-export const createRendezvousServiceInitiator = (host: string, uuid?: string, isPrimary = true) => (
+export const createRendezvousServiceInitiator = (host: string, peerUuid?: string, uuid?: string, isPrimary = true) => (
   (handleReceiveMessage: (message: InitiatorMessage) => Promise<void>) => (
-    new RendezVousServiceInitiator(uuid, handleReceiveMessage, host, isPrimary)
+    new RendezVousServiceInitiator(uuid, handleReceiveMessage, host, peerUuid, isPrimary)
   ));
 
 const handleRendezvousMessageNotification = async (initiatorUuid: string, host: string) => {
@@ -97,7 +100,7 @@ const handleRendezvousMessageNotification = async (initiatorUuid: string, host: 
         uuid: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
         name: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,
         instanceUuid: senderInstanceUuid,
-        initiatorConstructor: createRendezvousServiceInitiator(host, initiatorUuid, false), // we are not primary because we didn't sent the first request
+        initiatorConstructor: createRendezvousServiceInitiator(host, null, initiatorUuid, false), // we are not primary because we didn't sent the first request
       });
       getPeersManager().registerPeer(peer);
     }
@@ -134,6 +137,30 @@ export const initHttpServerRoutes = (router: Router) => {
     } catch (e) {
       // we don't have any way of advertising an error to the client as the SSL request will fail eitherway
       // so we just ignore it
+    }
+  });
+};
+
+const mdnsLog = debug(`soundsync:mdns`);
+// We also use MDNS to notify the rendezvous service initiator to support networks with DNS servers which are blocking local ip DNS records
+// and so the sslip.io domain names. Using this makes sure that the two devices are still on the same local network
+export const initMdnsForRendezvousInitiator = () => {
+  const mdns = new Mdns();
+  const localPeerUuid = getLocalPeer().uuid;
+  mdns.start();
+  mdns.on('packet', async (packetQuestion) => {
+    // we need to use less than 64 chars for mdns domain name but we have two 32 chars uuids so we remove the first char from the local peer uuid
+    // Format is [conversationUuid 32chars][last 31 chars of peerUuid 31chars].local
+    const conversationUuid = addDashesToUuid(packetQuestion.substr(0, 32));
+    const peerUuid = addDashesToUuid(`${localPeerUuid[0]}${packetQuestion.substr(32, 31)}`);
+    if (peerUuid === localPeerUuid) {
+      mdnsLog(`Received mdns request for ${packetQuestion}, handling initiator notification`);
+      try {
+        await handleRendezvousMessageNotification(conversationUuid, 'null');
+      } catch (e) {
+        // we don't have any way of advertising an error to the client as the SSL request will fail eitherway
+        // so we just ignore it
+      }
     }
   });
 };

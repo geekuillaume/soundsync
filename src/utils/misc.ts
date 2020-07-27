@@ -55,3 +55,15 @@ export function destructuredPromise<T>(): [Promise<T>, (res?: T) => any, (e: any
 const performance = typeof window === 'undefined' ? require('perf_hooks').performance : window.performance;
 
 export const now = () => performance.now();
+
+export const randomString = (length: number) => {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+export const addDashesToUuid = (uuid: string) => `${uuid.substr(0, 8)}-${uuid.substr(8, 4)}-${uuid.substr(12, 4)}-${uuid.substr(16, 4)}-${uuid.substr(20)}`;

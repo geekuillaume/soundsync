@@ -53,7 +53,7 @@ export class PeersManager extends EventEmitter {
     await peer.connect();
   }
 
-  joinPeerWithRendezvousApi = async (host: string) => {
+  joinPeerWithRendezvousApi = async (host: string, peerUuid: string) => {
     if (_.some(this.peers, (p) => (
       p instanceof WebrtcPeer
         && p.initiator instanceof RendezVousServiceInitiator
@@ -63,10 +63,10 @@ export class PeersManager extends EventEmitter {
     }
     const peer = new WebrtcPeer({
       name: `placeholderForRendezvousJoin_${host}`,
-      uuid: `placeholderForRendezvousJoin_${host}`,
+      uuid: peerUuid,
       instanceUuid: 'placeholder',
-      initiatorConstructor: createRendezvousServiceInitiator(host),
-    }, { onRemoteDisconnect: () => this.joinPeerWithRendezvousApi(host) });
+      initiatorConstructor: createRendezvousServiceInitiator(host, peerUuid, undefined, true),
+    }, { onRemoteDisconnect: () => this.joinPeerWithRendezvousApi(host, peerUuid) });
     this.peers.push(peer);
     await peer.connect();
   }

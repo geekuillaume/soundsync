@@ -1,9 +1,13 @@
 import superagent from 'superagent';
 import debug from 'debug';
+import { randomString } from '../utils/misc';
 import { InitiatorMessage } from './initiators/initiator';
 import { getPeersManager } from './get_peers_manager';
-import { RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL, WILDCARD_DNS_DOMAIN_NAME } from '../utils/constants';
+import {
+  RENDEZVOUS_SERVICE_URL, RENDEZVOUS_SERVICE_REGISTER_INTERVAL, WILDCARD_DNS_DOMAIN_NAME,
+} from '../utils/constants';
 import { getInternalIps } from '../utils/network/ip';
+import { getLocalPeer } from './local_peer';
 
 const log = debug('soundsync:rendezvous');
 
@@ -16,7 +20,8 @@ const rendezvousApi = superagent.agent().use((req) => {
 });
 
 const registerToRendezvousService = async (port: number) => {
-  const ips = getInternalIps().map((ip) => `${ip}:${port}`).join(',');
+  const localUuid = getLocalPeer().uuid;
+  const ips = getInternalIps().map((ip) => `${ip}:${port}_${localUuid}`).join(',');
   log(`Registering to rendezvous service with: ${ips}`);
   try {
     await rendezvousApi
@@ -36,11 +41,14 @@ export const enableRendezvousServiceRegister = (port: number) => {
   }, RENDEZVOUS_SERVICE_REGISTER_INTERVAL);
 };
 
-const getKnownRendezvousIps = async () => {
+const getKnownRendezvousPeers = async () => {
   try {
     const { body } = await rendezvousApi
       .get(`${RENDEZVOUS_SERVICE_URL}/api/ip_registry/peers`);
-    return body;
+    return (body as any[]).map((ip) => ({
+      ip: ip.split('_')[0],
+      peerUuid: ip.split('_')[1],
+    }));
   } catch {
     // an error here means that the rendezvous service is not reachable because of the internet connection or a CORS error if not loading from soundsync.app
     // do nothing and treat it as an empty response
@@ -49,13 +57,13 @@ const getKnownRendezvousIps = async () => {
 };
 
 export const enableRendezvousServicePeersDetection = async (shouldConnectWithRendezvous = false) => {
-  const ips = await getKnownRendezvousIps();
+  const rendezvousPeers = await getKnownRendezvousPeers();
   const peersManager = getPeersManager();
-  ips.forEach((ip) => {
+  rendezvousPeers.forEach((rendezvousPeer) => {
     if (shouldConnectWithRendezvous) {
-      peersManager.joinPeerWithRendezvousApi(ip);
+      peersManager.joinPeerWithRendezvousApi(rendezvousPeer.ip, rendezvousPeer.peerUuid);
     } else {
-      peersManager.joinPeerWithHttpApi(ip);
+      peersManager.joinPeerWithHttpApi(rendezvousPeer.ip);
     }
   });
 };
@@ -84,7 +92,7 @@ export const fetchRendezvousMessages = async (conversationUuid: string, isPrimar
   return messages as InitiatorMessage[];
 };
 
-export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string) => {
+export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string, peerUuid: string) => {
   if (typeof document === 'undefined') {
     const err = new Error('This method is meant to be used in a web context, not in a NodeJS one');
     // @ts-ignore
@@ -96,6 +104,15 @@ export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, ho
   const domainName = `${conversationUuid.replace(/-/g, '_')}-${ipParts.join('-')}.${WILDCARD_DNS_DOMAIN_NAME}:${Number(port) + 1}`; // the https port is the http port + 1
   try {
     await superagent.get(`https://${domainName}`);
+  } catch (e) {
+    // this will always throw an error but it is expected as we only need this to advertise the conversationUuid to the peer
+    // but the peer doesn't have a valid SSL certificate for this domain
+  }
+
+  try {
+    // Using mdns to advertise the conversionationUuid, we cannot detect if the device supports MDNS so we try anyway
+    // we are limited in lenth so we remove the - from the uuids
+    await superagent.get(`https://${conversationUuid.replace(/-/g, '')}${peerUuid.slice(1).replace(/-/g, '')}.local`);
   } catch (e) {
     // this will always throw an error but it is expected as we only need this to advertise the conversationUuid to the peer
     // but the peer doesn't have a valid SSL certificate for this domain

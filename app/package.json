@@ -36,6 +36,7 @@
     "smoothstep": "^1.0.1",
     "superagent": "^5.2.1",
     "supports-color": "^7.1.0",
+    "tiny-typed-emitter": "^2.0.2",
     "unzipper": "^0.10.11",
     "uuid": "^3.3.3",
     "wasm-audio-resampler": "^0.0.2",
