@@ -151,7 +151,7 @@ export abstract class AudioSource {
     });
   }
 
-  async start(encodedForTransport = false): Promise<MiniPass> {
+  async createAudioStream(encodedForTransport = false): Promise<MiniPass> {
     await this.startReading();
     const instanceStream = new MiniPass();
     instanceStream.on('end', () => {

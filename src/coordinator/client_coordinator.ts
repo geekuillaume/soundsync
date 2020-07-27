@@ -94,7 +94,7 @@ export class ClientCoordinator {
       this.log(`Trying to request channel to unknown source (uuid ${sourceUuid})`);
       return;
     }
-    const sourceStream = await source.start(true);
+    const sourceStream = await source.createAudioStream(true);
     sourceStream.pipe(stream);
     stream.on('end', () => { // necessary to instruct source stream to stop sending new data to stream as it is closed
       sourceStream.end();

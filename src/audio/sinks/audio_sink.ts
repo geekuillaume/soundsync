@@ -135,7 +135,7 @@ export abstract class AudioSink extends EventEmitter {
     this.pipedSource = sourceToPipeFrom;
     this.log(`Linking audio source ${this.pipedSource.name} (uuid ${this.pipedSource.uuid}) to sink`);
 
-    const sourceStream = await this.pipedSource.start();
+    const sourceStream = await this.pipedSource.createAudioStream();
     if (this.pipedSource !== sourceToPipeFrom) {
       // used to prevent race condition if pipedSource is changed during the time we are waiting for the sourceStream to be returned
       sourceStream.end();

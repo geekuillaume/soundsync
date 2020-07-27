@@ -20,7 +20,7 @@ export class LibrespotSource extends AudioSource {
     super(descriptor, manager);
     this.options = clone(descriptor.librespotOptions) || {};
     this.options.name = this.options.name || hostname();
-    this.start(); // start right away to consume librespot chunks even when there is no sink connected
+    this.startReading(); // start right away to consume librespot chunks even when there is no sink connected
   }
 
   async _getAudioChunkStream() {

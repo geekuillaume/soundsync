@@ -21,7 +21,7 @@ export class ShairportSource extends AudioSource {
     super(descriptor, manager);
     this.options = _.clone(descriptor.shairportOptions) || {};
     this.options.name = this.options.name || hostname();
-    this.start(); // start right away to let devices detect and send audio to the shairport process
+    this.startReading(); // start right away to let devices detect and send audio to the shairport process
   }
 
   async _getAudioChunkStream() {
