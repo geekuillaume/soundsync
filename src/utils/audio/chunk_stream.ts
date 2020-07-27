@@ -8,6 +8,12 @@ import {
 import { OpusApplication } from './opus';
 import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
 
+// if we try reading 5 times and there is still no data available, stop the stream and try again on the "readable" event
+// This is necessary to prevent the input buffer of the sourceStream being depleted and having to wait for a "readable" event which leads to some chunks being missed
+// This will happen a lot a slow CPU were a garbage collection will stop the world for more than a chunk worth of time and then a lot of chunks will be read at the same time
+// without letting rnough time for the child process to emit new data
+const MIN_LOOP_ITERATION_WITHOUT_DATA_TO_STOP_READING = 5;
+
 const l = debug('soundsync:audioSinkDebug');
 
 export interface AudioChunkStreamOutput {
@@ -22,6 +28,7 @@ export interface AudioChunkStreamOutput {
 export class AudioChunkStream extends Minipass {
   private readInterval: NodeJS.Timeout;
   lastEmittedChunkIndex: number;
+  private loopIterationWithoutData = 0;
 
   constructor(
     public startTime: number,
@@ -37,6 +44,7 @@ export class AudioChunkStream extends Minipass {
   }
 
   private startReadLoop = () => {
+    this.loopIterationWithoutData = 0;
     if (this.readInterval) {
       return;
     }
@@ -45,6 +53,8 @@ export class AudioChunkStream extends Minipass {
   }
 
   private stopReadLoop = () => {
+    this.loopIterationWithoutData = 0;
+    this.lastEmittedChunkIndex = -1;
     if (this.readInterval) {
       clearInterval(this.readInterval);
       delete this.readInterval;
@@ -63,11 +73,15 @@ export class AudioChunkStream extends Minipass {
       }
       let chunk = this.sourceStream.read(this.chunkSize) as Buffer;
       if (chunk === null) {
-        // nothing to read from source, we need to compute the next chunk from time instead of the sequence
-        console.log('Stream out of data, stopping reading loop until new data arrives');
-        this.lastEmittedChunkIndex = -1;
-        this.stopReadLoop();
+        this.loopIterationWithoutData++;
+        if (this.loopIterationWithoutData >= MIN_LOOP_ITERATION_WITHOUT_DATA_TO_STOP_READING) {
+          // nothing to read from source, we need to compute the next chunk from time instead of the sequence
+          console.log('Stream out of data, stopping reading loop until new data arrives');
+          this.stopReadLoop();
+        }
         break;
+      } else {
+        this.loopIterationWithoutData = 0;
       }
       if (this.lastEmittedChunkIndex === -1) {
         console.log('Stream started again');
