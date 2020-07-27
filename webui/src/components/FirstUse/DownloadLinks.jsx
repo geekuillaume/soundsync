@@ -13,7 +13,7 @@ export const DownloadLinks = ({ twoLinesLayout }) => (
     <div className="platform">
       <img src={WindowsIcon} />
       <h3>Windows</h3>
-      <Button variant="outlined" className="downloadButton" href="https://github.com/geekuillaume/soundsync/releases/download/v0.2.3/Soundsync_Setup_0.2.3.exe">Download</Button>
+      <Button variant="outlined" className="downloadButton" href="https://github.com/geekuillaume/soundsync/releases/download/v0.2.3/soundsync-0.2.3.exe">Download</Button>
     </div>
     <div className="platform">
       <img src={MacOsIcon} />

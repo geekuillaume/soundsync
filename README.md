@@ -26,7 +26,7 @@ Download and install Soundsync for you operating system on every device in your 
 <table width="100%" align="center"><tr>
   <td align="center">
     <h3>Windows</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.2.3/Soundsync_Setup_0.2.3.exe">Download development version</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.2.3/soundsync-0.2.3.exe">Download development version</a></p>
   </td>
   <td align="center">
     <h3>MacOS</h3>
