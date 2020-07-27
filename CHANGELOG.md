@@ -1,5 +1,13 @@
 # Changelog
 
+<a name="0.2.3"></a>
+## 0.2.3 (2020-07-27)
+
+### Fixed
+
+- 🐛 fix quotes when updating readme on deploy [[1aa3e76](https://github.com/geekuillaume/soundsync/commit/1aa3e76413f121055cf1fbb3ce44e12c19c6bdc0)]
+
+
 <a name="0.2.2"></a>
 ## 0.2.2 (2020-07-27)
 
