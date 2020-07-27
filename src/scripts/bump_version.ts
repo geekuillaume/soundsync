@@ -52,10 +52,10 @@ const main = async () => {
     `https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
   );
   await writeFile(webuiDownloadLinksPath, downloadLinksContent.toString());
-
+  await execPromisify(`npm run gitmoji-changelog`);
   await execPromisify(`git add --all`);
-  await execPromisify(`git commit -m v${newVersion}`);
-  await execPromisify(`git tag v${newVersion}`);
+  await execPromisify(`git commit -m ":bookmark: v${newVersion}"`);
+  await execPromisify(`git tag -a v${newVersion} -m "v${newVersion}"`);
 
   console.log('New version committed and tagged. To upload use "git push origin master --tags"');
 };
