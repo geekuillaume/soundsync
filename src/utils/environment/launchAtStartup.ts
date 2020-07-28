@@ -1,4 +1,7 @@
+import debug from 'debug';
 import AutoLaunch from 'auto-launch';
+
+const log = debug(`soundsync:launchAtStartup`);
 
 const autoLaunchMock = {
   enable: () => Promise.resolve(),
@@ -20,17 +23,30 @@ const getAutoLauncherInstance = () => {
   return _autoLauncher;
 };
 
-export const enableAutolaunchAtStartup = () => {
+export const enableAutolaunchAtStartup = async () => {
   const autoLauncher = getAutoLauncherInstance();
-  return autoLauncher.enable();
+  try {
+    await autoLauncher.enable();
+  } catch (e) {
+    log(`Error while enabling autolaunch at startup`, e);
+  }
 };
 
-export const disableAutolaunchAtStartup = () => {
+export const disableAutolaunchAtStartup = async () => {
   const autoLauncher = getAutoLauncherInstance();
-  return autoLauncher.disable();
+  try {
+    await autoLauncher.disable();
+  } catch (e) {
+    log(`Error while disabling autolaunch at startup`, e);
+  }
 };
 
-export const isAutolaunchedAtStartup = () => {
+export const isAutolaunchedAtStartup = async () => {
   const autoLauncher = getAutoLauncherInstance();
-  return autoLauncher.isEnabled();
+  try {
+    return await autoLauncher.isEnabled();
+  } catch (e) {
+    log(`Error while detecting if autolaunch is enabled`, e);
+    return false;
+  }
 };
