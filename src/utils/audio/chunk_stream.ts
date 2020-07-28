@@ -272,15 +272,12 @@ export const createAudioChunkStream = (startTime: number, sourceStream: NodeJS.R
     OPUS_ENCODER_CHUNK_DURATION,
     (sourceRate / OPUS_ENCODER_CHUNKS_PER_SECONDS) * channels * Uint16Array.BYTES_PER_ELEMENT,
   );
-  let finalStream: Minipass = chunkStream;
-  if (sourceRate !== OPUS_ENCODER_RATE) {
-    finalStream = finalStream.pipe(new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE));
-  }
+  // we resample even if the rate is the same as it simplified the code and prevent edge cases
+  const audioChunkResampler = new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE);
   const audioFloatTransformer = new AudioFloatTransformer();
-  return finalStream
+  return chunkStream
+    .pipe(audioChunkResampler)
     .pipe(audioFloatTransformer);
-  // .pipe(opusEncoderStream)
-  // .pipe(chunkEncoder);
 };
 
 export const createAudioEncodedStream = (channels: number) => {
