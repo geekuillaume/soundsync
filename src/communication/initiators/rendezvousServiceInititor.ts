@@ -147,7 +147,11 @@ const mdnsLog = debug(`soundsync:mdns`);
 export const initMdnsForRendezvousInitiator = () => {
   const mdns = new Mdns();
   const localPeerUuid = getLocalPeer().uuid;
-  mdns.start();
+  try {
+    mdns.start();
+  } catch (e) {
+    mdnsLog('Error while binding mdns sockets', e);
+  }
   mdns.on('packet', async (packetQuestion) => {
     // we need to use less than 64 chars for mdns domain name but we have two 32 chars uuids so we remove the first char from the local peer uuid
     // Format is [conversationUuid 32chars][last 31 chars of peerUuid 31chars].local

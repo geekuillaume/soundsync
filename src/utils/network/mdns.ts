@@ -55,12 +55,16 @@ export class Mdns extends TypedEmitter<MdnsEvents> {
     });
     socket.unref();
     await new Promise((resolve, reject) => {
+      let resolved = false;
       socket.on('error', (err) => {
         log(`Error while binding to address ${address} and port ${port}`);
-        reject(err);
+        if (!resolved) {
+          reject(err);
+        }
       });
       socket.on('listening', () => {
         log(`Bound to address ${address} and port ${port}`);
+        resolved = true;
         resolve();
       });
       socket.bind(port, address);
