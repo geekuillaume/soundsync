@@ -40,7 +40,7 @@
     "unzipper": "^0.10.11",
     "uuid": "^3.3.3",
     "wasm-audio-resampler": "^0.0.2",
-    "wrtc": "0.4.5",
+    "wrtc": "0.4.6",
     "yargs": "^15.1.0"
   },
   "devDependencies": {
