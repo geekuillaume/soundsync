@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 
 function isEventTarget(target: EventEmitter | EventTarget): target is EventTarget {
   return typeof (target as EventTarget).addEventListener !== 'undefined';
@@ -66,4 +66,6 @@ export const randomString = (length: number) => {
   return result;
 };
 
+export const randomHex = (bytes: number) => randomBytes(bytes).toString('hex');
+export const randomBase64 = (bytes: number) => randomBytes(bytes).toString('base64');
 export const addDashesToUuid = (uuid: string) => `${uuid.substr(0, 8)}-${uuid.substr(8, 4)}-${uuid.substr(12, 4)}-${uuid.substr(16, 4)}-${uuid.substr(20)}`;
