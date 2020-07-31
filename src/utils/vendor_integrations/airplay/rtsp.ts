@@ -67,9 +67,17 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `a=aesiv:${this.aesIv}`,
     ].join(`\r\n`);
     await this.sendRequest('ANNOUNCE', null, announceBody, ['Content-Type: application/sdp']);
-    await this.sendRequest('SETUP', null, null, [`Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port=${udpControlPort};timing_port=${udpTimingPort}`]);
+    const res = await this.sendRequest('SETUP', null, null, [`Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port=${udpControlPort};timing_port=${udpTimingPort}`]);
+    const [, serverPort] = res.headers.Transport.match(/;server_port=(\d+)/);
+    const [, timingPort] = res.headers.Transport.match(/;timing_port=(\d+)/);
+    const [, controlPort] = res.headers.Transport.match(/;control_port=(\d+)/);
     await this.sendRequest('RECORD', null, null, [this.getRtpHeader()]);
     await this.sendRequest('SET_PARAMETER', null, null, ['Content-Type: text/parameters']);
+    return {
+      serverPort: Number(serverPort),
+      timingPort: Number(timingPort),
+      controlPort: Number(controlPort),
+    };
   }
 
   sendRequest(method: string, uri?: string, body?: string, additionalHeaders: string[] = []) {
@@ -80,7 +88,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     if (body) {
       requestBody += `\r\n\r\n${body}`;
     }
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise<RtspResponse>((resolve, reject) => {
       this.requestsQueue.push({
         body: requestBody,
         resolve,
@@ -108,7 +116,6 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
         err.body = body;
         request.reject(err);
       } else {
-        console.log('\n\n', body);
         request.resolve(body);
       }
     };
