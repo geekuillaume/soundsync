@@ -95,7 +95,7 @@ jobs:
           asset_content_type: application/zip
 
       - uses: ./.github/actions/create-dev-release
-        if: ${{ github.ref == "master" }}
+        if: ${{ github.ref == 'master' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -149,7 +149,7 @@ jobs:
         asset_content_type: application/zip
 
     - uses: ./.github/actions/create-dev-release
-      if: ${{ github.ref == "master" }}
+      if: ${{ github.ref == 'master' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
