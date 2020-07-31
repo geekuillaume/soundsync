@@ -1,14 +1,23 @@
 import { RtspSocket } from './rtsp';
 import { AirplayUdpSocket } from './airplayUdpSocket';
+import { now } from '../../misc';
 
 export class AirplaySpeaker {
   rtspSocket: RtspSocket;
-  controlSocket = new AirplayUdpSocket(5000);
-  timingSocket = new AirplayUdpSocket(6000);
+  controlSocket: AirplayUdpSocket;
+  timingSocket: AirplayUdpSocket;
   sequenceCounter = 0;
 
   constructor(public host: string, public port: number) {
     this.rtspSocket = new RtspSocket(host, port, () => this.sequenceCounter);
+    this.controlSocket = new AirplayUdpSocket(5000, host);
+    this.timingSocket = new AirplayUdpSocket(6000, host);
+    this.controlSocket.on('message', (message) => {
+      console.log('Received from control socket', message);
+    });
+    this.timingSocket.on('timingRequest', (request, header) => {
+      this.timingSocket.packetSender.timingResponse(request, header, now());
+    });
   }
 
   async start() {
@@ -16,7 +25,9 @@ export class AirplaySpeaker {
       this.controlSocket.setup(),
       this.timingSocket.setup(),
     ]);
-    await this.rtspSocket.handshake(this.controlSocket.port, this.timingSocket.port);
+    const ports = await this.rtspSocket.handshake(this.controlSocket.port, this.timingSocket.port);
+    this.controlSocket.clientPort = ports.controlPort;
+    this.timingSocket.clientPort = ports.timingPort;
   }
 }
 

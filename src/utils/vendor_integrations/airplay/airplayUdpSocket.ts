@@ -1,14 +1,46 @@
+/* eslint-disable no-bitwise */
 import dgram from 'dgram';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
-export class AirplayUdpSocket {
+const RTP_HEADER_A_EXTENSION = 0x10;
+const RTP_HEADER_A_SOURCE = 0x0f;
+const RTP_HEADER_B_PAYLOAD_TYPE = 0x7f;
+const RTP_HEADER_B_MARKER = 0x80;
+const RTP_HEADER_LENGTH = 4;
+const RTP_NTP_TIMESTAMP_LENGTH = 8;
+
+type RTP_HEADER = ReturnType<AirplayUdpSocket['parseRtpHeader']>;
+
+export enum RTP_PAYLOAD_TYPES {
+  timingRequest = 0x52,
+  timingResponse = 0x53,
+  sync = 0x54,
+  rangeResend = 0x55,
+  audioData = 0x60,
+}
+
+interface UpdSocketEvents {
+  message: (message: Buffer) => any;
+  timingRequest: (message: ReturnType<AirplayUdpSocket['packetParsers']['timingRequest']>, header: RTP_HEADER) => any;
+}
+
+export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
   port: number;
-  socket: dgram.Socket;
+  clientPort = -1; // needs to be set to the correct port before responding to messages
+  socket = dgram.createSocket('udp4');
 
-  constructor(public basePort: number) {}
-  async setup() {
-    this.socket = dgram.createSocket('udp4');
-
+  constructor(public basePort: number, public clientHost: string) {
+    super();
     this.port = this.basePort;
+    this.socket.on('message', (message) => {
+      const header = this.parseRtpHeader(message);
+      const parsedMessage = this.packetParsers[header.payloadType]?.(message);
+      this.emit(header.payloadType, parsedMessage, header);
+      this.emit('message', message);
+    });
+  }
+
+  async setup() {
     // this is used to find a available port, we continue until we can listen to a port
     while (true) {
       const promise = new Promise((resolve, reject) => {
@@ -35,5 +67,79 @@ export class AirplayUdpSocket {
         this.port += 1;
       }
     }
+  }
+
+  private parseRtpHeader(message: Buffer) {
+    const dataView = new DataView(message.buffer);
+    const headerData = {
+      a: dataView.getUint8(0),
+      b: dataView.getUint8(1),
+      seqnum: dataView.getUint16(2),
+    };
+    const header = {
+      extension: Boolean(headerData.a & RTP_HEADER_A_EXTENSION),
+      source: headerData.a & RTP_HEADER_A_SOURCE,
+      payloadType: RTP_PAYLOAD_TYPES[String(headerData.b & RTP_HEADER_B_PAYLOAD_TYPE)],
+      marker: Boolean(headerData.b & RTP_HEADER_B_MARKER),
+      seqnum: headerData.seqnum,
+    };
+    return header;
+  }
+  private getRtpHeader(header: RTP_HEADER) {
+    const data = new Uint8Array(RTP_HEADER_LENGTH);
+    const dv = new DataView(data.buffer);
+    const a = (header.extension ? RTP_HEADER_A_EXTENSION : 0) | header.source;
+    const b = (header.marker ? RTP_HEADER_B_MARKER : 0) | Number(header.payloadType);
+    dv.setUint8(0, a);
+    dv.setUint8(1, b);
+    dv.setUint16(2, header.seqnum);
+    return data;
+  }
+
+  private parseNtpTimestamp = (ntpTime: ArrayBuffer) => {
+    const dv = new DataView(ntpTime);
+    const parsed = {
+      integer: dv.getUint32(0),
+      fraction: dv.getUint32(4),
+    };
+    return (parsed.fraction + (parsed.fraction / 2 ** 32)) * 1000;
+  }
+  private getNtpTimestamp = (time: number) => {
+    const data = new Uint8Array(RTP_NTP_TIMESTAMP_LENGTH);
+    const dv = new DataView(data.buffer);
+    const integer = Math.floor(time / 1000);
+    const fraction = ((time / 1000) - integer) * (2 ** 32);
+    dv.setUint32(0, integer);
+    dv.setUint32(4, fraction);
+    return data;
+  }
+
+  private packetParsers = {
+    timingRequest: (message: Buffer) => {
+      const parsed = {
+        referenceTime: this.parseNtpTimestamp(message.buffer.slice(RTP_HEADER_LENGTH + 4)),
+        receivedTime: this.parseNtpTimestamp(message.buffer.slice(RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH)),
+        sendTime: this.parseNtpTimestamp(message.buffer.slice(RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH + RTP_NTP_TIMESTAMP_LENGTH)),
+      };
+      return parsed;
+    },
+  }
+
+  packetSender = {
+    timingResponse: (originalPacket: ReturnType<AirplayUdpSocket['packetParsers']['timingRequest']>, originalPacketHeader: RTP_HEADER, currentTime: number) => {
+      if (this.clientPort === -1) {
+        return;
+      }
+      const data = new Uint8Array(RTP_HEADER_LENGTH + 4 + (3 * RTP_NTP_TIMESTAMP_LENGTH));
+      const header = this.getRtpHeader({
+        ...originalPacketHeader,
+        payloadType: RTP_PAYLOAD_TYPES.timingResponse,
+      });
+      data.set(header);
+      data.set(this.getNtpTimestamp(originalPacket.sendTime), RTP_HEADER_LENGTH + 4);
+      data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH);
+      data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH + RTP_NTP_TIMESTAMP_LENGTH);
+      this.socket.send(data, this.clientPort, this.clientHost);
+    },
   }
 }
