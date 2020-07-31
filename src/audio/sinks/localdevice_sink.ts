@@ -124,7 +124,7 @@ export class LocalDeviceSink extends AudioSink {
       this.log(`Received a chunk for a not piped sink, ignoring`);
       return;
     }
-    const chunk = new Float32Array(data.chunk.buffer);
+    const chunk = new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
     const offset = data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels;
     this.buffer.set(chunk, offset);
   }

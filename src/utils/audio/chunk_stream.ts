@@ -113,12 +113,12 @@ export class AudioChunkStreamEncoder extends Minipass {
   }
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
-    const encodedChunk = Buffer.alloc(
-      4 // Index: UInt32
+    const encodedChunk = new Uint8Array(
+      Uint32Array.BYTES_PER_ELEMENT
       + d.chunk.byteLength,
     );
-    encodedChunk.writeUInt32LE(d.i, 0);
-    d.chunk.copy(encodedChunk, 4);
+    new DataView(encodedChunk.buffer, encodedChunk.byteOffset).setUint32(0, d.i);
+    encodedChunk.set(d.chunk, Uint32Array.BYTES_PER_ELEMENT);
     const returnVal = super.write(encodedChunk);
     if (cb) {
       cb();
@@ -134,11 +134,11 @@ export class AudioChunkStreamDecoder extends Minipass {
     });
   }
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
-    const input = d as Buffer;
+    const input = d instanceof Buffer ? new Uint8Array(d.buffer) : d as Uint8Array;
     const returnVal = super.write({
-      i: input.readUInt32LE(0),
+      i: new DataView(input.buffer, input.byteOffset).getUint32(0),
       // this is necessary to make a copy of the buffer instead of creating a view to the same data
-      chunk: Buffer.from(Uint8Array.prototype.slice.apply(input, [4]).buffer),
+      chunk: input.slice(4),
     });
     if (cb) {
       cb();

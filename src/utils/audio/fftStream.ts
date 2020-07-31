@@ -37,7 +37,7 @@ export class FFTStream extends MiniPass {
     this.gainFrequencyData = new Float32Array(size);
   }
 
-  write(d: any) {
+  write(d: Uint8Array) {
     const inputData = new Float32Array(d.buffer);
     const inputDataMono = new Float32Array(inputData.length / this.channelsCount);
     for (let i = 0; i < inputDataMono.length; i++) {

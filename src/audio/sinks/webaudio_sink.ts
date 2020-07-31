@@ -111,7 +111,7 @@ export class WebAudioSink extends AudioSink {
     if (!this.workletNode) {
       return;
     }
-    const chunk = new Float32Array(data.chunk.buffer);
+    const chunk = new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
     this.workletNode.port.postMessage({
       type: 'chunk',
       i: data.i,

@@ -73,7 +73,7 @@ export class OpusDecoder {
     });
   })
 
-  decodeFloat(data: Buffer) {
+  decodeFloat(data: Uint8Array) {
     if (!this.handle) {
       throw new Error('Decoder should be setup before usage');
     }
