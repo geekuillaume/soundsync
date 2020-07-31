@@ -3167,10 +3167,10 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-wasm-audio-resampler@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/wasm-audio-resampler/-/wasm-audio-resampler-0.0.2.tgz#49d0d3ccf3c455f30b913a7550eeba0df0770443"
-  integrity sha512-pt0+Soua/YQVejfLoQk548AdDyQxVNqPdA6GSkKnED/5B91LtlKa3m+DCAjjqckhuLXHqzlxjpmgmZeSzjKWBg==
+wasm-audio-resampler@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/wasm-audio-resampler/-/wasm-audio-resampler-1.0.0.tgz#62af00ea1dd9aa8f76134724b89328a600b2738d"
+  integrity sha512-OcOF8pAsKmpsZNdgp1mp0v1DNXT+oL55WMtVYLMOo0XkfyLnmhX0iPLhs9f0pC6xEJLpOBrfP0heZbIHm9kGcw==
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

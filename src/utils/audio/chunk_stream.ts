@@ -220,47 +220,42 @@ export class AudioChunkStreamOrderer extends Minipass {
 
 export class AudioChunkStreamResampler extends Minipass {
   resampler: SoxrResampler;
+  private chunkAlignementBuffer: Uint8Array;
+  private resamplerOutputBuffer: Uint8Array;
+  private chunkAlignementFillLength = 0;
+  private chunkIndexToEmit: number[] = [];
 
   constructor(public channels: number, public inRate: number, public outRate: number) {
     super({
       objectMode: true,
     });
-    this.resampler = new SoxrResampler(channels, inRate, outRate, SoxrDatatype.SOXR_INT16);
+    this.resampler = new SoxrResampler(channels, inRate, outRate, SoxrDatatype.SOXR_INT16, SoxrDatatype.SOXR_FLOAT32);
+    // chunks can be delayed and returned in one call so we need to realign them
+    this.chunkAlignementBuffer = new Uint8Array(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT * 6);
+    this.resamplerOutputBuffer = new Uint8Array(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT * 3);
   }
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
     const callback = typeof encoding === 'function' ? encoding : cb;
-    const res = this.resampler.processChunk(d.chunk);
-    if (res.length === OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Uint16Array.BYTES_PER_ELEMENT) {
+    const outputChunkTargetLength = OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT;
+    this.chunkIndexToEmit.push(d.i);
+    const chunkLength = this.resampler.processChunkInOutputBuffer(d.chunk, this.resamplerOutputBuffer);
+    this.chunkAlignementBuffer.set(this.resamplerOutputBuffer.subarray(0, chunkLength), this.chunkAlignementFillLength);
+    this.chunkAlignementFillLength += chunkLength;
+
+    while (this.chunkAlignementFillLength >= outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
+      const [chunkIndex] = this.chunkIndexToEmit.splice(0, 1);
       super.write({
-        i: d.i,
-        chunk: res,
+        i: chunkIndex,
+        chunk: this.chunkAlignementBuffer.slice(0, outputChunkTargetLength),
       });
-    } else {
-      // length can be different than target chunk length if the stream is starting and the resampler doesn't have enough data to start the process
-      // in this case, we just ignore the chunk
-      // TODO: store incomplete chunk and use data from next chunk to complete it
+      this.chunkAlignementBuffer.copyWithin(0, outputChunkTargetLength);
+      this.chunkAlignementFillLength -= outputChunkTargetLength;
     }
+
     if (callback) {
       callback();
     }
-    return true;
-  }
-}
-
-export class AudioFloatTransformer extends Minipass {
-  write(d: any) {
-    const data = d as AudioChunkStreamOutput;
-    const input = new Int16Array(data.chunk.buffer);
-    const output = new Float32Array(input.length);
-    for (let i = 0; i < input.length; i++) {
-      output[i] = input[i] / 32768;
-    }
-
-    super.write({
-      i: data.i,
-      chunk: Buffer.from(output.buffer),
-    });
     return true;
   }
 }
@@ -274,10 +269,8 @@ export const createAudioChunkStream = (startTime: number, sourceStream: NodeJS.R
   );
   // we resample even if the rate is the same as it simplified the code and prevent edge cases
   const audioChunkResampler = new AudioChunkStreamResampler(channels, sourceRate, OPUS_ENCODER_RATE);
-  const audioFloatTransformer = new AudioFloatTransformer();
   return chunkStream
-    .pipe(audioChunkResampler)
-    .pipe(audioFloatTransformer);
+    .pipe(audioChunkResampler);
 };
 
 export const createAudioEncodedStream = (channels: number) => {
