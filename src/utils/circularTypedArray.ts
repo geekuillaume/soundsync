@@ -37,8 +37,19 @@ export class CircularTypedArray<T extends TypedArray> {
   }
   getReaderPointer = () => this.pointersTypedBuffer[1]
   advanceReaderPointer = (value: number) => {
-    this.pointersTypedBuffer[1] += value;
-    return this.pointersTypedBuffer[1] - value;
+    const previousValue = this.pointersTypedBuffer[1];
+    this.pointersTypedBuffer[1] = (this.pointersTypedBuffer[1] + value) % this.buffer.length;
+    return previousValue;
+  }
+
+  setWriterPointer = (value: number) => {
+    this.pointersTypedBuffer[0] = value;
+  }
+  getWriterPointer = () => this.pointersTypedBuffer[0]
+  advanceWriterPointer = (value: number) => {
+    const previousValue = this.pointersTypedBuffer[0];
+    this.pointersTypedBuffer[0] = (this.pointersTypedBuffer[0] + value) % this.buffer.length;
+    return previousValue;
   }
 
   set(data: T, offset: number) {
@@ -50,6 +61,11 @@ export class CircularTypedArray<T extends TypedArray> {
     }
     this.buffer.set(data.subarray(0, data.length - overflow), realOffset);
     this.set(data.subarray(data.length - overflow) as T, realOffset + (data.length - overflow));
+  }
+
+  setFromWriterPointer(data: T) {
+    const offset = this.advanceWriterPointer(data.length);
+    this.set(data, offset);
   }
 
   fill(offset: number, length: number, data: number) {

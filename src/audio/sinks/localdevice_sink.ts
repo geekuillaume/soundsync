@@ -12,15 +12,13 @@ import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId, shouldUseAudioStreamName } from '../../utils/audio/soundio';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
-
-const BUFFER_DURATION = 10000;
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
@@ -60,7 +58,7 @@ export class LocalDeviceSink extends AudioSink {
     this.worklet = this.soundioOutputStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
     this.soundioOutputStream.start();
 
-    const bufferSize = BUFFER_DURATION * (OPUS_ENCODER_RATE / 1000) * this.channels * Float32Array.BYTES_PER_ELEMENT;
+    const bufferSize = MAX_LATENCY * (OPUS_ENCODER_RATE / 1000) * this.channels * Float32Array.BYTES_PER_ELEMENT;
     const bufferData = new SharedArrayBuffer(bufferSize);
     this.buffer = new CircularTypedArray(Float32Array, bufferData);
 

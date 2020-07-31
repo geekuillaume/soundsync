@@ -43,5 +43,11 @@ export interface HueLightSinkDescriptor extends BaseSinkDescriptor {
   status: HueLightStatus;
 }
 
-export type SinkDescriptor = LocalDeviceSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor | HueLightSinkDescriptor;
+export interface AirplaySinkDescriptor extends BaseSinkDescriptor {
+  type: 'airplay';
+  host: string;
+  port: number;
+}
+
+export type SinkDescriptor = LocalDeviceSinkDescriptor | NullSinkDescriptor | WebAudioSinkDescriptor | HueLightSinkDescriptor | AirplaySinkDescriptor;
 export type SinkType = SinkDescriptor['type'];

@@ -38,3 +38,5 @@ export const WILDCARD_DNS_DOMAIN_NAME = `sslip.io`;
 export const CHROMECAST_APPID = 'BEB12660';
 
 export const INACTIVE_TIMEOUT = 30 * 1000; // 30 seconds, after this period without sound, a source will be marked as inactive and all linked sinks will be stopped
+
+export const MAX_LATENCY = 10 * 1000; // this is used to size the buffers in various places in the code, for now they are not dynamicly sized and will use this value to store at maximum X seconds of audio

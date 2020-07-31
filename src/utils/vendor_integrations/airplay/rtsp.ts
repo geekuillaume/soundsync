@@ -17,8 +17,6 @@ interface RtspResponse {
   body: string;
 }
 
-const SAMPLE_RATE = 44100;
-const CHANNELS = 2;
 const RTSP_REQUEST_DELIMITER = `\r\n\r\n`;
 const USER_AGENT = 'Soundsync';
 const FRAMES_PER_PACKET = 352;

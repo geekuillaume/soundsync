@@ -35,7 +35,7 @@ export abstract class AudioSink extends EventEmitter {
 
   private manager: AudioSourcesSinksManager;
   private sourceStream: MiniPass; // stream returned asynchronously by the audio source
-  private lastReceivedChunkIndex = -1;
+  protected lastReceivedChunkIndex = -1;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
@@ -172,7 +172,6 @@ export abstract class AudioSink extends EventEmitter {
     if (this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1) {
       this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
     }
-    this.lastReceivedChunkIndex = chunk.i;
     const timeDelta = this.pipedSource.peer.getCurrentTime() - (chunk.i * OPUS_ENCODER_CHUNK_DURATION + this.pipedSource.startedAt);
     if (timeDelta > this.pipedSource.latency) {
       this.log(`Received old chunk, discarding it: ${chunk.i}, current playing chunk is ${Math.floor((this.pipedSource.peer.getCurrentTime() - this.pipedSource.startedAt) / OPUS_ENCODER_CHUNK_DURATION)}`);
@@ -181,6 +180,8 @@ export abstract class AudioSink extends EventEmitter {
     }
 
     this.handleAudioChunk(chunk);
+    // we should update lastReceivedChunkIndex after handleAudioChunk to let the sink implementation use this info
+    this.lastReceivedChunkIndex = chunk.i;
   }
 
   abstract handleAudioChunk(chunk: AudioChunkStreamOutput);

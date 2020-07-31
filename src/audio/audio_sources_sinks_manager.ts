@@ -3,6 +3,7 @@ import debug from 'debug';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
+import { AirplaySink } from './sinks/airplay_sink';
 import { onExit } from '../utils/on_exit';
 import { assertNever } from '../utils/misc';
 import { HueLightSink } from './sinks/huelight_sink';
@@ -186,6 +187,8 @@ export class AudioSourcesSinksManager extends EventEmitter {
       sink = new WebAudioSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'huelight') {
       sink = new HueLightSink(sinkDescriptor, this);
+    } else if (sinkDescriptor.type === 'airplay') {
+      sink = new AirplaySink(sinkDescriptor, this);
     } else {
       assertNever(sinkDescriptor);
     }

@@ -25,13 +25,12 @@ interface UpdSocketEvents {
 }
 
 export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
-  port: number;
+  serverPort = -1;
   clientPort = -1; // needs to be set to the correct port before responding to messages
   socket = dgram.createSocket('udp4');
 
-  constructor(public basePort: number, public clientHost: string) {
+  constructor(public clientHost: string) {
     super();
-    this.port = this.basePort;
     this.socket.on('message', (message) => {
       const header = this.parseRtpHeader(message);
       const parsedMessage = this.packetParsers[header.payloadType]?.(message);
@@ -40,7 +39,8 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
     });
   }
 
-  async setup() {
+  async bindToPort(basePort: number) {
+    this.serverPort = basePort;
     // this is used to find a available port, we continue until we can listen to a port
     while (true) {
       const promise = new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
         this.socket.once('error', errorHandler);
         this.socket.once('listening', listeningHandler);
       });
-      this.socket.bind(this.port);
+      this.socket.bind(this.serverPort);
       try {
         await promise;
         break;
@@ -64,7 +64,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
         if (e.code !== 'EADDRINUSE') {
           throw e;
         }
-        this.port += 1;
+        this.serverPort += 1;
       }
     }
   }
