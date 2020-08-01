@@ -37,6 +37,7 @@ const config = {
       'node-hue-api': 'utils/polyfills/empty.js',
       'node-dtls-client': 'utils/polyfills/empty.js',
       'castv2-client': 'utils/polyfills/empty.js',
+      'net': 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',
