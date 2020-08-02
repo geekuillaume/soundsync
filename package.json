@@ -91,7 +91,8 @@
         "libnss3",
         "libasound2",
         "libxss1",
-        "pulseaudio"
+        "pulseaudio",
+        "libgbm1"
       ]
     }
   },
