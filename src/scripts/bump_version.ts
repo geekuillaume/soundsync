@@ -57,6 +57,16 @@ const main = async () => {
   await execPromisify(`git commit -m ":bookmark: v${newVersion}"`);
   await execPromisify(`git tag -a v${newVersion} -m "v${newVersion}"`);
 
+  console.log(`==== Bumping package.json to dev version`);
+  await Promise.all(packagesJsonFiles.map(async (filepath) => {
+    const path = resolve(__dirname, '../../', filepath);
+    let content = (await readFile(path)).toString();
+    content = content.replace(/^\s*"version":.*$/gm, `  "version": "${newVersion}-dev",`);
+    await writeFile(path, content);
+  }));
+  await execPromisify(`git add --all`);
+  await execPromisify(`git commit -m ':construction: Bump to dev version'`);
+
   console.log('New version committed and tagged. To upload use "git push origin master --tags"');
 };
 
