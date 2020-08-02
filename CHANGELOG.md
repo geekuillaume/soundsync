@@ -1,5 +1,27 @@
 # Changelog
 
+<a name="0.2.5"></a>
+## 0.2.5 (2020-08-02)
+
+### Changed
+
+- ♻️ Migrate to Uint8Array instead of Buffer [[398065c](https://github.com/geekuillaume/soundsync/commit/398065c98c3e7aec78d94ac401f92dcbf3287c6f)]
+- ⚡ Reduce memory allocation linked to resampler [[4fb93c9](https://github.com/geekuillaume/soundsync/commit/4fb93c9983c6310c7b9b6eeb1db86a2e17032ec7)]
+- ⬆️ update electron and electron-builder deps [[fafa953](https://github.com/geekuillaume/soundsync/commit/fafa9538c3f0ea59be18d647ff368b4eb1947e49)]
+- ⬆️ update wrtc dep [[9765f50](https://github.com/geekuillaume/soundsync/commit/9765f50e8556f9ee602ea8e8dc63561b2d857f54)]
+
+### Fixed
+
+- 🐛 fix buffer sizing issues by always resampling, fixes [#17](https://github.com/geekuillaume/soundsync/issues/17) [[1c22fba](https://github.com/geekuillaume/soundsync/commit/1c22fbaa9c0a28960377acf068e1c586e79de652)]
+- 🐛 Don&#x27;t exit on error related to autolaunch at startup, fixes [#18](https://github.com/geekuillaume/soundsync/issues/18) [[bb5a4b5](https://github.com/geekuillaume/soundsync/commit/bb5a4b5a12ce7d23c8ff0b094603c4de205fdf20)]
+- 🐛 don&#x27;t exit process on mdns error [[fb6044b](https://github.com/geekuillaume/soundsync/commit/fb6044b187ddf11905dc25a3997bf2d414512c5c)]
+
+### Miscellaneous
+
+- 🔨 Bump to dev version after deploying new version [[9a748e5](https://github.com/geekuillaume/soundsync/commit/9a748e540115137efd461ac097f057fa3eab6357)]
+- 📝 remove development version wording from download links in readme [[f4b59bb](https://github.com/geekuillaume/soundsync/commit/f4b59bbece651343f1e502b891fbc558074ab1b9)]
+
+
 <a name="0.2.4"></a>
 ## 0.2.4 (2020-07-27)
 
