@@ -14,6 +14,6 @@ emcc \
   -s ASSERTIONS=0 \
   -s EXPORTED_RUNTIME_METHODS="['setValue', 'getValue', 'AsciiToString']" \
   -s ENVIRONMENT=node,web \
-  -s EXPORTED_FUNCTIONS="['_malloc', '_free', '_initiate_alac_encoder','_destroy_encoder']" \
+  -s EXPORTED_FUNCTIONS="['_malloc', '_free', '_initiate_alac_encoder','_alac_encode','_destroy_encoder']" \
   ./source/*.cpp ./source/*.c ./glue.cpp
 

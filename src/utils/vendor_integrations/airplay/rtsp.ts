@@ -27,7 +27,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   private socketOutputBuffer = '';
   private sequenceCounter = 1;
   // eslint-disable-next-line no-bitwise
-  private announceId = Math.floor(Math.random() * (2 ** 32));
+  announceId = Math.floor(Math.random() * (2 ** 32));
   private onResponseCallback: (response: RtspResponse) => any;
 
   // aesKey = randomBytes(256).toString('base64').replace(/=/g, '');
@@ -61,8 +61,8 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `m=audio 0 RTP/AVP 96`,
       `a=rtpmap:96 AppleLossless`,
       `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
-      `a=rsaaeskey:${this.aesKey}`,
-      `a=aesiv:${this.aesIv}`,
+      // `a=rsaaeskey:${this.aesKey}`,
+      // `a=aesiv:${this.aesIv}`,
     ].join(`\r\n`);
     await this.sendRequest('ANNOUNCE', null, announceBody, ['Content-Type: application/sdp']);
     const res = await this.sendRequest('SETUP', null, null, [`Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port=${udpControlPort};timing_port=${udpTimingPort}`]);
@@ -81,7 +81,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   sendRequest(method: string, uri?: string, body?: string, additionalHeaders: string[] = []) {
     let requestBody = this._makeHeader(method, uri, [
       ...additionalHeaders,
-      body && `Content-Length: ${body.length}`,
+      body && `Content-Length: ${body.length + 4}`, // +4 because of the \r\n\r\n added at the end of the request
     ]);
     if (body) {
       requestBody += `\r\n\r\n${body}`;
@@ -139,7 +139,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `${method} ${targetUri} RTSP/1.0`,
       `CSeq: ${this.sequenceCounter}`,
       `User-Agent: ${USER_AGENT}`,
-      `DACP-ID: ${this.announceId}`,
+      // `DACP-ID: ${this.announceId}`,
       `Client-Instance: ${this.announceId}`,
       ...additionalHeaders.filter(Boolean),
     ];

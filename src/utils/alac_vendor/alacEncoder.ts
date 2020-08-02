@@ -28,12 +28,14 @@ export class AlacEncoder {
   static initPromise = globalModulePromise as Promise<any>;
 
   constructor() {
-    this.encoderPtr = alacModule._initiate_alac_encoder();
   }
 
-  encode(chunk: Int16Array, outputBuffer: Uint8Array) {
+  encode(chunk: Uint16Array, outputBuffer: Uint8Array) {
     if (!alacModule) {
       throw new Error('You need to wait for AlacEncoder.initPromise before calling this method');
+    }
+    if (!this.encoderPtr) {
+      this.encoderPtr = alacModule._initiate_alac_encoder();
     }
     // We check that we have as many chunks for each channel and that the last chunk is full (2 bytes)
     if (chunk && chunk.length % (CHANNELS * Uint16Array.BYTES_PER_ELEMENT) !== 0) {

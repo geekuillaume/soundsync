@@ -23,7 +23,8 @@ import { AirplaySinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
-import { AirplaySpeaker, SAMPLE_RATE, CHANNELS } from '../../utils/vendor_integrations/airplay/airplaySpeaker';
+import { AirplaySpeaker } from '../../utils/vendor_integrations/airplay/airplaySpeaker';
+import { SAMPLE_RATE, CHANNELS } from '../../utils/vendor_integrations/airplay/airplayConstants';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 export class AirplaySink extends AudioSink {
@@ -33,14 +34,14 @@ export class AirplaySink extends AudioSink {
   host: string;
   port: number;
   private airplay: AirplaySpeaker;
-  private buffer = new CircularTypedArray(Float32Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Float32Array.BYTES_PER_ELEMENT * CHANNELS);
-  private resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_FLOAT32);
+  private buffer = new CircularTypedArray(Uint16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Float32Array.BYTES_PER_ELEMENT * CHANNELS);
+  private resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
 
   constructor(descriptor: AirplaySinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.host = descriptor.host;
     this.port = descriptor.port;
-    this.airplay = new AirplaySpeaker(this.host, this.port, () => this.getCurrentStreamTime() * SAMPLE_RATE, this.getSample);
+    this.airplay = new AirplaySpeaker(this.host, this.port, () => this.getCurrentStreamTime() * (SAMPLE_RATE / 1000), this.getSample);
   }
 
   async _startSink() {
@@ -65,7 +66,7 @@ export class AirplaySink extends AudioSink {
       // will also be set at the start of stream because lastReceivedChunkIndex is -1 at init
       this.buffer.setWriterPointer(this.getCurrentStreamTime() * this.channels * SAMPLE_RATE);
     }
-    this.buffer.setFromWriterPointer(new Float32Array(resampled, resampled.byteOffset, resampled.byteLength / Float32Array.BYTES_PER_ELEMENT));
+    this.buffer.setFromWriterPointer(new Uint16Array(resampled, resampled.byteOffset, resampled.byteLength / Uint16Array.BYTES_PER_ELEMENT));
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<AirplaySinkDescriptor> => ({

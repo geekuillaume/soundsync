@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 import dgram from 'dgram';
 import { TypedEmitter } from 'tiny-typed-emitter';
+import { FRAMES_PER_PACKET } from './airplayConstants';
 
 const RTP_HEADER_A_EXTENSION = 0x10;
 const RTP_HEADER_A_SOURCE = 0x0f;
@@ -139,6 +140,21 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       data.set(this.getNtpTimestamp(originalPacket.sendTime), RTP_HEADER_LENGTH + 4);
       data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH);
       data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH + RTP_NTP_TIMESTAMP_LENGTH);
+      this.socket.send(data, this.clientPort, this.clientHost);
+    },
+    audioData: (alacData: Uint8Array, timestamp: number, firstPacketInStream: boolean, clientSessionId: number, aesKey: string, aesIv: string) => {
+      if (this.clientPort === -1) {
+        return;
+      }
+      // TODO: handle AES encryption
+      const data = new Uint8Array(RTP_HEADER_LENGTH + 4 /* timestamp */ + 4 /* clientSessionId */ + alacData.byteLength);
+      const dv = new DataView(data.buffer);
+      data[0] = 0x80;
+      data[1] = firstPacketInStream ? 0xe0 : 0x60;
+      dv.setUint16(2, timestamp / FRAMES_PER_PACKET);
+      dv.setUint32(4, timestamp);
+      dv.setUint32(8, clientSessionId);
+      data.set(alacData, 12);
       this.socket.send(data, this.clientPort, this.clientHost);
     },
   }

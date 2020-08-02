@@ -1,5 +1,6 @@
 #include "./source/ALACEncoder.h"
 #include "./source/ALACBitUtilities.h"
+#include <stdio.h>
 
 // Inspired from https://github.com/afaden/node_airtunes
 
@@ -43,7 +44,6 @@ extern "C" {
 
   int alac_encode(ALACEncoder *encoder, unsigned char *pcmData, unsigned char *alacData, int bufferSize) {
     int size = bufferSize;
-
     int status = encoder->Encode(inputFormat, outputFormat, pcmData, alacData, &size);
     if (status != 0) {
       return -1;
