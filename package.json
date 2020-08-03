@@ -1,6 +1,6 @@
 {
   "name": "soundsync",
-  "version": "0.2.4",
+  "version": "0.2.5-dev",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
   "homepage": "https://soundsync.app",
@@ -91,7 +91,8 @@
         "libnss3",
         "libasound2",
         "libxss1",
-        "pulseaudio"
+        "pulseaudio",
+        "libgbm1"
       ]
     }
   },
