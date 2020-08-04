@@ -3,7 +3,7 @@ import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY } from
 import { SynchronizedAudioBuffer } from '../../../utils/audio/synchronizedAudioBuffer';
 
 const CHANNELS = 2;
-const BUFFER_SIZE = MAX_LATENCY * OPUS_ENCODER_RATE * CHANNELS;
+const BUFFER_SIZE = MAX_LATENCY * (OPUS_ENCODER_RATE / 1000) * CHANNELS;
 
 const DRIFT_HISTORY_TIME_PERIOD = 10 * 1000; // 10s drift history necessary before taking action (soft or hard sync)
 const DRIFT_HISTORY_SIZE = Math.floor(DRIFT_HISTORY_TIME_PERIOD / (128 / OPUS_ENCODER_RATE) / 1000);
