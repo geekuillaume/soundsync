@@ -17,7 +17,7 @@
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
 import { AudioInstance } from '../utils';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
+  OPUS_ENCODER_RATE, MAX_LATENCY,
 } from '../../utils/constants';
 import { AirplaySinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
@@ -31,17 +31,24 @@ export class AirplaySink extends AudioSink {
   local: true = true;
   type: 'airplay' = 'airplay';
 
+  latency = 500;
   host: string;
   port: number;
   private airplay: AirplaySpeaker;
-  private buffer = new CircularTypedArray(Uint16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Float32Array.BYTES_PER_ELEMENT * CHANNELS);
+  private buffer = new CircularTypedArray(Uint16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Uint16Array.BYTES_PER_ELEMENT * CHANNELS);
   private resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
 
   constructor(descriptor: AirplaySinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.host = descriptor.host;
     this.port = descriptor.port;
-    this.airplay = new AirplaySpeaker(this.host, this.port, () => this.getCurrentStreamTime() * (SAMPLE_RATE / 1000), this.getSample);
+    this.airplay = new AirplaySpeaker(
+      this.host,
+      this.port,
+      () => this.getCurrentStreamTime() * (SAMPLE_RATE / 1000),
+      () => this.buffer.getWriterPointer() / CHANNELS,
+      this.getSample,
+    );
   }
 
   async _startSink() {
@@ -52,9 +59,7 @@ export class AirplaySink extends AudioSink {
   private getSample = (offset: number, length: number) => this.buffer.get(offset, length)
 
   _stopSink = async () => {
-    // if (this.closeHue) {
-    //   await this.closeHue();
-    // }
+    this.airplay.stop();
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
@@ -66,7 +71,7 @@ export class AirplaySink extends AudioSink {
       // will also be set at the start of stream because lastReceivedChunkIndex is -1 at init
       this.buffer.setWriterPointer(this.getCurrentStreamTime() * this.channels * SAMPLE_RATE);
     }
-    this.buffer.setFromWriterPointer(new Uint16Array(resampled, resampled.byteOffset, resampled.byteLength / Uint16Array.BYTES_PER_ELEMENT));
+    this.buffer.setFromWriterPointer(new Uint16Array(resampled.buffer, resampled.byteOffset, resampled.byteLength / Uint16Array.BYTES_PER_ELEMENT));
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<AirplaySinkDescriptor> => ({

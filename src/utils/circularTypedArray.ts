@@ -38,7 +38,7 @@ export class CircularTypedArray<T extends TypedArray> {
   getReaderPointer = () => this.pointersTypedBuffer[1]
   advanceReaderPointer = (value: number) => {
     const previousValue = this.pointersTypedBuffer[1];
-    this.pointersTypedBuffer[1] = (this.pointersTypedBuffer[1] + value) % this.buffer.length;
+    this.pointersTypedBuffer[1] += value;
     return previousValue;
   }
 
@@ -48,7 +48,7 @@ export class CircularTypedArray<T extends TypedArray> {
   getWriterPointer = () => this.pointersTypedBuffer[0]
   advanceWriterPointer = (value: number) => {
     const previousValue = this.pointersTypedBuffer[0];
-    this.pointersTypedBuffer[0] = (this.pointersTypedBuffer[0] + value) % this.buffer.length;
+    this.pointersTypedBuffer[0] += value;
     return previousValue;
   }
 

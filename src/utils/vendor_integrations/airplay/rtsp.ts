@@ -59,8 +59,9 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `c=IN IP4 ${this.host}`,
       `t=0 0`,
       `m=audio 0 RTP/AVP 96`,
-      `a=rtpmap:96 AppleLossless`,
-      `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
+      // `a=rtpmap:96 AppleLossless`,
+      // `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
+      `a=rtpmap:96 L16/44100/2`,
       // `a=rsaaeskey:${this.aesKey}`,
       // `a=aesiv:${this.aesIv}`,
     ].join(`\r\n`);
@@ -69,22 +70,31 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     const [, serverPort] = res.headers.Transport.match(/;server_port=(\d+)/);
     const [, timingPort] = res.headers.Transport.match(/;timing_port=(\d+)/);
     const [, controlPort] = res.headers.Transport.match(/;control_port=(\d+)/);
-    await this.sendRequest('RECORD', null, null, [this.getRtpHeader()]);
-    await this.sendRequest('SET_PARAMETER', null, null, ['Content-Type: text/parameters']);
+    const recordRes = await this.sendRequest('RECORD', null, null, [this.getRtpHeader()]);
+    await this.sendRequest('SET_PARAMETER', null, 'volume: 0.0', ['Content-Type: text/parameters']);
     return {
       serverPort: Number(serverPort),
       timingPort: Number(timingPort),
       controlPort: Number(controlPort),
+      latency: Number(recordRes.headers['Audio-Latency']),
     };
   }
 
+  stop() {
+    this.socket.end();
+    this.socket = null;
+  }
+
   sendRequest(method: string, uri?: string, body?: string, additionalHeaders: string[] = []) {
+    if (!this.socket) {
+      throw new Error('Socket has been deleted');
+    }
     let requestBody = this._makeHeader(method, uri, [
       ...additionalHeaders,
-      body && `Content-Length: ${body.length + 4}`, // +4 because of the \r\n\r\n added at the end of the request
+      body && `Content-Length: ${body.length}`, // +4 because of the \r\n\r\n added at the end of the request
     ]);
     if (body) {
-      requestBody += `\r\n\r\n${body}`;
+      requestBody += body;
     }
     const promise = new Promise<RtspResponse>((resolve, reject) => {
       this.requestsQueue.push({
@@ -104,7 +114,6 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     const request = this.requestsQueue.splice(0, 1)[0];
     log(`Sending`, request.body);
     this.socket.write(request.body);
-    this.socket.write(`\r\n\r\n`);
     // TODO: implement timeout
     this.onResponseCallback = (body) => {
       this.onResponseCallback = null;
@@ -160,7 +169,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     // }
 
     this.sequenceCounter++;
-    return headLines.join(`\r\n`);
+    return `${headLines.join(`\r\n`)}\r\n\r\n`;
   }
 
   private getRtpHeader() {

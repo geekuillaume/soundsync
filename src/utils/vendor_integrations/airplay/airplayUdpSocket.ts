@@ -21,7 +21,7 @@ export enum RTP_PAYLOAD_TYPES {
 }
 
 interface UpdSocketEvents {
-  message: (message: Buffer) => any;
+  message: (message: any, header: RTP_HEADER) => any;
   timingRequest: (message: ReturnType<AirplayUdpSocket['packetParsers']['timingRequest']>, header: RTP_HEADER) => any;
 }
 
@@ -36,7 +36,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       const header = this.parseRtpHeader(message);
       const parsedMessage = this.packetParsers[header.payloadType]?.(message);
       this.emit(header.payloadType, parsedMessage, header);
-      this.emit('message', message);
+      this.emit('message', parsedMessage, header);
     });
   }
 
@@ -68,6 +68,10 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
         this.serverPort += 1;
       }
     }
+  }
+
+  stop() {
+    this.socket.close();
   }
 
   private parseRtpHeader(message: Buffer) {
@@ -103,7 +107,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       integer: dv.getUint32(0),
       fraction: dv.getUint32(4),
     };
-    return (parsed.fraction + (parsed.fraction / 2 ** 32)) * 1000;
+    return (parsed.integer + (parsed.fraction / 2 ** 32)) * 1000;
   }
   private getNtpTimestamp = (time: number) => {
     const data = new Uint8Array(RTP_NTP_TIMESTAMP_LENGTH);
@@ -124,6 +128,10 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       };
       return parsed;
     },
+    rangeResend: (message: Buffer) => ({
+      missedSeq: message.readUInt16BE(RTP_HEADER_LENGTH),
+      missedCount: message.readUInt16BE(RTP_HEADER_LENGTH + 2),
+    }),
   }
 
   packetSender = {
@@ -137,7 +145,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
         payloadType: RTP_PAYLOAD_TYPES.timingResponse,
       });
       data.set(header);
-      data.set(this.getNtpTimestamp(originalPacket.sendTime), RTP_HEADER_LENGTH + 4);
+      data.set(this.getNtpTimestamp(originalPacket.sendTime * 1000), RTP_HEADER_LENGTH + 4);
       data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH);
       data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + 4 + RTP_NTP_TIMESTAMP_LENGTH + RTP_NTP_TIMESTAMP_LENGTH);
       this.socket.send(data, this.clientPort, this.clientHost);
@@ -148,13 +156,31 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       }
       // TODO: handle AES encryption
       const data = new Uint8Array(RTP_HEADER_LENGTH + 4 /* timestamp */ + 4 /* clientSessionId */ + alacData.byteLength);
-      const dv = new DataView(data.buffer);
+      const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
       data[0] = 0x80;
       data[1] = firstPacketInStream ? 0xe0 : 0x60;
-      dv.setUint16(2, timestamp / FRAMES_PER_PACKET);
+      dv.setUint16(2, Math.floor(timestamp / FRAMES_PER_PACKET));
       dv.setUint32(4, timestamp);
       dv.setUint32(8, clientSessionId);
       data.set(alacData, 12);
+      this.socket.send(data, this.clientPort, this.clientHost);
+    },
+    sync: (nextAudioChunkTimestamp: number, currentTime: number, latency: number, isFirst: boolean) => {
+      if (this.clientPort === -1) {
+        return;
+      }
+      const data = new Uint8Array(RTP_HEADER_LENGTH + (Uint32Array.BYTES_PER_ELEMENT * 4));
+      const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
+      data.set(this.getRtpHeader({
+        payloadType: RTP_PAYLOAD_TYPES.sync,
+        marker: true,
+        seqnum: 7,
+        extension: isFirst,
+        source: 0,
+      }));
+      dv.setUint32(RTP_HEADER_LENGTH, nextAudioChunkTimestamp - latency);
+      data.set(this.getNtpTimestamp(Math.max(0, currentTime)), RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT);
+      dv.setUint32(RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT * 3, nextAudioChunkTimestamp);
       this.socket.send(data, this.clientPort, this.clientHost);
     },
   }
