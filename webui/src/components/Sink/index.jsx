@@ -14,6 +14,7 @@ import speaker from 'res/speaker.svg';
 import nullSinkLogo from 'res/null.svg';
 import browserIcon from 'res/browser.svg';
 import hueBulbIcon from 'res/huebulb.svg';
+import airplayIcon from 'res/airplay.svg';
 import { getLocalPeer } from '../../../../src/communication/local_peer';
 import { SinkContextMenu } from './SinkContextMenu';
 import { AudioErrorIndicator } from '../utils/AudioErrorIndicator';
@@ -23,6 +24,7 @@ const logos = {
   null: nullSinkLogo,
   webaudio: browserIcon,
   huelight: hueBulbIcon,
+  airplay: airplayIcon,
 };
 
 export const Sink = ({ sink }) => {

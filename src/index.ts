@@ -67,6 +67,7 @@ const main = async () => {
       Capacity.Hue,
       Capacity.ChromecastInteraction,
       Capacity.SharedStateKeeper,
+      Capacity.AirplaySink,
     ].filter(Boolean),
   });
 

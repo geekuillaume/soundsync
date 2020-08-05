@@ -8,6 +8,7 @@ import { DownloadLinks } from '../FirstUse/DownloadLinks';
 import { SinkTypeSelection } from './SinkTypeSelection';
 import { AddHueSink } from './AddHueSink';
 import { AddChromecastPeer } from './AddChromecastSink';
+import { AddAirplaySink } from './AddAirplaySink';
 
 const useStyles = makeStyles({
   openDialogButton: {
@@ -43,6 +44,7 @@ export const AddSinkButton = () => {
         {dialogOpen === 'localDevice' && <DownloadLinks twoLinesLayout />}
         {dialogOpen === 'hue' && <AddHueSink onDialogClose={() => setDialogOpen(false)} />}
         {dialogOpen === 'chromecast' && <AddChromecastPeer onDialogClose={() => setDialogOpen(false)} />}
+        {dialogOpen === 'airplay' && <AddAirplaySink onDialogClose={() => setDialogOpen(false)} />}
       </Dialog>
     </>
   );

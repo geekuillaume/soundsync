@@ -33,6 +33,7 @@ export enum Capacity {
   Hue = 'hue',
   ChromecastInteraction = 'chromecast_interaction',
   SharedStateKeeper = 'shared_state_keeper', // a keeper can be trusted with not changing network of peer and can be considered a source of truth, this is useful to prevent the webui to leak state to another set of peer in another network
+  AirplaySink = 'airplay_sink',
 }
 
 export abstract class Peer extends EventEmitter {

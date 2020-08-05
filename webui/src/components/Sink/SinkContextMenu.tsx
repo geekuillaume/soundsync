@@ -17,7 +17,7 @@ import { useRegisterForPipe, useUnpipeAction } from 'utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
 import { AudioSink } from '../../../../src/audio/sinks/audio_sink';
 
-const DELETABLE_SINK_TYPES = ['huelight'];
+const DELETABLE_SINK_TYPES = ['huelight', 'airplay'];
 
 const EditPopover = withStyles((t) => ({
   paper: {
@@ -145,7 +145,7 @@ export const SinkContextMenu = ({
 
   const handleDelete = () => {
     sink.peer.sendRcp('deleteSink', sink.uuid);
-  }
+  };
 
   const defaultModalContent = (
     <>

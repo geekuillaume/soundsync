@@ -2,9 +2,10 @@ import React from 'react';
 import {
   makeStyles, DialogTitle, DialogContent, Button,
 } from '@material-ui/core';
-import computerIcon from '../../res/computer.svg';
-import philipsHueLogo from '../../res/philipshuelogo.png';
-import chromecastLogo from '../../res/chromecast.png';
+import computerIcon from 'res/computer.svg';
+import philipsHueLogo from 'res/philipshuelogo.png';
+import chromecastLogo from 'res/chromecast.png';
+import airplayIcon from 'res/airplay.svg';
 
 const useStyles = makeStyles(() => ({
   typeButton: {
@@ -40,17 +41,21 @@ export const SinkTypeSelection = ({ onTypeSelected }) => {
     <>
       <DialogTitle>Add a new audio output</DialogTitle>
       <DialogContent className={styles.buttonsContainer}>
-        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('localDevice')}>
-          <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />
-          <span>Use another device</span>
-        </Button>
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('hue')}>
           <img src={philipsHueLogo} alt="" className={styles.sourceTypeLogo} />
-          <span>Use Philips Hue lights</span>
+          <span>Philips Hue lights</span>
         </Button>
         <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('chromecast')}>
           <img src={chromecastLogo} alt="" className={styles.sourceTypeLogo} />
-          <span>Use a Chromecast</span>
+          <span>Chromecast</span>
+        </Button>
+        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('airplay')}>
+          <img src={airplayIcon} alt="" className={styles.sourceTypeLogo} />
+          <span>Airplay Speaker</span>
+        </Button>
+        <Button classes={{ label: styles.buttonLabel }} className={styles.typeButton} variant="outlined" onClick={() => onTypeSelected('localDevice')}>
+          <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />
+          <span>Computer</span>
         </Button>
       </DialogContent>
     </>
