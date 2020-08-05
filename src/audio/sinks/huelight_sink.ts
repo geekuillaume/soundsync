@@ -196,6 +196,7 @@ export class HueLightSink extends AudioSink {
       instanceUuid: this.instanceUuid,
       latency: this.latency,
       available: this.available,
+      error: this.error,
     }),
   })
 }

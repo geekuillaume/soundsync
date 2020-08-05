@@ -15,6 +15,7 @@
 // scanForAirplaySinks();
 
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
+import { AudioError } from '../../utils/misc';
 import { AudioInstance } from '../utils';
 import {
   OPUS_ENCODER_RATE, MAX_LATENCY,
@@ -53,7 +54,14 @@ export class AirplaySink extends AudioSink {
 
   async _startSink() {
     this.log('Connecting to Airplay sink');
-    await this.airplay.start();
+    try {
+      await this.airplay.start();
+    } catch (e) {
+      if (e.errno === 'ECONNREFUSED') {
+        throw new AudioError('Airplay speaker not found', e);
+      }
+      throw new AudioError('Unknown error', e);
+    }
   }
 
   private getSample = (offset: number, length: number) => this.buffer.get(offset, length)
@@ -88,6 +96,7 @@ export class AirplaySink extends AudioSink {
       instanceUuid: this.instanceUuid,
       latency: this.latency,
       available: this.available,
+      error: this.error,
     }),
   })
 }

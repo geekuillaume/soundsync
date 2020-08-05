@@ -69,3 +69,19 @@ export const randomString = (length: number) => {
 export const randomHex = (bytes: number) => randomBytes(bytes).toString('hex');
 export const randomBase64 = (bytes: number) => randomBytes(bytes).toString('base64');
 export const addDashesToUuid = (uuid: string) => `${uuid.substr(0, 8)}-${uuid.substr(8, 4)}-${uuid.substr(12, 4)}-${uuid.substr(16, 4)}-${uuid.substr(20)}`;
+
+export class AudioError extends Error {
+  originalError: any;
+  constructor(humanMessage: string, originalError?: any) {
+    super(humanMessage);
+    this.originalError = originalError;
+  }
+
+  toString() {
+    let message = this.message;
+    if (this.originalError) {
+      message += ` (${this.originalError.toString()})`;
+    }
+    return message;
+  }
+}

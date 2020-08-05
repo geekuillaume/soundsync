@@ -29,6 +29,7 @@ export abstract class AudioSink extends EventEmitter {
   volume: number;
   latency = 0;
   instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
+  error?: string;
 
   protected pipedSource?: AudioSource;
   protected log: debug.Debugger;
@@ -152,10 +153,20 @@ export abstract class AudioSink extends EventEmitter {
       await this._startSink(this.pipedSource);
     } catch (e) {
       this.log(`Error while starting sink`, e);
+      this.updateInfo({
+        error: e.toString(),
+      });
+      return;
+    }
+    if (this.error) {
+      this.updateInfo({ error: null });
     }
   }
 
   unlinkSource() {
+    if (this.error) {
+      this.updateInfo({ error: null });
+    }
     if (!this.pipedSource) {
       return;
     }
@@ -214,6 +225,7 @@ export abstract class AudioSink extends EventEmitter {
       instanceUuid: this.instanceUuid,
       latency: this.latency,
       peerUuid: this.peerUuid,
+      error: this.error,
     }),
   })
 }

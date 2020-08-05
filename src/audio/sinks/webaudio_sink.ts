@@ -131,6 +131,7 @@ export class WebAudioSink extends AudioSink {
       instanceUuid: this.instanceUuid,
       latency: this.latency,
       available: this.available,
+      error: this.error,
     }),
   })
 }
