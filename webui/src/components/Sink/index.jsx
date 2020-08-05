@@ -16,6 +16,7 @@ import browserIcon from 'res/browser.svg';
 import hueBulbIcon from 'res/huebulb.svg';
 import { getLocalPeer } from '../../../../src/communication/local_peer';
 import { SinkContextMenu } from './SinkContextMenu';
+import { AudioErrorIndicator } from '../utils/AudioErrorIndicator';
 
 const logos = {
   localdevice: speaker,
@@ -72,9 +73,12 @@ export const Sink = ({ sink }) => {
         />
         <div className="box sink-box" onClick={() => setContextMenuOpen(true)}>
           <img src={sinkLogo} alt="" className={classnames('sink-logo', sink.type)} />
-          <p className="name">{nameWithoutHiddenMeta(sink.name)}</p>
+          <p className="name">
+            {nameWithoutHiddenMeta(sink.name)}
+          </p>
           <p className={classnames('peer-name', { ownPeer: peer.uuid === getLocalPeer().uuid })}>{peerName}</p>
           {hidden && <HiddenIndicator position="left" />}
+          {sink.error && <AudioErrorIndicator error={sink.error} />}
         </div>
         <SinkContextMenu isOpen={contextMenuOpen} sink={sink} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
       </div>
