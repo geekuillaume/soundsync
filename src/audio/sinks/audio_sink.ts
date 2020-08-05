@@ -52,6 +52,7 @@ export abstract class AudioSink extends EventEmitter {
     this.pipedFrom = descriptor.pipedFrom;
     this.available = descriptor.available ?? true;
     this.volume = descriptor.volume ?? 1;
+    this.error = descriptor.error;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.latency = descriptor.latency ?? 0;
