@@ -209,17 +209,6 @@ export abstract class AudioSource {
     }
   }
 
-  toObject = () => ({
-    name: this.name,
-    uuid: this.uuid,
-    type: this.type,
-    channels: this.channels,
-    rate: this.rate,
-    peerUuid: this.peerUuid,
-    latency: this.latency,
-    available: this.available,
-  })
-
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<BaseSourceDescriptor> => ({
     name: this.name,
     uuid: this.uuid,
