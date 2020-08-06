@@ -7,8 +7,11 @@ import {
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
-import { useRegisterForPipe } from '../utils/useSoundSyncState';
-import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
+import { useRegisterForPipe } from 'utils/useSoundSyncState';
+import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
+import { AudioSource } from '../../../../src/audio/sources/audio_source';
+
+const DELETABLE_SOURCE_TYPES = ['librespot', 'shairport', 'null'];
 
 const EditPopover = withStyles((t) => ({
   paper: {
@@ -38,18 +41,19 @@ const PopoverTextField = withStyles(() => ({
   },
 }))(({ classes, InputProps, ...props }) => (<TextField {...props} InputProps={{ classes, ...InputProps }} />));
 
-export const useEditAudioStreamModal = (type, audioStream) => {
-  // const theme = useTheme();
-  // const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+export const SourceContextMenu = (
+  {
+    isOpen, onClose, source, anchor,
+  }: { source: AudioSource; isOpen: boolean; onClose: () => any; anchor: HTMLElement },
+) => {
   const { enqueueSnackbar } = useSnackbar();
-  const [open, setOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
-  const anchor = useRef();
-  const inputEl = useRef();
-  const hidden = isHidden(audioStream.name);
+  const inputEl = useRef<HTMLInputElement>();
+  const hidden = isHidden(source.name);
+  const canBeDeleted = DELETABLE_SOURCE_TYPES.includes(source.type);
 
   const handleClose = () => {
-    setOpen(false);
+    onClose();
     // because of popover close animation
     setTimeout(() => {
       setRenameOpen(false);
@@ -58,41 +62,44 @@ export const useEditAudioStreamModal = (type, audioStream) => {
 
   const handleRenameButtonClick = () => setRenameOpen(true);
   const handleRename = async () => {
+    if (inputEl.current) {
+      return;
+    }
     const newName = inputEl.current.value;
-    if (newName !== nameWithoutHiddenMeta(audioStream.name)) {
-      audioStream.patch({ name: hidden ? `[hidden] ${newName}` : newName });
+    if (newName !== nameWithoutHiddenMeta(source.name)) {
+      source.patch({ name: hidden ? `[hidden] ${newName}` : newName });
     }
     handleClose();
   };
+
   const handleHide = async () => {
-    const newName = hidden ? nameWithoutHiddenMeta(audioStream.name) : `[hidden] ${audioStream.name}`;
-    // await edit(type, audioStream.uuid, { name: newName });
-    audioStream.patch({ name: newName });
+    const newName = hidden ? nameWithoutHiddenMeta(source.name) : `[hidden] ${source.name}`;
+    // await edit(type, source.uuid, { name: newName });
+    source.patch({ name: newName });
     handleClose();
   };
-  const registerForPipe = useRegisterForPipe(type, audioStream)[2];
+
+  const registerForPipe = useRegisterForPipe('source', source)[2];
   const handleLink = () => {
     handleClose();
-    // @ts-ignore
     const { piped } = registerForPipe();
     if (!piped) {
       enqueueSnackbar('Select which speaker to use in the list', { autoHideDuration: 3000 });
     }
   };
 
-  const canBeDeleted = type === 'source' && (audioStream.type === 'librespot' || audioStream.type === 'shairport' || audioStream.type === 'null');
   const handleDelete = () => {
-    audioStream.peer.sendControllerMessage({
+    source.peer.sendControllerMessage({
       type: 'sourceDelete',
-      sourceUuid: audioStream.uuid,
+      sourceUuid: source.uuid,
     });
     handleClose();
   };
 
-  const modal = (
+  return (
     <EditPopover
-      anchorEl={anchor.current}
-      open={open}
+      anchorEl={anchor}
+      open={isOpen}
       onClose={handleClose}
       anchorOrigin={{
         vertical: 'center',
@@ -106,7 +113,7 @@ export const useEditAudioStreamModal = (type, audioStream) => {
       {renameOpen
         && (
         <PopoverTextField
-          defaultValue={nameWithoutHiddenMeta(audioStream.name)}
+          defaultValue={nameWithoutHiddenMeta(source.name)}
           fullWidth
           InputProps={{
             inputRef: inputEl,
@@ -129,17 +136,12 @@ export const useEditAudioStreamModal = (type, audioStream) => {
           <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
+          {canBeDeleted && (
+            <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>
+          )}
           {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(audioStream)}>Log info</PopoverButton>}
         </>
       )}
-      {canBeDeleted && (
-        <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>
-      )}
     </EditPopover>
   );
-  return {
-    handleOpen: () => setOpen(true),
-    modal,
-    anchor,
-  };
 };

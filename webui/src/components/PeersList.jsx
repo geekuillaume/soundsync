@@ -3,12 +3,11 @@ import Dialog from '@material-ui/core/Dialog';
 import {
   makeStyles, DialogTitle, ListSubheader, List, ListItem, ListItemText, ListItemAvatar,
 } from '@material-ui/core';
-import DevicesIcon from '@material-ui/icons/Devices';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import AdjustIcon from '@material-ui/icons/Adjust';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
-import { usePeersManager } from '../utils/useSoundSyncState';
+import { usePeersManager } from 'utils/useSoundSyncState';
 
 const useStyles = makeStyles({
   dialog: {

@@ -3,8 +3,8 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {
   useSinks, useSources, usePipes, useIsConnected,
-} from '../utils/useSoundSyncState';
-import { Source } from './Source';
+} from 'utils/useSoundSyncState';
+import { Source } from './Source/Source';
 import { Sink } from './Sink';
 import { Pipe } from './Pipe';
 import { AddSinkButton } from './AddSink/AddSinkButton';
@@ -25,14 +25,14 @@ export const SoundState = () => {
           Speakers
         </div>
         {isConnected && (
-            <>
-              <SourcesList sources={sources} />
-              <PipesList pipes={pipes} />
-              <SinksList sinks={sinks} />
-              <AddSourceButton />
-              <AddSinkButton />
-            </>
-          )}
+        <>
+          <SourcesList sources={sources} />
+          <PipesList pipes={pipes} />
+          <SinksList sinks={sinks} />
+          <AddSourceButton />
+          <AddSinkButton />
+        </>
+        )}
       </div>
       {!isConnected && <ConnectingIndicator />}
     </div>
@@ -63,7 +63,7 @@ const ConnectingIndicator = () => {
     const handle = setTimeout(() => setLongConnect(true), 4000);
     return () => {
       clearTimeout(handle);
-    }
+    };
   }, []);
 
   return (
@@ -71,11 +71,13 @@ const ConnectingIndicator = () => {
       <div className="connecting-message">
         <CircularProgress />
         <p>Connecting...</p>
-        {longConnect && <p>
+        {longConnect && (
+        <p>
           Soundsync is scanning your local network for Soundsync enabled devices. Make sure Soundsync is started on your computer and that you are connected to the same network / wifi as the other devices. If this doesn't work, try using the "Open Controller" button in the Soundsync menu on your computer system tray.
-        </p>}
+        </p>
+        )}
       </div>
       <FirstUse />
     </>
   );
-}
+};

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { debounce } from 'lodash';
 import { useSnackbar } from 'notistack';
 import classnames from 'classnames';
@@ -6,15 +6,15 @@ import { Zoom } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   usePeer, useSources, useRegisterForPipe, useShowHidden,
-} from '../utils/useSoundSyncState';
-import { useEditAudioStreamModal } from './editModal';
+} from 'utils/useSoundSyncState';
 
-import SpotifyLogo from '../res/spotify.svg';
-import computerIcon from '../res/computer.svg';
-import nullSinkLogo from '../res/null.svg';
-import airplayIcon from '../res/airplay.svg';
-import { nameWithoutHiddenMeta, isHidden } from '../utils/hiddenUtils';
-import { HiddenIndicator } from './utils/HiddenIndicator';
+import SpotifyLogo from 'res/spotify.svg';
+import computerIcon from 'res/computer.svg';
+import nullSinkLogo from 'res/null.svg';
+import airplayIcon from 'res/airplay.svg';
+import { nameWithoutHiddenMeta, isHidden } from '../../utils/hiddenUtils';
+import { HiddenIndicator } from '../utils/HiddenIndicator';
+import { SourceContextMenu } from './SourceContextMenu';
 
 
 const logos = {
@@ -44,10 +44,11 @@ export const Source = ({ source }) => {
   const sourceLogo = logos[source.type];
   const sources = useSources();
   const sourceIndex = sources.indexOf(source);
-  const { handleOpen, anchor, modal } = useEditAudioStreamModal('source', source);
   const hidden = isHidden(source.name);
   const shouldShowHidden = useShowHidden();
   const { enqueueSnackbar } = useSnackbar();
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const anchor = useRef();
 
   const handleDrag = useCallback(debounce(() => {
     enqueueSnackbar('Click on the speaker you want to link');
@@ -74,14 +75,14 @@ export const Source = ({ source }) => {
           draggable
           onDrag={handleDrag}
         />
-        <div className="box source-box" onClick={handleOpen}>
+        <div className="box source-box" onClick={() => setContextMenuOpen(true)}>
           <img src={sourceLogo} alt="" className="source-logo" />
           <p className="name">{nameWithoutHiddenMeta(source.name)}</p>
           <p className="peer-name">{peer.name}</p>
           {hidden && <HiddenIndicator />}
           {source.active && <div className={styles.activeIndicator} alt="Currently playing" />}
         </div>
-        {modal}
+        <SourceContextMenu isOpen={contextMenuOpen} source={source} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
       </div>
     </Zoom>
   );

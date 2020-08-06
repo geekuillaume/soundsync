@@ -18,7 +18,7 @@ export const App = () => {
       <>
         <p>Your browser doesn't support the necessary web features to handle Soundsync. Chrome and Firefox are known to support Soundsync. Please download a compatible browser or update yours to use Soundsync.</p>
       </>
-    )
+    );
   }
   return (
     <SnackbarProvider>

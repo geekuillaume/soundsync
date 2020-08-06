@@ -9,14 +9,13 @@ import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Tooltip from '@material-ui/core/Tooltip';
 
-import { useShowHidden, useSetHiddenVisibility } from '../utils/useSoundSyncState';
-
 import GitHubIcon from '@material-ui/icons/GitHub';
 import QuestionAnswerIcon from '@material-ui/icons/QuestionAnswer';
-import logo from '../res/logo_only.svg';
-import { PeersListDialog } from './PeersList';
+import { useShowHidden, useSetHiddenVisibility } from 'utils/useSoundSyncState';
+import logo from 'res/logo_only.svg';
+import { PeersListDialog } from 'components/PeersList';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
     backgroundImage: 'linear-gradient(141deg,#1f191a 0,#363636 71%,#46403f 100%)',
@@ -24,11 +23,16 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     color: 'white',
     '&:hover': {
-      color: 'white'
-    }
+      color: 'white',
+    },
   },
   title: {
     flexGrow: 1,
+  },
+  betaIndicator: {
+    fontSize: '0.6em',
+    transform: 'translateY(-10px)',
+    display: 'inline-block',
   },
 }));
 
@@ -44,6 +48,8 @@ export const Header = () => {
         <img src={logo} className="soundsync-logo" />
         <Typography variant="h6" className={classes.title}>
           Soundsync
+          {' '}
+          <span className={classes.betaIndicator}>BETA</span>
         </Typography>
         <Tooltip title="Join the discussion on Discord" aria-label="Join the discussion on Discord">
           <IconButton

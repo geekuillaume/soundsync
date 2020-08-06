@@ -78,7 +78,7 @@ export const SoundSyncProvider = ({ children }) => {
 export const useIsConnected = () => some(useContext(soundSyncContext).peersManagers.peers, (peer) => !peer.isLocal && peer.state === 'connected');
 
 const audioSourceSinkGetter = (collection) => {
-  let inputCollection = Array.from(collection) as (AudioSource | AudioSink)[];
+  const inputCollection = Array.from(collection) as (AudioSource | AudioSink)[];
   const sortedCollection = inputCollection.sort((a, b) => a.name.localeCompare(b.name));
   const availableCollection = sortedCollection.filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
   const [visible, hidden] = partition(availableCollection, (s) => !isHidden(s.name));
@@ -95,7 +95,7 @@ export const usePeersManager = () => useContext(soundSyncContext).peersManagers 
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;
 export const usePeer = (uuid) => usePeersManager().getConnectedPeerByUuid(uuid);
 
-export const useRegisterForPipe = (type, audioObject) => {
+export const useRegisterForPipe = (type, audioObject): [boolean, boolean, () => any] => {
   const { state, dispatch } = useContext(soundSyncContext);
   const isSelectedElement = state.registeringForPipe.selectedSink === audioObject || state.registeringForPipe.selectedSource === audioObject;
   const selectedObjectType = state.registeringForPipe.selectedSink ? 'sink' : state.registeringForPipe.selectedSource ? 'source' : null;
