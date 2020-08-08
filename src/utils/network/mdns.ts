@@ -70,9 +70,13 @@ export class Mdns extends TypedEmitter<MdnsEvents> {
       socket.bind(port, address);
     });
     if (port === 5353) {
-      socket.addMembership(MDNS_MULTICAST);
-      socket.setMulticastTTL(255);
-      socket.setMulticastLoopback(true);
+      try {
+        socket.addMembership(MDNS_MULTICAST);
+        socket.setMulticastTTL(255);
+        socket.setMulticastLoopback(true);
+      } catch (e) {
+        log(`Error while binding socket to multicast`);
+      }
     }
     this.connections.push({ socket });
 
