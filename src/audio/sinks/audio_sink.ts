@@ -14,6 +14,7 @@ import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/get_peers_manager';
 import { SourceUUID } from '../sources/source_type';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
+import { AUDIO_SINK_EVENT_INTERVAL, captureEvent } from '../../utils/vendor_integrations/posthog';
 
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
 export abstract class AudioSink extends EventEmitter {
@@ -194,6 +195,12 @@ export abstract class AudioSink extends EventEmitter {
     this.handleAudioChunk(chunk);
     // we should update lastReceivedChunkIndex after handleAudioChunk to let the sink implementation use this info
     this.lastReceivedChunkIndex = chunk.i;
+    if ((chunk.i * OPUS_ENCODER_CHUNK_DURATION) % AUDIO_SINK_EVENT_INTERVAL === 0 && chunk.i !== 0) {
+      captureEvent('Audio sink 10 minutes', {
+        type: this.type,
+        localSource: this.pipedSource.local,
+      });
+    }
   }
 
   abstract handleAudioChunk(chunk: AudioChunkStreamOutput);

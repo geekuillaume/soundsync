@@ -32,6 +32,7 @@
     "node-hue-api": "^4.0.6",
     "open": "^7.0.0",
     "perf_hooks": "^0.0.1",
+    "posthog-node": "^1.0.3",
     "scijs-window-functions": "^2.0.2",
     "smoothstep": "^1.0.1",
     "superagent": "^5.2.1",

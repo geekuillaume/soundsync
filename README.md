@@ -94,6 +94,8 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 
 - *How to install on a headless RaspberryPi Install?* <br/> Assuming you're using raspbian, first download the package with `wget https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb`, install it with `sudo dpkg -i ./soundsync_0.1.0_armv7l.deb`, if some dependencies are missing install them with `sudo apt-get install -f` than start Soundsync and activate it to be started at startup with `sudo systemctl enable --now soundsync.service`.
 
+- *How to disable telemetry?* <br/> Soundsync sends some non-identifiable information to our own usage tracker (based on [Posthog](https://github.com/PostHog/posthog) and hosted on our own server). You can see the list of events sent in the [Posthog integration file](./src/utils/vendor_integrations/posthog.ts). If you want to disable this, you can set the `disableTelemetry` flag in the config file to `true`.
+
 ## Development
 
 ### Building opus

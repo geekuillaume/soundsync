@@ -4,7 +4,9 @@ import _ from 'lodash';
 
 import MiniPass from 'minipass';
 import { createAudioEncodedStream } from '../../utils/audio/chunk_stream';
-import { INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN } from '../../utils/constants';
+import {
+  INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_CHUNK_DURATION,
+} from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
 } from './source_type';
@@ -12,6 +14,7 @@ import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { getPeersManager } from '../../communication/get_peers_manager';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 import { now } from '../../utils/misc';
+import { AUDIO_SOURCE_EVENT_INTERVAL, captureEvent } from '../../utils/vendor_integrations/posthog';
 
 const DEFAULT_LATENCY = 1000;
 
@@ -124,6 +127,11 @@ export abstract class AudioSource {
             this.initAudioEncodedStream();
           }
           this.encodedSourceStream.input.write(d);
+        }
+        if (this.consumersStreams.length || this.encodedConsumersStreams.length) {
+          if ((d.i * OPUS_ENCODER_CHUNK_DURATION) % AUDIO_SOURCE_EVENT_INTERVAL === 0 && d.i !== 0) {
+            captureEvent('Audio source 10 minutes', { type: this.type });
+          }
         }
       });
       try {
