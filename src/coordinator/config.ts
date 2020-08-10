@@ -16,7 +16,7 @@ import { SourceDescriptor } from '../audio/sources/source_type';
 import { AudioSource } from '../audio/sources/audio_source';
 import { AudioSink } from '../audio/sinks/audio_sink';
 import { SharedState } from './shared_state';
-import { captureEvent } from '../utils/vendor_integrations/posthog';
+import { trackInstall } from '../utils/vendor_integrations/posthog';
 
 const log = debug(`soundsync:config`);
 
@@ -81,7 +81,7 @@ export const initConfig = (dirOverride?: string) => {
 
     log(`Reading config from ${configFilePath}`);
     if (!existsSync(configFilePath)) {
-      setTimeout(() => { captureEvent('First run'); }, 1000); // used to let the config initiate before sending events that need the uuid
+      setTimeout(() => { trackInstall(); }, 1000); // used to let the config initiate before sending events that need the uuid
       writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
     }
     configRawData = readFileSync(configFilePath).toString() || '{}';
@@ -122,6 +122,9 @@ export const setConfig = (setter: (config: ConfigData) => any) => {
 export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigData) => {
   const configData = c || config.configData;
   if (configData[field] === undefined) {
+    setConfig((newConfig) => {
+      newConfig[field] = defaultConfig[field];
+    });
     return defaultConfig[field];
   }
   return (c || config.configData)[field];
