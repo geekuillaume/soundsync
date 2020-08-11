@@ -17,6 +17,10 @@ export const SoundState = () => {
   const sources = useSources();
   const isConnected = useIsConnected();
 
+  useEffect(() => {
+    window.localStorage.setItem('soundsync:redirectToController', true);
+  }, []);
+
   return (
     <div className="container">
       <div className="scene-grid">

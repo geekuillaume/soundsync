@@ -37,7 +37,7 @@ const config = {
       'node-hue-api': 'utils/polyfills/empty.js',
       'node-dtls-client': 'utils/polyfills/empty.js',
       'castv2-client': 'utils/polyfills/empty.js',
-      'net': 'utils/polyfills/empty.js',
+      net: 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',
@@ -63,6 +63,7 @@ const config = {
     new webpack.DefinePlugin({
       'process.browser': JSON.stringify(true),
       'process.env.RENDEZVOUS_SERVICE_URL': JSON.stringify(process.env.RENDEZVOUS_SERVICE_URL),
+      'process.env.DEV_MODE': process.env.NODE_ENV === 'development' ? 'true' : 'false',
     }),
     new MiniCssExtractPlugin(),
     new CopyPlugin({

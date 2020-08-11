@@ -8,6 +8,14 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "allowJs": true
+    "allowJs": true,
+    "moduleResolution": "node",
+    "baseUrl": "src",
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "*"
+      ]
+    }
   }
 }
