@@ -8,6 +8,7 @@ export const fatalErrorHandler = (e: Error) => {
   let dialogText = e.stack;
   if (e.stack.includes('module could not be found') && process.platform === 'win32') {
     dialogText = `Please try installing Visual C++ 2019 redistributable from Microsoft website and try again.\nError details: ${e.stack}`;
+    open('https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads');
   }
   // eslint-disable-next-line no-console
   console.error(dialogText);
