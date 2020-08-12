@@ -2,6 +2,7 @@
 import {
   readFileSync, existsSync, writeFileSync,
 } from 'fs';
+import open from 'open';
 import { resolve } from 'path';
 import { hostname } from 'os';
 import envPaths from 'env-paths';
@@ -81,7 +82,10 @@ export const initConfig = (dirOverride?: string) => {
 
     log(`Reading config from ${configFilePath}`);
     if (!existsSync(configFilePath)) {
-      setTimeout(() => { trackInstall(); }, 1000); // used to let the config initiate before sending events that need the uuid
+      setTimeout(() => {
+        trackInstall();
+        open('https://soundsync.app/controller');
+      }, 1000); // used to let the config initiate before sending events that need the uuid
       writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
     }
     configRawData = readFileSync(configFilePath).toString() || '{}';
