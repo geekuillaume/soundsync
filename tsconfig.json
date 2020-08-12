@@ -11,11 +11,9 @@
       "baseUrl": "src",
       "resolveJsonModule": true,
       "skipLibCheck": true,
-
       "sourceRoot": "/",
       "inlineSources": true,
       "inlineSourceMap": true,
-
       "paths": {
           "*": [
               "node_modules/*",

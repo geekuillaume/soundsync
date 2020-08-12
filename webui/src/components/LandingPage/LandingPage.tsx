@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Link,
 } from 'react-router-dom';
-import {
-  makeStyles,
-} from '@material-ui/core/styles';
-import { Header } from 'components/Header';
-import { Button, Dialog } from '@material-ui/core';
-import { DownloadLinks } from 'components/FirstUse/DownloadLinks';
+import { makeStyles } from '@material-ui/core/styles';
+import { Button, Typography } from '@material-ui/core';
 
-import heroIllustration from 'res/landing_hero_illustration.svg';
 import { useIsConnected } from 'utils/useSoundSyncState';
+import { LandingCompatibility } from 'components/LandingPage/LandingCompatibility';
+import { LandingPresentation } from 'components/LandingPage/Presentation';
+import { LandingDownload } from 'components/LandingPage/LandingDownload';
+import Logo from 'res/logo_only.svg';
+import { LandingFAQ } from 'components/LandingPage/LandingFAQ';
+import { LandingFooter } from 'components/LandingPage/LandingFooter';
 
 const useStyles = makeStyles((t) => ({
   root: {
@@ -18,156 +19,133 @@ const useStyles = makeStyles((t) => ({
     minWidth: '100vw',
     backgroundColor: t.palette.background.default,
   },
-  hero: {
-    margin: 'auto',
-    maxWidth: t.breakpoints.values.md,
-    minHeight: '50vh',
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding: 15,
+  },
+  headerTitleContainer: {
     display: 'flex',
-    padding: '130px 30px 60px 30px',
-    backgroundImage: `url(${heroIllustration})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '50%',
-    backgroundPosition: '100% 100%',
-    marginBottom: 80,
-    [t.breakpoints.down('sm')]: {
-      backgroundSize: '60%',
-      paddingBottom: 200,
-      paddingTop: 50,
-    },
+    color: 'white',
+    width: t.breakpoints.values.md,
+    margin: 'auto',
+    maxWidth: '100%',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  betaIndicator: {
+    fontSize: '0.6em',
+    transform: 'translateY(-10px)',
+    display: 'inline-block',
+  },
+  hero: {
+    minHeight: '60vh',
+    display: 'flex',
+    padding: '130px 30px',
+    background: 'linear-gradient(225deg, #00163A, #0063E6)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headlineContainer: {
-    width: '50%',
+    width: t.breakpoints.values.md,
+    maxWidth: '100%',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    color: t.palette.common.white,
     [t.breakpoints.down('sm')]: {
       width: '100%',
     },
+    fontFamily: '\'Sora\', sans-serif',
   },
   headline: {
-    fontSize: '2.5rem',
+    fontSize: '3rem',
     marginBottom: 20,
+    fontWeight: 200,
+    '& span': {
+      fontWeight: 400,
+      display: 'block',
+    },
+  },
+  cta: {
+    backgroundColor: 'black',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: 'rgb(20,20,20)',
+    },
   },
   subHeadline: {
     fontSize: '1.5rem',
     color: t.palette.grey[600],
     marginBottom: 20,
   },
-  presentationContainer: {
+  compatibilityIntro: {
+    width: t.breakpoints.values.sm,
     margin: 'auto',
-    maxWidth: t.breakpoints.values.md,
-    display: 'flex',
-    alignItems: 'center',
-    minHeight: '50vh',
-  },
-  presentationText: {
-    width: '50%',
-    fontSize: '1.4rem',
-  },
-  cta: {
-  },
-  soundsyncDetectedContainer: {
-    marginTop: 30,
     textAlign: 'center',
-  },
-  compatibilityContainer: {
-    backgroundColor: t.palette.primary.main,
-    display: 'flex',
-    padding: '80px 30px',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  downloadContainer: {
-    backgroundColor: t.palette.secondary.main,
-    display: 'flex',
-    padding: '80px 30px',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  faqContainer: {
-    backgroundColor: t.palette.primary.main,
-    display: 'flex',
-    padding: '80px 30px',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  aboutContainer: {
-    backgroundColor: t.palette.secondary.main,
-    display: 'flex',
-    padding: '80px 30px',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compatibilityContentContainer: {
-    maxWidth: t.breakpoints.values.md,
-  },
-  downloadContentContainer: {
-    maxWidth: t.breakpoints.values.md,
-  },
-  faqContentContainer: {
-    maxWidth: t.breakpoints.values.md,
-  },
-  aboutContentContainer: {
-    maxWidth: t.breakpoints.values.md,
+    marginTop: 70,
+    marginBottom: 30,
+    fontSize: '1.2em',
+    fontFamily: '\'Sora\', sans-serif',
   },
 }));
 
 
 export const LandingPage = () => {
   const classes = useStyles();
-  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const isConnected = useIsConnected();
 
-  const handleDownloadClick = () => {
-    setDownloadDialogOpen(true);
+  const scrollToDownload = () => {
+    document.getElementById('download').scrollIntoView({
+      behavior: 'smooth',
+    });
   };
 
   return (
     <div className={classes.root}>
-      <Header showControls={false} />
       <div className={classes.hero}>
+        <div className={classes.header}>
+          <div className={classes.headerTitleContainer}>
+            <img src={Logo} className="soundsync-logo" />
+
+            <Typography variant="h6" className={classes.title}>
+              Soundsync
+              {' '}
+              <span className={classes.betaIndicator}>BETA</span>
+            </Typography>
+
+          </div>
+        </div>
         <div className={classes.headlineContainer}>
-          <h1 className={classes.headline}>Control all your speakers from a single place</h1>
-          <h2 className={classes.subHeadline}>Soundsync link all your speakers, old or new, smart or dumb, from the same brand or not, to one easy-to-use interface</h2>
+          <h1 className={classes.headline}>
+            Control all your speakers
+            {' '}
+            <span>from a single place</span>
+          </h1>
           {!isConnected
-            && <Button onClick={handleDownloadClick} variant="contained" color="primary" size="large" className={classes.cta}>Download</Button>}
+            && <Button onClick={scrollToDownload} variant="contained" size="large" className={classes.cta}>Download</Button>}
           {isConnected
           && (
-          <div className={classes.soundsyncDetectedContainer}>
-            <p>Soundsync detected on your network</p>
-            <Link to="/controller"><Button variant="contained" color="primary">Open controller</Button></Link>
-          </div>
+            <Link to="/controller"><Button variant="contained" size="large" className={classes.cta}>Open controller</Button></Link>
           )}
         </div>
       </div>
-      <div className={classes.presentationContainer}>
-        <p className={classes.presentationText}>
-          Soundsync unifies all the different speakers system into a single interface to let your enjoy your music anywhere in your home however you want. Put on a podcast in your living room while someone else listen to music in the kitchen or group all your speakers together to play your favorite songs in sync.
-        </p>
-      </div>
-      <div className={classes.compatibilityContainer}>
-        <div className={classes.compatibilityContentContainer}>
-          COMPATIBLITY
-        </div>
-      </div>
-      <div className={classes.downloadContainer}>
-        <div className={classes.downloadContentContainer}>
-          DOWNLOAD + instructions
-        </div>
-      </div>
-      <div className={classes.faqContainer}>
-        <div className={classes.faqContentContainer}>
-          FAQ
-        </div>
-      </div>
-      <div className={classes.aboutContainer}>
-        <div className={classes.aboutContentContainer}>
-          About
-        </div>
-      </div>
-      <Dialog open={downloadDialogOpen} onClose={() => setDownloadDialogOpen(false)} maxWidth="sm" className={classes.dialog}>
-        <DownloadLinks twoLinesLayout />
-      </Dialog>
+
+      <LandingPresentation />
+
+      <p className={classes.compatibilityIntro}>
+        Soundsync unifies all the different speakers system into a single interface to let your enjoy your music anywhere in your home however you want. Put on a podcast in your living room while someone else listen to music in the kitchen or group all your speakers together to play your favorite songs in sync.
+      </p>
+
+      <LandingCompatibility />
+
+      <LandingDownload />
+
+      <LandingFAQ />
+
+      <LandingFooter />
     </div>
   );
 };

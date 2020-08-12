@@ -117,3 +117,7 @@ emcc -s INITIAL_MEMORY=10MB -s MAXIMUM_MEMORY=10MB -O2 -o audio/opus_wasm.js -s 
 - web browser by Iconstock from the Noun Project
 - Computer by iconcheese from the Noun Project
 - AirPlay by Michiel Willemsen from the Noun Project
+- Icons made by Smashicons from www.flaticon.com
+- Icons made by Freepik from www.flaticon.com
+- Icons made by smalllikeart from www.flaticon.com
+- Raspberry Pi by DesignBite from the Noun Project
