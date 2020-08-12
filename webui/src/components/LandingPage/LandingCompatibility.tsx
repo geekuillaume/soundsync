@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import classnames from 'classnames';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { setupCanvas } from 'components/utils/canvas';
+import { Tooltip } from '@material-ui/core';
+import PhilipsHueIcon from 'res/huebulb.svg';
 import SpotifyIcon from './icons/spotify.svg';
 import AirplayIcon from './icons/airplay.svg';
 // import BlutoothIcon from './icons/blutooth.svg';
@@ -17,6 +20,9 @@ import RaspberryPiIcon from './icons/raspberrypi.svg';
 import AirplaySpeakerIcon from './icons/airplay-speaker.svg';
 import SpeakerJackIcon from './icons/speaker-jack.svg';
 
+const ROWS = 3 * 2 * 5;
+const COLUMNS = 3;
+
 const useStyles = makeStyles((t) => ({
   root: {
     display: 'flex',
@@ -24,37 +30,49 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
     paddingBottom: 150,
     overflow: 'hidden',
+    padding: '0 30px',
   },
   container: {
     width: t.breakpoints.values.md,
     maxWidth: '100%',
     position: 'relative',
   },
-  innerContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(5, 1fr)',
-    gridTemplateRows: 'repeat(12, [col-start] 1fr)',
+  title: {
+    color: '#0060dd',
+    fontSize: '1.6rem',
+    fontFamily: '\'Sora\', sans-serif',
+    marginBottom: 20,
   },
-  ratioPadder: {
-    paddingTop: '60%',
+  innerContainer: {
+    display: 'grid',
+    gridTemplateColumns: `repeat(${COLUMNS}, 1fr)`,
+    gridTemplateRows: `repeat(${ROWS}, [col-start] 1fr)`,
+    position: 'relative',
   },
   audioObject: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    opacity: 0.5,
+    transition: '500ms opacity ease',
+    marginTop: 20,
+    '& > div': {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  },
+  audioObjectActive: {
+    opacity: 1,
   },
   audioObjectIcon: {
     width: 70,
     height: 70,
     [t.breakpoints.down('sm')]: {
-      width: 30,
-      height: 30,
+      width: 50,
+      height: 50,
     },
   },
   audioObjectName: {
@@ -69,7 +87,7 @@ const useStyles = makeStyles((t) => ({
     fontSize: '0.8em',
     textAlign: 'center',
     [t.breakpoints.down('sm')]: {
-      fontSize: '0.6em',
+      fontSize: '0.8em',
     },
   },
   pipeCanvas: {
@@ -80,16 +98,22 @@ const useStyles = makeStyles((t) => ({
     right: 0,
     width: '100%',
     height: '100%',
+    pointerEvents: 'none',
+  },
+  audioObjectTooltip: {
+    maxWidth: 200,
+    fontSize: '0.9em',
   },
 }));
 
 const AudioObject = ({
-  name, description, icon, column, row, inRowCount, rowSpan = 1, id, refCollection,
+  name, description = null, icon, column, row, inRowCount, rowSpan = 1, id, refCollection, isActiveGetter,
 }) => {
   const classes = useStyles();
+  const isActive = isActiveGetter(id);
 
-  return (
-    <div className={classes.audioObject} style={{ gridColumn: column, gridRow: `col-start ${1 + (row * (12 / inRowCount))} / span ${rowSpan * (12 / inRowCount)}` }}>
+  const content = (
+    <div>
       <img
         src={icon}
         className={classes.audioObjectIcon}
@@ -101,9 +125,18 @@ const AudioObject = ({
         }}
       >
         {name}
-
       </p>
     </div>
+  );
+  return (
+    <div className={classnames(classes.audioObject, { [classes.audioObjectActive]: isActive })} style={{ gridColumn: column, gridRow: `col-start ${1 + (row * (ROWS / inRowCount))} / span ${rowSpan * (ROWS / inRowCount)}` }}>
+      {description ? (
+        <Tooltip classes={{ tooltip: classes.audioObjectTooltip }} title={description} arrow>
+          {content}
+        </Tooltip>
+      ) : content}
+    </div>
+
   );
 };
 
@@ -203,6 +236,7 @@ const PIPES_CONFIGURATIONS = [
     ['laptopin', 'chromecast'],
     ['laptopin', 'browser'],
     ['browser', 'bluetooth'],
+    ['laptopin', 'hue'],
   ],
   [
     ['vinyl', 'linein'],
@@ -215,6 +249,7 @@ const PIPES_CONFIGURATIONS = [
     ['rpi', 'chromecast'],
     ['laptopin', 'browser'],
     ['browser', 'bluetooth'],
+    ['laptopin', 'hue'],
   ],
   [
     ['smartphone', 'spotify'],
@@ -229,39 +264,185 @@ export const LandingCompatibility = () => {
   const classes = useStyles();
   const audioObjectRefs = useRef<any>({});
   const [currentPipeConfiguration, setCurrentPipeConfiguration] = useState(0);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentPipeConfiguration((current) => (current + 1) % PIPES_CONFIGURATIONS.length);
-    }, 4000);
+    }, 5000);
     return () => {
       clearInterval(interval);
     };
-  });
+  }, []);
+
+  const audioObjectIsActive = (id: string) => !!PIPES_CONFIGURATIONS[currentPipeConfiguration].find((conf) => conf.includes(id));
 
   return (
     <div className={classes.root}>
       <div className={classes.container}>
-        <div className={classes.ratioPadder} />
+        <p className={classes.title}>Compatible with:</p>
         <div className={classes.innerContainer}>
           <PipesCanvas currentPipes={PIPES_CONFIGURATIONS[currentPipeConfiguration]} className={classes.pipeCanvas} audioObjectRefs={audioObjectRefs} />
 
-          <AudioObject name="Smartphone" icon={SmartphoneIcon} description="Smartphone" column={1} row={0} inRowCount={3} rowSpan={2} id="smartphone" refCollection={audioObjectRefs} />
-          <AudioObject name="Vinyl Player" icon={RecorderPlayerIcon} description="Line-In" column={1} row={2} inRowCount={3} id="vinyl" refCollection={audioObjectRefs} />
+          {/* <AudioObject
+            name="Smartphone"
+            icon={SmartphoneIcon}
+            description="Smartphone"
+            column={1}
+            row={0}
+            inRowCount={3}
+            rowSpan={2}
+            id="smartphone"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Vinyl Player"
+            icon={RecorderPlayerIcon}
+            description="Use a old vinyl player or any device that can be plugged to an audio line-in input"
+            column={1}
+            row={2}
+            inRowCount={3}
+            id="vinyl"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          /> */}
 
-          <AudioObject name="Spotify" icon={SpotifyIcon} description="Spotify" column={2} row={0} inRowCount={3} id="spotify" refCollection={audioObjectRefs} />
-          <AudioObject name="Airplay" icon={AirplayIcon} description="Airplay" column={2} row={1} inRowCount={3} id="airplay" refCollection={audioObjectRefs} />
-          <AudioObject name="Line-in" icon={LineInIcon} description="Line-In" column={2} row={2} inRowCount={3} id="linein" refCollection={audioObjectRefs} />
+          <AudioObject
+            name="Spotify Connect"
+            icon={SpotifyIcon}
+            description="Select Soundsync in the list of devices on the Spotify App when connected to the same wifi and use it with all the speakers in your home"
+            column={1}
+            row={0}
+            inRowCount={3}
+            id="spotify"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Airplay"
+            icon={AirplayIcon}
+            description="Select Soundsync on the Airplay devices list on your iPhone or Macbook to broadcast the audio in your home"
+            column={1}
+            row={1}
+            inRowCount={3}
+            id="airplay"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Line-in"
+            icon={LineInIcon}
+            description="Use a old vinyl player or any device that can be plugged to your computer line-in input with Soundsync"
+            column={1}
+            row={2}
+            inRowCount={3}
+            id="linein"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
 
-          <AudioObject name="RaspberryPi" icon={RaspberryPiIcon} description="RaspberryPi" column={3} row={0} inRowCount={3} id="rpi" refCollection={audioObjectRefs} />
-          <AudioObject name="Windows Laptop" icon={LaptopIcon} description="Laptop" column={3} row={1} inRowCount={3} rowSpan={2} id="laptopin" refCollection={audioObjectRefs} />
+          <AudioObject
+            name="RaspberryPi"
+            icon={RaspberryPiIcon}
+            description="Install Soundsync on your RaspberryPi and connect it to a speaker with the jack output"
+            column={2}
+            row={0}
+            inRowCount={3}
+            id="rpi"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Laptop"
+            icon={LaptopIcon}
+            description="Install Soundsync on your Windows, MacOS or Linux computer to capture its audio inputs and use it with every speakers in your home"
+            column={2}
+            row={1}
+            inRowCount={3}
+            rowSpan={2}
+            id="laptopin"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
 
-          <AudioObject name="Chromecast" icon={ChromecastIcon} description="Chromecast" column={4} row={0} inRowCount={4} id="chromecast" refCollection={audioObjectRefs} />
-          <AudioObject name="Airplay Speaker" icon={AirplaySpeakerIcon} description="Airplay Speaker" column={4} row={1} inRowCount={4} id="airplayout" refCollection={audioObjectRefs} />
-          <AudioObject name="MacOS Laptop" icon={LaptopIcon} description="Laptop" column={4} row={2} inRowCount={4} id="laptopout" refCollection={audioObjectRefs} />
-          <AudioObject name="Browser" icon={BrowserIcon} description="Browser" column={4} row={3} inRowCount={4} id="browser" refCollection={audioObjectRefs} />
+          <AudioObject
+            name="Chromecast"
+            icon={ChromecastIcon}
+            description="Soundsync detects every Chromecast on your wifi network and let you listen to your music anywhere in your home"
+            column={3}
+            row={0}
+            inRowCount={5}
+            id="chromecast"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Airplay Speaker"
+            icon={AirplaySpeakerIcon}
+            description="Soundsync detects every Airplay speaker on your wifi network and let you listen to your music anywhere in your home"
+            column={3}
+            row={1}
+            inRowCount={5}
+            id="airplayout"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Laptop"
+            icon={LaptopIcon}
+            description="Install Soundsync on your Windows, MacOS or Linux computer to use its audio output with a classic jack speaker or any audio output"
+            column={3}
+            row={2}
+            inRowCount={5}
+            id="laptopout"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Smartphone"
+            icon={SmartphoneIcon}
+            description="Open soundsync.app on your smartphone when connected to the same Wifi network and use it as an audio output"
+            column={3}
+            row={3}
+            inRowCount={5}
+            id="browser"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Philips Hue"
+            icon={PhilipsHueIcon}
+            description="Use Soundsync to light up your Philips Hue lights in rythm with your music"
+            column={3}
+            row={4}
+            inRowCount={5}
+            id="hue"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
 
-          <AudioObject name="Jack" icon={SpeakerJackIcon} description="Jack" column={5} row={2} inRowCount={4} id="jack" refCollection={audioObjectRefs} />
-          <AudioObject name="Bluetooth Speaker" icon={SpeakerIcon} description="Bluetooth Speaker" column={5} row={3} inRowCount={4} id="bluetooth" refCollection={audioObjectRefs} />
+          {/* <AudioObject
+            name="Audio Jack"
+            icon={SpeakerJackIcon}
+            description="Jack"
+            column={4}
+            row={2}
+            inRowCount={4}
+            id="jack"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          />
+          <AudioObject
+            name="Bluetooth Speaker"
+            icon={SpeakerIcon}
+            description="Bluetooth Speaker"
+            column={4}
+            row={3}
+            inRowCount={4}
+            id="bluetooth"
+            refCollection={audioObjectRefs}
+            isActiveGetter={audioObjectIsActive}
+          /> */}
         </div>
       </div>
     </div>
