@@ -48,8 +48,8 @@ const main = async () => {
   const webuiDownloadLinksPath = resolve(__dirname, '../../webui/src/components/FirstUse/DownloadLinks.jsx');
   let downloadLinksContent = (await readFile(webuiDownloadLinksPath)).toString();
   downloadLinksContent = downloadLinksContent.replace(
-    /"https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)"/g,
-    `"https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
+    /'https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)'/g,
+    `'https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3'`,
   );
   await writeFile(webuiDownloadLinksPath, downloadLinksContent.toString());
   await execPromisify(`npm run gitmoji-changelog`);
