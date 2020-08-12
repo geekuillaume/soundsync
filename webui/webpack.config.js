@@ -38,6 +38,7 @@ const config = {
       'node-dtls-client': 'utils/polyfills/empty.js',
       'castv2-client': 'utils/polyfills/empty.js',
       net: 'utils/polyfills/empty.js',
+      open: 'utils/polyfills/empty.js',
     },
     modules: [
       'node_modules',
