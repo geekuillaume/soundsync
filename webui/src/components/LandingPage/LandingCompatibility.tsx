@@ -22,6 +22,22 @@ import SpeakerJackIcon from './icons/speaker-jack.svg';
 
 const ROWS = 3 * 2 * 5;
 const COLUMNS = 3;
+const AUDIO_OBJECTS_ID = [
+  'smartphone',
+  'vinyl',
+  'spotify',
+  'airplay',
+  'linein',
+  'rpi',
+  'laptopin',
+  'chromecast',
+  'airplayout',
+  'laptopout',
+  'browser',
+  'hue',
+  'jack',
+  'bluetooth',
+];
 
 const useStyles = makeStyles((t) => ({
   root: {
@@ -31,6 +47,7 @@ const useStyles = makeStyles((t) => ({
     paddingBottom: 150,
     overflow: 'hidden',
     padding: '0 30px',
+    contain: 'layout style paint',
   },
   container: {
     width: t.breakpoints.values.md,
@@ -149,10 +166,22 @@ const PipesCanvas = ({
   const lastDrawTimeRef = useRef(performance.now());
   const opacityRef = useRef(1);
 
-  const lastDrawnPipes = useRef({ opacity: 1, currentPipes });
+  const lastDrawnPipes = useRef({
+    opacity: 1, currentPipes, currentElementsBoundingBoxes: [], canvasBoundingBox: null,
+  });
+
+  const updateBoundingBoxes = () => {
+    lastDrawnPipes.current.canvasBoundingBox = canvasRef.current.getBoundingClientRect();
+    AUDIO_OBJECTS_ID.forEach((id) => {
+      if (audioObjectRefs.current[id]) {
+        lastDrawnPipes.current.currentElementsBoundingBoxes[id] = audioObjectRefs.current[id].getBoundingClientRect();
+      }
+    });
+  };
 
   useEffect(() => {
     const initCanvas = () => {
+      updateBoundingBoxes();
       if (!canvasRef.current) {
         requestAnimationFrame(initCanvas);
         return;
@@ -178,15 +207,22 @@ const PipesCanvas = ({
         opacityRef.current = Math.min(1, opacityRef.current + ((performance.now() - lastDrawTimeRef.current) / 500));
       }
       if (ctxRef.current && canvasRef.current) {
-        const canvasBoundingRect = canvasRef.current.getBoundingClientRect();
+        const canvasBoundingRect = lastDrawnPipes.current.canvasBoundingBox;
         const pipes = lastDrawnPipes.current.currentPipes.map((pipe) => {
           const from = audioObjectRefs.current[pipe[0]];
           const to = audioObjectRefs.current[pipe[1]];
           if (!from || !to) {
             return null;
           }
-          const fromBounding = from.getBoundingClientRect();
-          const toBounding = to.getBoundingClientRect();
+          if (!lastDrawnPipes.current.currentElementsBoundingBoxes[pipe[0]] || !lastDrawnPipes.current.currentElementsBoundingBoxes[pipe[1]]) {
+            if (from && to) {
+              updateBoundingBoxes();
+            } else {
+              return null;
+            }
+          }
+          const fromBounding = lastDrawnPipes.current.currentElementsBoundingBoxes[pipe[0]];
+          const toBounding = lastDrawnPipes.current.currentElementsBoundingBoxes[pipe[1]];
           return {
             x1: fromBounding.right - canvasBoundingRect.left - 10,
             y1: fromBounding.top + (fromBounding.height / 2) - canvasBoundingRect.top,

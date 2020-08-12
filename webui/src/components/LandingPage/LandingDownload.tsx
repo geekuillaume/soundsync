@@ -10,6 +10,7 @@ import RaspberryIcon from './icons/raspberry.svg';
 
 const useStyles = makeStyles((t) => ({
   downloadContainer: {
+    contain: 'layout style paint',
     margin: 'auto',
     maxWidth: t.breakpoints.values.md,
 

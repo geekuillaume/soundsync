@@ -10,6 +10,7 @@ import WhoAmIImage from 'res/whoami.jpg';
 const useStyles = makeStyles((t) => ({
   root: {
     padding: 30,
+    contain: 'layout style paint',
   },
   faqContainer: {
     margin: 'auto',
@@ -28,6 +29,7 @@ const useStyles = makeStyles((t) => ({
     marginBottom: 20,
   },
   question: {
+    contain: 'content',
     width: '100%',
     '&:before': {
       display: 'none',
