@@ -27,7 +27,6 @@ const useStyles = makeStyles((t) => ({
     alignItems: 'center',
     '& a': {
       color: '#9f9f9f',
-      fontFamily: '\'Sora\', sans-serif',
     },
     '& p': {
       marginBottom: 20,
