@@ -15,7 +15,7 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: 'white',
     marginTop: -60,
     marginBottom: 60,
-    padding: '60px 80px',
+    padding: '60px 30px',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     borderRadius: 2,
     alignItems: 'stretch',

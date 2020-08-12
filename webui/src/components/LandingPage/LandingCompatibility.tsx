@@ -23,6 +23,7 @@ const useStyles = makeStyles((t) => ({
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 150,
+    overflow: 'hidden',
   },
   container: {
     width: t.breakpoints.values.md,
@@ -51,6 +52,10 @@ const useStyles = makeStyles((t) => ({
   audioObjectIcon: {
     width: 70,
     height: 70,
+    [t.breakpoints.down('sm')]: {
+      width: 30,
+      height: 30,
+    },
   },
   audioObjectName: {
     backgroundColor: '#cccccc',
@@ -62,9 +67,19 @@ const useStyles = makeStyles((t) => ({
     position: 'relative',
     zIndex: 2,
     fontSize: '0.8em',
+    textAlign: 'center',
+    [t.breakpoints.down('sm')]: {
+      fontSize: '0.6em',
+    },
   },
   pipeCanvas: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
   },
 }));
 
@@ -140,9 +155,9 @@ const PipesCanvas = ({
           const fromBounding = from.getBoundingClientRect();
           const toBounding = to.getBoundingClientRect();
           return {
-            x1: fromBounding.right - canvasBoundingRect.left + 10,
+            x1: fromBounding.right - canvasBoundingRect.left - 10,
             y1: fromBounding.top + (fromBounding.height / 2) - canvasBoundingRect.top,
-            x2: toBounding.left - canvasBoundingRect.left - 10,
+            x2: toBounding.left - canvasBoundingRect.left + 10,
             y2: toBounding.top + (toBounding.height / 2) - canvasBoundingRect.top,
           };
         }).filter(Boolean);

@@ -28,6 +28,7 @@ const useStyles = makeStyles((t) => ({
     marginBottom: 20,
   },
   question: {
+    width: '100%',
     '&:before': {
       display: 'none',
     },
@@ -37,6 +38,11 @@ const useStyles = makeStyles((t) => ({
   },
   questionTitle: {
     fontFamily: '\'Sora\', sans-serif',
+  },
+  questionContent: {
+    width: '100%',
+    overflow: 'hidden',
+    wordBreak: 'break-word',
   },
   whoAmI: {
     display: 'flex',
@@ -51,6 +57,9 @@ const useStyles = makeStyles((t) => ({
       borderRadius: 150,
       marginRight: 20,
     },
+    [t.breakpoints.down('sm')]: {
+      flexDirection: 'column',
+    },
   },
 }));
 
@@ -62,7 +71,7 @@ const Question = ({ title, content }: {title: string; content: any}) => {
       <AccordionSummary expandIcon={<AddIcon />}>
         <p className={classes.questionTitle}>{title}</p>
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails className={classes.questionContent}>
         {content}
       </AccordionDetails>
     </Accordion>

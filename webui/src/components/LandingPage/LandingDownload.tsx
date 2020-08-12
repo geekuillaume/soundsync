@@ -19,9 +19,12 @@ const useStyles = makeStyles((t) => ({
     alignItems: 'center',
     background: 'linear-gradient(225deg, #00163A, #0064E7)',
 
-    padding: '60px 80px',
+    padding: '60px 30px',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     borderRadius: 15,
+    [t.breakpoints.down('sm')]: {
+      borderRadius: 0,
+    },
   },
   downloadTitle: {
     color: t.palette.common.white,
@@ -30,18 +33,24 @@ const useStyles = makeStyles((t) => ({
     fontFamily: '\'Sora\', sans-serif',
   },
   downloadButtons: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
     width: '100%',
     marginTop: 30,
   },
   downloadButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
     margin: 10,
     color: t.palette.common.white,
     textAlign: 'center',
     '& p': {
       letterSpacing: '1.2px',
+      [t.breakpoints.down('sm')]: {
+        display: 'none',
+      },
     },
   },
   downloadImageContainer: {
@@ -50,6 +59,9 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: 'rgba(255,255,255,.2)',
     lineHeight: 0,
     marginBottom: 15,
+    [t.breakpoints.down('sm')]: {
+      padding: 5,
+    },
   },
   downloadImage: {
     width: 80,

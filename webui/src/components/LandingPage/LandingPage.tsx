@@ -82,7 +82,9 @@ const useStyles = makeStyles((t) => ({
     marginBottom: 20,
   },
   compatibilityIntro: {
-    width: t.breakpoints.values.sm,
+    width: '100%',
+    padding: '0 30px',
+    maxWidth: t.breakpoints.values.sm,
     margin: 'auto',
     textAlign: 'center',
     marginTop: 70,
