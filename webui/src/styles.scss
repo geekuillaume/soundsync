@@ -39,7 +39,7 @@ body {
     z-index: 1;
     &::after {
       content: '';
-      background: rgba(0, 209, 178, 0.8);
+      background: #0060dd;
       width: 7px;
       height: 7px;
       position: absolute;
@@ -79,6 +79,7 @@ body {
   flex-direction: column;
   justify-content: center;
   max-width: 100%;
+  contain: layout style paint;
   .name {
     font-weight: bold;
   }
@@ -137,10 +138,11 @@ body {
 }
 
 .pipe {
-  // height: var(--source-sink-height);
   pointer-events: none;
   grid-column: 2;
   position: relative;
+  contain: layout style paint;
+  z-index: 1;
   canvas {
     position: absolute;
     top: 0; bottom: 0;

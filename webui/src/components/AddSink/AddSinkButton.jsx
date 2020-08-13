@@ -4,6 +4,7 @@ import Dialog from '@material-ui/core/Dialog';
 import {
   makeStyles, Button,
 } from '@material-ui/core';
+import { AddLocalDeviceSink } from 'components/AddSink/AddLocalDeviceSink';
 import { DownloadLinks } from '../FirstUse/DownloadLinks';
 import { SinkTypeSelection } from './SinkTypeSelection';
 import { AddHueSink } from './AddHueSink';
@@ -41,7 +42,7 @@ export const AddSinkButton = () => {
       </Button>
       <Dialog open={Boolean(dialogOpen)} onClose={() => setDialogOpen(false)} maxWidth="sm" className={styles.dialog}>
         {dialogOpen === true && <SinkTypeSelection onTypeSelected={setDialogOpen} />}
-        {dialogOpen === 'localDevice' && <DownloadLinks twoLinesLayout />}
+        {dialogOpen === 'localDevice' && <AddLocalDeviceSink />}
         {dialogOpen === 'hue' && <AddHueSink onDialogClose={() => setDialogOpen(false)} />}
         {dialogOpen === 'chromecast' && <AddChromecastPeer onDialogClose={() => setDialogOpen(false)} />}
         {dialogOpen === 'airplay' && <AddAirplaySink onDialogClose={() => setDialogOpen(false)} />}

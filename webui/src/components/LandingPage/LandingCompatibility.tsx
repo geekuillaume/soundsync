@@ -120,6 +120,7 @@ const useStyles = makeStyles((t) => ({
   audioObjectTooltip: {
     maxWidth: 200,
     fontSize: '0.9em',
+    fontWeight: 'normal',
   },
 }));
 
@@ -148,7 +149,7 @@ const AudioObject = ({
   return (
     <div className={classnames(classes.audioObject, { [classes.audioObjectActive]: isActive })} style={{ gridColumn: column, gridRow: `col-start ${1 + (row * (ROWS / inRowCount))} / span ${rowSpan * (ROWS / inRowCount)}` }}>
       {description ? (
-        <Tooltip classes={{ tooltip: classes.audioObjectTooltip }} title={description} arrow>
+        <Tooltip enterTouchDelay={50} classes={{ tooltip: classes.audioObjectTooltip }} title={description} arrow>
           {content}
         </Tooltip>
       ) : content}

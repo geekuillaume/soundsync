@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import {
   Link,
 } from 'react-router-dom';
@@ -104,6 +104,12 @@ export const LandingPage = () => {
       behavior: 'smooth',
     });
   };
+
+  useLayoutEffect(() => {
+    if (document.location.hash === '#download') {
+      scrollToDownload();
+    }
+  }, []);
 
   return (
     <div className={classes.root}>

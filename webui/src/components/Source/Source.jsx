@@ -25,13 +25,13 @@ const logos = {
 };
 
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((t) => ({
   activeIndicator: {
     position: 'absolute',
     bottom: 5,
     left: 5,
     borderRadius: '100%',
-    backgroundColor: 'rgba(0, 209, 178, 0.8)',
+    backgroundColor: t.palette.primary.main,
     width: 7,
     height: 7,
   },

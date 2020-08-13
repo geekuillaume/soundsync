@@ -2,10 +2,12 @@
 import React, { useRef, useEffect } from 'react';
 import { find } from 'lodash-es';
 import { setupCanvas } from 'components/utils/canvas';
+import { useTheme } from '@material-ui/core/styles';
 import { useSinks, useSources, useShowHidden } from '../utils/useSoundSyncState';
 import { isHidden } from '../utils/hiddenUtils';
 
 export const Pipe = ({ pipe }) => {
+  const theme = useTheme();
   const showHidden = useShowHidden();
   const sources = useSources();
   const sinks = useSinks();
@@ -59,7 +61,7 @@ export const Pipe = ({ pipe }) => {
         ctx.clearRect(0, 0, width, height);
         ctx.lineCap = 'round';
         ctx.lineWidth = 5;
-        ctx.strokeStyle = 'rgba(0, 209, 178, 0.5)';
+        ctx.strokeStyle = theme.palette.primary.main;
         ctx.setLineDash([5, 10]);
         offset++;
         if (offset > 300) {

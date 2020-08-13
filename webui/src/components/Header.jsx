@@ -48,11 +48,14 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'flex-end',
   },
   titleContainer: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    '& > a': {
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+    },
   },
   title: {
+    color: 'white',
     [t.breakpoints.down('sm')]: {
       fontSize: '1rem',
       lineHeight: 1,
@@ -105,14 +108,15 @@ export const Header = ({ showControls = true }) => {
     <AppBar position="static" className={classes.root}>
       <Toolbar className={classes.toolbar}>
         <div className={classes.titleContainer}>
-          <img src={logo} className="soundsync-logo" />
+          <Link to="/landing">
+            <img src={logo} className="soundsync-logo" />
 
-          <Typography variant="h6" className={classes.title}>
-            Soundsync
-            {' '}
-            <span className={classes.betaIndicator}>BETA</span>
-          </Typography>
-
+            <Typography variant="h6" className={classes.title}>
+              Soundsync
+              {' '}
+              <span className={classes.betaIndicator}>BETA</span>
+            </Typography>
+          </Link>
         </div>
         <div>
           {!showControls && !isConnected
