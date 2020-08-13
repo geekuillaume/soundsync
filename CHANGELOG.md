@@ -1,5 +1,61 @@
 # Changelog
 
+<a name="0.3.0"></a>
+## 0.3.0 (2020-08-13)
+
+### Added
+
+- ✨ Adds landing page [[55f790b](https://github.com/geekuillaume/soundsync/commit/55f790bc1964cbb0cd6655cf26bc156509dfd8e8)]
+- ✨ Open controller webpage on first run [[cebbdcb](https://github.com/geekuillaume/soundsync/commit/cebbdcb842e05f29d7d73cda663393a024583476)]
+- 👷‍♂️ draft of landing page [[1e02fd4](https://github.com/geekuillaume/soundsync/commit/1e02fd4f96786c2e4f41efad880875c6af5c45c1)]
+- 📈 Fix tracking for browser [[0109305](https://github.com/geekuillaume/soundsync/commit/01093053e7e95200d6fe587f96234c1eccb2328b)]
+- 📈 Ads telemetry with Posthog [[2a52eec](https://github.com/geekuillaume/soundsync/commit/2a52eec947c8832c778d169d04032294fce9a9b6)]
+- ✨ Add Airplay sink creation on Webui [[f1bdd85](https://github.com/geekuillaume/soundsync/commit/f1bdd855dca9ab8a9bfa42686047464834737f0b)]
+- ✨ Add Sink error message indicator on Webui [[8a58b15](https://github.com/geekuillaume/soundsync/commit/8a58b15649254140d671136796004a479d01f813)]
+
+### Changed
+
+- 💄 Improve some UI details on webui and optimize CSS speed [[71938ce](https://github.com/geekuillaume/soundsync/commit/71938cefdadfc0942e5697d55d4c532d497e47a5)]
+- ⚡ Improves landing page perf [[e7ccd89](https://github.com/geekuillaume/soundsync/commit/e7ccd8905af1fcec77ba16b814224fcf142ea454)]
+- 🎨 Store download links for webui in a dedicated object used by other pages [[4bd0318](https://github.com/geekuillaume/soundsync/commit/4bd0318be8ce0079b0380f5adbb551ac418100a0)]
+- ♻️ Improves webui code structure [[5f7b067](https://github.com/geekuillaume/soundsync/commit/5f7b06704513f84f001ae3a4e5bd6d1a27ff3687)]
+
+### Removed
+
+- 🔥 Removes unused toObject method [[88027ca](https://github.com/geekuillaume/soundsync/commit/88027ca4767fc6c03f524af167c11cfef655e6a3)]
+
+### Fixed
+
+- 🐛 Fix responsive for landing page [[e17b776](https://github.com/geekuillaume/soundsync/commit/e17b7767a016cb8cd7d23a3da0f2c9986ee6c2a1)]
+- 🐛 fix footer font [[0ae4f4e](https://github.com/geekuillaume/soundsync/commit/0ae4f4e6a3a981ca369771190f0462d53a433102)]
+- 🐛 don&#x27;t crash if mdns cannot bind to interface [[a848178](https://github.com/geekuillaume/soundsync/commit/a848178a197a5f0eb203818cf492c5182f3ab756)]
+- 🐛 Fix sink error not being saved when first creating sink [[590e694](https://github.com/geekuillaume/soundsync/commit/590e6945e2aedcbc72f94904cb68c70baa54d37e)]
+- 🐛 Fix buffer size being treated as second but was milliseconds [[b869b83](https://github.com/geekuillaume/soundsync/commit/b869b8368ca30e47272308c9cdbdffd807a8d25c)]
+- 🐛 Add missing dep for debian [[b67a89b](https://github.com/geekuillaume/soundsync/commit/b67a89b3ad90a589425d20a1c37739bf87b039bd)]
+- 💚 Fix webui build because of nodejs only module being required [[b40657d](https://github.com/geekuillaume/soundsync/commit/b40657d05ac8d717ac553a4e5c894fa7fe2142b3)]
+- 💚 Fix github actions [[dbba94f](https://github.com/geekuillaume/soundsync/commit/dbba94f2501e9d2bf510050694d099e881e4e51d)]
+
+### Miscellaneous
+
+- 💫 Improves landing page compatible with section [[b443f6d](https://github.com/geekuillaume/soundsync/commit/b443f6defff59ea4cd185dca50971dc35b79c4b6)]
+-  Merge branch &#x27;landing&#x27; into master [[55b6674](https://github.com/geekuillaume/soundsync/commit/55b6674c6d11a8fb88599d2e9e342602f4276390)]
+- 📝 Open Microsoft website when C++ redistributable is not found [[81906e6](https://github.com/geekuillaume/soundsync/commit/81906e688301e2a896e000f66c08ffec9d0635bd)]
+- 🚧 Add error message to SinkDescriptor [[fcd1389](https://github.com/geekuillaume/soundsync/commit/fcd1389d20434d3cf4e8bc421e738db0a89d2825)]
+- 🚧 Airplay sink: implements raw PCM data sending and basic synchronization [[acb35ef](https://github.com/geekuillaume/soundsync/commit/acb35efdf5c2f2f0ce97c4252b0b7b0e78359caa)]
+-  Merge branch &#x27;master&#x27; into airplay-speakers [[804f037](https://github.com/geekuillaume/soundsync/commit/804f0374373d5368d34bfc4c5e511f0f4e7504ce)]
+-  Merge pull request [#19](https://github.com/geekuillaume/soundsync/issues/19) from geekuillaume/dependabot/npm_and_yarn/webui/elliptic-6.5.3 [[f97c6e4](https://github.com/geekuillaume/soundsync/commit/f97c6e42b0903c0422af48bdbe111544717c6450)]
+- 🚧 Bump to dev version [[1bac537](https://github.com/geekuillaume/soundsync/commit/1bac5375bdc7e1d01c9cfbd68dc0cb51d5d75aa9)]
+- 🚧 Airplay sink: Adds audio transmission code and fix alac encoder [[d8cc893](https://github.com/geekuillaume/soundsync/commit/d8cc893f1187ff923c0ba9a5c9f1b5479a8adeec)]
+-  Disable artifact upload on branch other than master [[e372263](https://github.com/geekuillaume/soundsync/commit/e372263caf1b5a59b7700df563ce566485625164)]
+-  Merge branch &#x27;airplay-speakers&#x27; of github.com:geekuillaume/soundsync into airplay-speakers [[a614aa4](https://github.com/geekuillaume/soundsync/commit/a614aa4988a41e9a95b9327a0a96e1d6264c6600)]
+- 🚧 continue airplay sink implementation and adds alac encoder [[5bcad1c](https://github.com/geekuillaume/soundsync/commit/5bcad1cc32fed782722cab63f521e92e594dc068)]
+- 🚧 implements timing request responses for airplay [[a44fa31](https://github.com/geekuillaume/soundsync/commit/a44fa31d2387cd0c48db5acba8f644c52cb6f16b)]
+- 🚧 initial airplay speakers integration [[998cb87](https://github.com/geekuillaume/soundsync/commit/998cb87664a6aaf50cc8ba4197fd47021ff32d30)]
+-  Bump elliptic from 6.5.2 to 6.5.3 in /webui [[8baae8a](https://github.com/geekuillaume/soundsync/commit/8baae8a6a982289c29043e2d1293777783364990)]
+- 🚧 implements timing request responses for airplay [[636b0c9](https://github.com/geekuillaume/soundsync/commit/636b0c96f85e09895164fa8ccdd1178cfb591926)]
+- 🚧 initial airplay speakers integration [[8b9fd9d](https://github.com/geekuillaume/soundsync/commit/8b9fd9d3af0ba1874229232ca31885a7c99abd89)]
+
+
 <a name="0.2.5"></a>
 ## 0.2.5 (2020-08-02)
 
