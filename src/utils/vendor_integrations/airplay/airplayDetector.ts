@@ -45,7 +45,7 @@ export const startAirplaySpeakerDetection = _.memoize(async () => {
         if (!detectedAirplaySpeaker.some((airplaySpeaker) => airplaySpeaker.host === host)) {
           detectedAirplaySpeaker.push({
             // @ts-ignore
-            host: service.addresses[0],
+            host: service.addresses.filter((addr) => !addr.includes(':'))[0],
             name: service.name,
             port: service.port,
           });
