@@ -30,6 +30,7 @@ export class LibrespotSource extends AudioSource {
       '-n', this.options.name,
       '--backend', 'pipe',
       '--initial-volume', '100',
+      '--enable-volume-normalisation',
       '-v',
       ...(this.options.bitrate ? ['-b', String(this.options.bitrate)] : []),
       ...(this.options.username ? [
