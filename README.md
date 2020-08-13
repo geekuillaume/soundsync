@@ -72,7 +72,6 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 - Resample the audio for each sink to handle drifting clocks instead of seeking to the corrected audio position and hearing an artifact
 - Remember Chromecasts and add an option to auto-start them when the linked source become active
 - Audio integration with:
-  - Airplay as a audio output
   - Bluetooth as a audio input
   - Bluetooth as a audio output
   - Windows monitor (in progress)
