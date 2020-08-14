@@ -23,7 +23,7 @@ const FRAMES_PER_PACKET = 352;
 
 export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   socket: net.Socket;
-  private requestsQueue: {resolve: (any) => any; reject: (any) => any; body: string }[] = [];
+  private requestsQueue: {name: string; resolve: (any) => any; reject: (any) => any; body: string }[] = [];
   private socketOutputBuffer = '';
   private sequenceCounter = 1;
   // eslint-disable-next-line no-bitwise
@@ -98,6 +98,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     }
     const promise = new Promise<RtspResponse>((resolve, reject) => {
       this.requestsQueue.push({
+        name: method,
         body: requestBody,
         resolve,
         reject,
@@ -118,7 +119,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     this.onResponseCallback = (body) => {
       this.onResponseCallback = null;
       if (body.code >= 400) {
-        const err = new Error(`RTSP error: status code ${body.code}`);
+        const err = new Error(`RTSP error on ${request.name} - ${body.code}: ${body.body}`);
         // @ts-ignore
         err.body = body;
         request.reject(err);
