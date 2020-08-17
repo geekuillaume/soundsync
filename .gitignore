@@ -12,3 +12,4 @@ test.pcm
 test.sh
 *.pcm
 .envrc
+.vscode
