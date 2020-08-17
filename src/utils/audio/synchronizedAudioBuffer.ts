@@ -52,7 +52,7 @@ export class SynchronizedAudioBuffer {
     public channels: number,
     public idealPositionPerChannelGetter: () => number,
     debug = false,
-    driftHistorySize = 20,
+    driftHistorySize = 400,
   ) {
     // eslint-disable-next-line no-console
     this.log = debug ? console.log : () => null;
