@@ -16,7 +16,7 @@ class NodeAudioworklet extends AudioWorkletProcessor {
     this.port.onmessage = this.handleMessage_.bind(this);
   }
 
-  getIdealAudioPosition = () => Math.floor((now() + this.delayFromLocalNowBuffer[0]) * (OPUS_ENCODER_RATE / 1000))
+  getIdealAudioPosition = () => Math.floor(((now() + this.delayFromLocalNowBuffer[0]) * (OPUS_ENCODER_RATE / 1000)) - this.getLatency())
 
   handleMessage_(event) {
     if (event.data.type === 'buffer') {

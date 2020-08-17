@@ -1,9 +1,9 @@
 import { PassThrough } from 'stream';
 import {
-  Soundio, SoundioDevice, SoundioInputStream,
+  AudioServer, AudioStream,
 } from 'audioworklet';
 import { resolve } from 'path';
-import { getInputDeviceFromId, shouldUseAudioStreamName, getClosestMatchingRate } from '../../utils/audio/soundio';
+import { getInputDeviceFromId, getClosestMatchingRate, getAudioServer } from '../../utils/audio/localAudioDevice';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
@@ -21,8 +21,7 @@ export class LocalDeviceSource extends AudioSource {
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
 
-  private soundioDevice: SoundioDevice;
-  private soundioInputStream: SoundioInputStream;
+  private audioStream: AudioStream;
   private cleanStream: () => any;
 
   constructor(descriptor: LocalDeviceSourceDescriptor, manager: AudioSourcesSinksManager) {
@@ -32,27 +31,26 @@ export class LocalDeviceSource extends AudioSource {
 
   async _getAudioChunkStream() {
     this.log(`Creating localdevice source`);
-    this.soundioDevice = await getInputDeviceFromId(this.deviceId);
-    this.rate = getClosestMatchingRate(this.soundioDevice, OPUS_ENCODER_RATE);
+    const device = await getInputDeviceFromId(this.deviceId);
+    this.rate = getClosestMatchingRate(device, OPUS_ENCODER_RATE);
     const inputStream = new PassThrough();
-    this.soundioInputStream = this.soundioDevice.openInputStream({
+    this.audioStream = getAudioServer().initInputStream(device.id, {
       sampleRate: this.rate,
-      name: shouldUseAudioStreamName() ? this.name : undefined,
-      format: Soundio.SoundIoFormatS16LE,
-      bufferDuration: 2,
+      name: this.name,
+      format: AudioServer.S16LE,
+      latencyFrames: this.rate / 10,
     });
-    this.soundioInputStream.start();
-    const worklet = this.soundioInputStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
+    this.audioStream.start();
+    const worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
     worklet.on('message', (d) => {
       inputStream.write(Buffer.from(d.buffer));
     });
-    const stream = createAudioChunkStream(this.startedAt, inputStream, this.rate, 2);
+    const stream = createAudioChunkStream(this.startedAt, inputStream, this.rate, this.channels);
 
     this.cleanStream = () => {
-      this.soundioInputStream.close();
+      this.audioStream.stop();
       inputStream.end();
-      delete this.soundioInputStream;
-      delete this.soundioDevice;
+      delete this.audioStream;
       delete this.cleanStream;
     };
 

@@ -3,9 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import { createAudioEncodedStream } from '../../utils/audio/chunk_stream';
 import {
-  INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_CHUNK_DURATION,
+  INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN, OPUS_ENCODER_CHUNK_DURATION,
 } from '../../utils/constants';
 import {
   SourceDescriptor, SourceType, BaseSourceDescriptor,
@@ -18,8 +19,12 @@ import { AUDIO_SOURCE_EVENT_INTERVAL, captureEvent } from '../../utils/vendor_in
 
 const DEFAULT_LATENCY = 1000;
 
+interface AudioSourceEvents {
+  'update': () => void;
+}
+
 // This is an abstract class that shouldn't be used directly but implemented by real audio sources
-export abstract class AudioSource {
+export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
   name: string;
   type: SourceType;
   rate = 0;
@@ -48,6 +53,7 @@ export abstract class AudioSource {
   protected abstract _getAudioChunkStream(): Promise<MiniPass> | MiniPass;
 
   constructor(descriptor: MaybeAudioInstance<SourceDescriptor>, manager: AudioSourcesSinksManager) {
+    super();
     this.manager = manager;
     this.type = descriptor.type;
     this.uuid = descriptor.uuid || uuidv4();
@@ -87,6 +93,7 @@ export abstract class AudioSource {
       }
     });
     if (hasChanged) {
+      this.emit('update');
       this.manager.emit('sourceUpdate', this);
       this.manager.emit('soundstateUpdated');
       if (this.local) {
