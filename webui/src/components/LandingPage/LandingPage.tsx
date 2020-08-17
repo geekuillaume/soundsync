@@ -144,7 +144,7 @@ export const LandingPage = () => {
       <LandingPresentation />
 
       <p className={classes.compatibilityIntro}>
-        Soundsync unifies all the different speakers system into a single interface to let your enjoy your music anywhere in your home however you want. Put on a podcast in your living room while someone else listen to music in the kitchen or group all your speakers together to play your favorite songs in sync.
+        Soundsync unifies all the different speakers systems into a single interface to let your enjoy your music anywhere in your home, however you want. Put on a podcast in your living room while someone else listens to music in the kitchen; or group all your speakers together to play your favorite song in sync.
       </p>
 
       <LandingCompatibility />
