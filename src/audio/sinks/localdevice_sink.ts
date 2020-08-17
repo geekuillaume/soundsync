@@ -121,7 +121,6 @@ export class LocalDeviceSink extends AudioSink {
       - this.pipedSource.startedAt
       - this.pipedSource.latency
       - now();
-    console.log('==== delay is: ', this.delayFromLocalNowBuffer[0]);
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSinkDescriptor> => ({
