@@ -1,5 +1,42 @@
 # Changelog
 
+<a name="0.3.1"></a>
+## 0.3.1 (2020-08-18)
+
+### Added
+
+- 👷‍♂️ remove unused logs [[120276b](https://github.com/geekuillaume/soundsync/commit/120276b44f4e333f1200a2bb6617ea80d2b61ef7)]
+
+### Changed
+
+- ⬆️ upgrades audioworklet to fix bug with loopback audio [[9860306](https://github.com/geekuillaume/soundsync/commit/9860306c1c22bc050fe12cac094df201f2f67aed)]
+- ⬆️ upgrades audioworklet to fix macos localdevice audio [[165d583](https://github.com/geekuillaume/soundsync/commit/165d5834f72f98f832bbfeb5c03747803ae79cca)]
+- ⬆️ upgrades audioworklet [[a6631d0](https://github.com/geekuillaume/soundsync/commit/a6631d0c323dddaffe95731e96f678f88d1dc395)]
+- ⬆️ Bumb to new verison of node-audioworklet for better sync [[f5cd1e5](https://github.com/geekuillaume/soundsync/commit/f5cd1e512593b3a67f936ab04f5c59bdbef16a8e)]
+- 🔧 Enable volume normalisation for spotify [[a76478d](https://github.com/geekuillaume/soundsync/commit/a76478d8d92805c6ddacf6da092ef3f1d4aab277)]
+
+### Fixed
+
+- 🐛 again fix ipv6 detection for airplay [[057f3aa](https://github.com/geekuillaume/soundsync/commit/057f3aaa9e7ced03f8062d710e511f497298542a)]
+- 💚 Fix typo in Github action [[05a3611](https://github.com/geekuillaume/soundsync/commit/05a3611bc58004c71a947cbe9c4c00ffb58042f0)]
+- 💚 Fix dev release upload from github action [[aa1fb2b](https://github.com/geekuillaume/soundsync/commit/aa1fb2b72d6e2e4173f9b977a2d7cc7c3241636c)]
+- 🐛 Filter out ipv6 address for Airplay speakers [[4ddb371](https://github.com/geekuillaume/soundsync/commit/4ddb3712a16a79ee20b9b2864e5f47fe2b5e9ff2)]
+
+### Miscellaneous
+
+-  Merge pull request [#24](https://github.com/geekuillaume/soundsync/issues/24) from Neamar/patch-4 [[e7d4704](https://github.com/geekuillaume/soundsync/commit/e7d4704e01167ea4253a601d4e4b66c5bf2ab911)]
+-  Merge pull request [#23](https://github.com/geekuillaume/soundsync/issues/23) from Neamar/patch-3 [[2600c34](https://github.com/geekuillaume/soundsync/commit/2600c340e24dda64cb94bef98f2850485f7ac5a4)]
+- 🚧 Wait for more latency drift data before taking sync action for local device sink [[082f1e7](https://github.com/geekuillaume/soundsync/commit/082f1e7617098d565b4413c6d6378f4c0a5b9f4b)]
+- 🙈 Ignore vscode related files [[31fe5b1](https://github.com/geekuillaume/soundsync/commit/31fe5b13c0f967e3a0e0f4a68e000052d520a0f4)]
+- 🚧 Allow null source file to be changed by env variable [[a9f7b7e](https://github.com/geekuillaume/soundsync/commit/a9f7b7ebfd6c97808b9daf176d748ce5d4345c76)]
+-  Update LandingFAQ.tsx [[702320a](https://github.com/geekuillaume/soundsync/commit/702320a2a94e241463b3ae43b0861f82e36146c5)]
+-  Update LandingPage.tsx [[02133e3](https://github.com/geekuillaume/soundsync/commit/02133e36d7fe0073824b722ca8c2c0e15c7af5d5)]
+-  Merge pull request [#22](https://github.com/geekuillaume/soundsync/issues/22) from Neamar/patch-2 [[3af5caf](https://github.com/geekuillaume/soundsync/commit/3af5caf0b464ad842c119ceb1710ec76463d792f)]
+-  Update Presentation.tsx [[d606854](https://github.com/geekuillaume/soundsync/commit/d606854a8f66b7c07e3cd6161000fba1e948405c)]
+- 🚧 Adds more detailed logs when getting RTSP errors [[e2efcf6](https://github.com/geekuillaume/soundsync/commit/e2efcf677bdf214b6cb12662ff662398ed3f9260)]
+- 🚧 Bump to dev version [[df6a300](https://github.com/geekuillaume/soundsync/commit/df6a300ed8528d37db86386688f15166d5fc7b34)]
+
+
 <a name="0.3.0"></a>
 ## 0.3.0 (2020-08-13)
 
