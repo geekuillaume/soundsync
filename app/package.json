@@ -9,7 +9,7 @@
   "dependencies": {
     "@koa/cors": "^3.0.0",
     "@sentry/node": "^5.17.0",
-    "audioworklet": "4.0.3",
+    "audioworklet": "4.1.1",
     "auto-launch": "^5.0.5",
     "bonjour": "^3.5.0",
     "castv2-client": "^1.2.0",
