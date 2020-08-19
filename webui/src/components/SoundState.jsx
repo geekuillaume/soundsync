@@ -4,12 +4,13 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import {
   useSinks, useSources, usePipes, useIsConnected,
 } from 'utils/useSoundSyncState';
+import { Button } from '@material-ui/core';
+import { Link } from 'react-router-dom';
 import { Source } from './Source/Source';
 import { Sink } from './Sink';
 import { Pipe } from './Pipe';
 import { AddSinkButton } from './AddSink/AddSinkButton';
 import { AddSourceButton } from './AddSource';
-import { FirstUse } from './FirstUse/FirstUse';
 
 export const SoundState = () => {
   const pipes = usePipes();
@@ -76,12 +77,14 @@ const ConnectingIndicator = () => {
         <CircularProgress />
         <p>Connecting...</p>
         {longConnect && (
-        <p>
-          Soundsync is scanning your local network for Soundsync enabled devices. Make sure Soundsync is started on your computer and that you are connected to the same network / wifi as the other devices. If this doesn't work, try using the "Open Controller" button in the Soundsync menu on your computer system tray.
-        </p>
+          <>
+            <p>
+              Soundsync is scanning your local network for Soundsync enabled devices. Make sure Soundsync is started on your computer and that you are connected to the same network / wifi as the other devices. If this doesn't work, try using the "Open Controller" button in the Soundsync menu on your computer system tray.
+            </p>
+            <Link to="/landing#download"><Button variant="outlined">Download Soundsync</Button></Link>
+          </>
         )}
       </div>
-      <FirstUse />
     </>
   );
 };
