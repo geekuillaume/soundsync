@@ -202,3 +202,18 @@ body {
     margin: 20px auto 20px auto;
   }
 }
+
+@keyframes audioactivity {
+  from {
+    transform: scaleY(1);
+  }
+  25% {
+    transform: scaleY(1.4);
+  }
+  50% {
+    transform: scaleY(0.7);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}

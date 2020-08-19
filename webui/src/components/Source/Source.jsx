@@ -24,16 +24,49 @@ const logos = {
   shairport: airplayIcon,
 };
 
-
+const ACTIVITY_INDICATOR_WIDTH = 5;
+const ACTIVITY_INDICATOR_HEIGHT = 7;
 const useStyles = makeStyles((t) => ({
   activeIndicator: {
     position: 'absolute',
     bottom: 5,
-    left: 5,
-    borderRadius: '100%',
+    left: 15,
     backgroundColor: t.palette.primary.main,
-    width: 7,
-    height: 7,
+    width: ACTIVITY_INDICATOR_WIDTH,
+    height: ACTIVITY_INDICATOR_HEIGHT,
+    animation: 'audioactivity',
+    animationDuration: '1s',
+    animationDelay: '0s',
+    animationIterationCount: 'infinite',
+    transformOrigin: '100% 100%',
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      right: ACTIVITY_INDICATOR_WIDTH + 2,
+      width: ACTIVITY_INDICATOR_WIDTH,
+      height: ACTIVITY_INDICATOR_HEIGHT,
+      backgroundColor: t.palette.primary.main,
+      animation: 'audioactivity',
+      animationDuration: '1s',
+      animationDelay: '0.2s',
+      animationIterationCount: 'infinite',
+      transformOrigin: '100% 100%',
+    },
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      left: ACTIVITY_INDICATOR_WIDTH + 2,
+      width: ACTIVITY_INDICATOR_WIDTH,
+      height: ACTIVITY_INDICATOR_HEIGHT,
+      backgroundColor: t.palette.primary.main,
+      animation: 'audioactivity',
+      animationDuration: '1s',
+      animationDelay: '0.5s',
+      animationIterationCount: 'infinite',
+      transformOrigin: '100% 100%',
+    },
   },
 }));
 
