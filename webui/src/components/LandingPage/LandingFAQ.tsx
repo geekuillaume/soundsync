@@ -63,6 +63,17 @@ const useStyles = makeStyles((t) => ({
       flexDirection: 'column',
     },
   },
+  compatibleWithContainer: {
+    flexDirection: 'column',
+    '& ul': {
+      listStyle: 'circle',
+      paddingLeft: '1em',
+      marginBottom: 15,
+    },
+    '& span': {
+      fontWeight: 'bold',
+    },
+  },
 }));
 
 const Question = ({ title, content }: {title: string; content: any}) => {
@@ -98,6 +109,76 @@ export const LandingFAQ = () => {
           )}
         />
         <Question
+          title="What is compatible?"
+          content={(
+            <div className={classes.compatibleWithContainer}>
+              <p>
+                Audio sources:
+              </p>
+              <p>
+                <ul>
+                  <li>
+                    <span>Spotify Connect:</span>
+                    {' '}
+                    Soundsync will show in the list of devices on the Spotify App when connected to the same wifi
+                  </li>
+                  <li>
+                    <span>Airplay Input:</span>
+                    {' '}
+                    Soundsync will show in the Airplay devices list on your iPhone or Macbook
+                  </li>
+                  <li>
+                    <span>Line-In / Microphone:</span>
+                    {' '}
+                    Soundsync will detect all audio inputs on your computer and let you manage them individually in the controller
+                  </li>
+                  <li>
+                    <span>Computer audio:</span>
+                    {' '}
+                    On Windows and Linux, Soundsync capture the sound emitted from your computer in any program
+                  </li>
+                </ul>
+              </p>
+              <p>
+                Audio outputs:
+              </p>
+              <p>
+                <ul>
+                  <li>
+                    <span>Chromecast:</span>
+                    {' '}
+                    Chromecasts on your wifi network are automatically detected and can be used to broadcast audio from Soundsync controller
+                  </li>
+                  <li>
+                    <span>Airplay Speaker:</span>
+                    {' '}
+                    Airplay Speakers on your wifi network are automatically detected and can be used to broadcast audio from Soundsync controller
+                  </li>
+                  <li>
+                    <span>Computer audio:</span>
+                    {' '}
+                    After installing Soundsync on your computer, each connected audio device will be added as an independent audio output in the Soundsync controller
+                  </li>
+                  <li>
+                    <span>Web Browser:</span>
+                    {' '}
+                    Go to
+                    {' '}
+                    <a href="https://soundsync.app">soundsync.app</a>
+                    {' '}
+                    from a device connected to your wifi and use this device as an audio output without having to install any app!
+                  </li>
+                  <li>
+                    <span>Philips Hue:</span>
+                    {' '}
+                    Connect your Philips Hue light bulbs to Soundsync to light them in rythm with your music
+                  </li>
+                </ul>
+              </p>
+            </div>
+          )}
+        />
+        <Question
           title="Who's working on Soundsync?"
           content={(
             <div className={classes.whoAmI}>
@@ -109,6 +190,14 @@ export const LandingFAQ = () => {
                 !
               </p>
             </div>
+          )}
+        />
+        <Question
+          title="How well is it synchronized?"
+          content={(
+            <p>
+              Soundsync will try its best to keep every device synchronized. In practice, the audio synchronization between two computer will be precise at 25ms max. This is precise enough for speakers in different rooms but the difference can be heard if the two speakers are very near from each other. Soundsync will select the minimum latency between the audio source and the audio output dynamically depending on the network connection quality and the audio outputs reactivity. In general, you can expect around 250ms latency between the audio being emitted by the source and being heard from the connected audio outputs.
+            </p>
           )}
         />
         <Question
