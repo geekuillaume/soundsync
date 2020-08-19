@@ -112,7 +112,7 @@ export class WebrtcPeer extends Peer {
   initiateConnection = async (): Promise<RTCSessionDescription> => {
     this.initWebrtcIfNeeded();
     if (this.hasSentOffer) {
-      return this.connection.localDescription;
+      return null;
     }
     await once(this.connection, 'negotiationneeded');
     this.hasSentOffer = true;
@@ -185,9 +185,11 @@ export class WebrtcPeer extends Peer {
     const localDescription = await this.initiateConnection();
     try {
       this.initiator.startPolling();
-      await this.initiator.sendMessage({
-        description: localDescription,
-      });
+      if (localDescription) {
+        await this.initiator.sendMessage({
+          description: localDescription,
+        });
+      }
     } catch (e) {
       if (!isRetry) {
         this.log(`Cannot connect to peer with initiator ${this.initiator.type}`, e.message);
