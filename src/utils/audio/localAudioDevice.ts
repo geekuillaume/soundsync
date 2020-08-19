@@ -1,15 +1,23 @@
 import { AudioServer, AudioDevice } from 'audioworklet';
+import _ from 'lodash';
 
 let audioServer: AudioServer;
+const deviceChangeListeners: (() => any)[] = [];
 
 export const getAudioServer = () => {
   if (!audioServer) {
-    audioServer = new AudioServer();
+    audioServer = new AudioServer({
+      onDeviceChange: _.debounce(() => {
+        deviceChangeListeners.forEach((listener) => listener());
+      }, 200),
+    });
   }
   return audioServer;
 };
 
 export const getAudioDevices = () => getAudioServer().getDevices();
+
+export const onAudioDevicesChange = (listener: () => void) => deviceChangeListeners.push(listener);
 
 export const audioApiSupportsLoopback = () => getAudioServer().getApi() === 'WASAPI';
 export const getOutputDeviceFromId = (deviceId: string) => {

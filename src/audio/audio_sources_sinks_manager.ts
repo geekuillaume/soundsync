@@ -18,7 +18,7 @@ import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
 import { LocalDeviceSink } from './sinks/localdevice_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem, deleteConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices } from '../utils/audio/localAudioDevice';
+import { getAudioDevices, onAudioDevicesChange } from '../utils/audio/localAudioDevice';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
@@ -58,9 +58,10 @@ export class AudioSourcesSinksManager extends EventEmitter {
     this.setMaxListeners(500);
   }
 
-  autodetectDevices = async () => {
+  autodetectDevices = () => {
     log(`Detecting local audio devices`);
-    const audioDevices = await getAudioDevices();
+    const audioDevices = getAudioDevices();
+    onAudioDevicesChange(this.autodetectDevices);
     audioDevices.outputDevices.forEach((device) => {
       this.addSink({
         type: 'localdevice',
