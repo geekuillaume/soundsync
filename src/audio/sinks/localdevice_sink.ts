@@ -8,10 +8,10 @@ import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, MIN_SKEW_TO_RESYNC_AUDIO, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
-import { getOutputDeviceFromId } from '../../utils/audio/localAudioDevice';
+import { getOutputDeviceFromId, getAudioServer } from '../../utils/audio/localAudioDevice';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
@@ -25,7 +25,6 @@ export class LocalDeviceSink extends AudioSink {
 
   private worklet: Worker;
   private cleanStream;
-  private audioServer: AudioServer;
   private audioStream: AudioStream;
 
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
@@ -44,9 +43,8 @@ export class LocalDeviceSink extends AudioSink {
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
-    this.audioServer = new AudioServer();
     const device = getOutputDeviceFromId(this.deviceId);
-    this.audioStream = this.audioServer.initOutputStream(this.deviceId, {
+    this.audioStream = getAudioServer().initOutputStream(this.deviceId, {
       sampleRate: OPUS_ENCODER_RATE,
       name: source.name,
       format: AudioServer.F32LE,
