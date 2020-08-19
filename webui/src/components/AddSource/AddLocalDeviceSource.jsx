@@ -20,7 +20,7 @@ export const AddLocalDeviceSource = () => {
     <>
       <DialogTitle>Use computer audio</DialogTitle>
       <DialogContent>
-        <p>Install Soundsync on your computer to use this computer audio on any speakers in your home.</p>
+        <p>Install Soundsync on your computer to use this computer audio on any speakers in your home. Once installed and started, every audio source on this computer will automatically show in the controller.</p>
         <Link to="/landing#download"><Button className={styles.downloadButton} variant="outlined">Download Soundsync</Button></Link>
       </DialogContent>
     </>
