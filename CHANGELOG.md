@@ -1,5 +1,22 @@
 # Changelog
 
+<a name="0.3.3"></a>
+## 0.3.3 (2020-08-19)
+
+### Changed
+
+- 💄 Improve source activity indicator on webui [[acd5f86](https://github.com/geekuillaume/soundsync/commit/acd5f86bf5a3820ff9efc500e6054069efca88fb)]
+- 💄 Don&#x27;t show download buttons when connecting from webui [[6376409](https://github.com/geekuillaume/soundsync/commit/6376409371b0fb6d8c24705551210b79e6b53322)]
+
+### Fixed
+
+- 🐛 Use only one instance of audioserver [[8b24621](https://github.com/geekuillaume/soundsync/commit/8b246212437e0603d95f8fc733122275450435e3)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[f9df694](https://github.com/geekuillaume/soundsync/commit/f9df694c2200fcda63ec0c5295892ff7b3cbaab8)]
+
+
 <a name="0.3.2"></a>
 ## 0.3.2 (2020-08-19)
 
