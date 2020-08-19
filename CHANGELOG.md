@@ -1,5 +1,26 @@
 # Changelog
 
+<a name="0.3.2"></a>
+## 0.3.2 (2020-08-19)
+
+### Added
+
+- ✨ Autodetect new local audio source/sinks dynamically [[1d2f6f4](https://github.com/geekuillaume/soundsync/commit/1d2f6f4d442910b06b72a28b09bbc9f40ba21b3e)]
+
+### Changed
+
+- 💄 Adds more details about localDevice sink and source on webui [[3ebfc15](https://github.com/geekuillaume/soundsync/commit/3ebfc1597548c485dda6b0f10298f420dd5c4320)]
+- 💄 Add more info in FAQ and changes webui hero background [[af0365b](https://github.com/geekuillaume/soundsync/commit/af0365bd2303abc2223993695bbce1fe0406a68a)]
+
+### Fixed
+
+- 🐛 Preventing sending wrtc localDescription multiple time [[df6e24d](https://github.com/geekuillaume/soundsync/commit/df6e24de096aa82b290958ef976ced6f3b30c098)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[f499aad](https://github.com/geekuillaume/soundsync/commit/f499aad54f21cb5f6b26486d4f275d233eabd832)]
+
+
 <a name="0.3.1"></a>
 ## 0.3.1 (2020-08-18)
 
