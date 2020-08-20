@@ -1,5 +1,22 @@
 # Changelog
 
+<a name="0.3.5"></a>
+## 0.3.5 (2020-08-20)
+
+### Changed
+
+- 💄 Improves landing page [[c22f0fd](https://github.com/geekuillaume/soundsync/commit/c22f0fddc51bab0ddd2052106057739c8ce80155)]
+
+### Fixed
+
+- 🐛 fix bug with audioworklet and windows null devices [[918c823](https://github.com/geekuillaume/soundsync/commit/918c823c611f33dc4df8259ab882c216be6ad58c)]
+
+### Miscellaneous
+
+- 🚧 Adds logging when creating audioserver [[f675a7a](https://github.com/geekuillaume/soundsync/commit/f675a7adb9a832fbb376bf52a0cfc953a93440a5)]
+- 🚧 Bump to dev version [[e1ba31f](https://github.com/geekuillaume/soundsync/commit/e1ba31fc8bf83ab94d77dfd71382fbefcae697b2)]
+
+
 <a name="0.3.4"></a>
 ## 0.3.4 (2020-08-20)
 
