@@ -93,6 +93,23 @@ const useStyles = makeStyles((t) => ({
     fontSize: '1.2em',
     fontFamily: '\'Sora\', sans-serif',
   },
+  steps: {
+    padding: '0 30px',
+    margin: '50px 0',
+    '& li': {
+      maxWidth: t.breakpoints.values.sm,
+      margin: 'auto',
+      // textAlign: 'center',
+      fontSize: '1.2em',
+      fontFamily: '\'Sora\', sans-serif',
+      marginTop: 15,
+    },
+    '& span': {
+      fontSize: '1.4em',
+      marginRight: 10,
+      color: t.palette.primary.main,
+    },
+  },
 }));
 
 
@@ -151,6 +168,29 @@ export const LandingPage = () => {
       <LandingCompatibility />
 
       <LandingDownload />
+
+      <ul className={classes.steps}>
+        <li>
+          <span>1.</span>
+          Download and install Soundsync on every computer in your home
+        </li>
+        <li>
+          <span>2.</span>
+          Open
+          {' '}
+          <a href="https://soundsync.app/">soundsync.app</a>
+          {' '}
+          on the web browser of any device connected to your wifi
+        </li>
+        <li>
+          <span>3.</span>
+          Select what you want to listen to and on which speakers to broadcast it
+        </li>
+        <li>
+          <span>4.</span>
+          Listen to your music in sync anywhere in your home!
+        </li>
+      </ul>
 
       <LandingFAQ />
 
