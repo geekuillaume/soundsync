@@ -26,20 +26,20 @@ Download and install Soundsync for you operating system on every device in your 
 <table width="100%" align="center"><tr>
   <td align="center">
     <h3>Windows</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.3/soundsync-0.3.3.exe">Download</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.4/soundsync-0.3.4.exe">Download</a></p>
   </td>
   <td align="center">
     <h3>MacOS</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.3/soundsync-0.3.3.dmg">Download</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.4/soundsync-0.3.4.dmg">Download</a></p>
   </td>
   <td align="center">
     <h3>Linux</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.3/soundsync-amd64-0.3.3.deb">Download (.deb for Ubuntu/Debian)</a></p>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.3/soundsync-x64-0.3.3.pacman">Download (.pacman for Archlinux)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.4/soundsync-amd64-0.3.4.deb">Download (.deb for Ubuntu/Debian)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.4/soundsync-x64-0.3.4.pacman">Download (.pacman for Archlinux)</a></p>
   </td>
   <td align="center">
     <h3>Linux ARM (Raspberry)</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.3/soundsync-armv7l-0.3.3.deb">Download (.deb for Ubuntu/Debian/Raspbian)</a></p>
+    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.4/soundsync-armv7l-0.3.4.deb">Download (.deb for Ubuntu/Debian/Raspbian)</a></p>
   </td>
 </tr></table>
 

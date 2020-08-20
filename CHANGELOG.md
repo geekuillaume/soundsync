@@ -1,5 +1,24 @@
 # Changelog
 
+<a name="0.3.4"></a>
+## 0.3.4 (2020-08-20)
+
+### Changed
+
+- 💄 Change catch phrase [[cc2ec0f](https://github.com/geekuillaume/soundsync/commit/cc2ec0f646061177579a37db72ef9561aaa6fdf0)]
+- 💄 Add meta tags to webui [[1bcc841](https://github.com/geekuillaume/soundsync/commit/1bcc841d21a15501ae87f8900f5f0689d5be9a38)]
+- 💄 Adds usage steps on landing page [[4194504](https://github.com/geekuillaume/soundsync/commit/419450480ef28ccfc9115a0e2bfa30a90fe30f5a)]
+
+### Fixed
+
+- 🐛 fix systray image not showing [[a809723](https://github.com/geekuillaume/soundsync/commit/a809723150be87a98062c4e07a2d2e95107d4220)]
+- 🐛 Fix manifest.json urls and adds more info [[55887dc](https://github.com/geekuillaume/soundsync/commit/55887dc049039315b52701da0f134667aa6ed17d)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[3a30881](https://github.com/geekuillaume/soundsync/commit/3a308814509858d34b087963784f1442c228e1aa)]
+
+
 <a name="0.3.3"></a>
 ## 0.3.3 (2020-08-19)
 
