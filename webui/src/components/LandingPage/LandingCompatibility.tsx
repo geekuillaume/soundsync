@@ -44,7 +44,7 @@ const useStyles = makeStyles((t) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 150,
+    paddingBottom: 50,
     overflow: 'hidden',
     padding: '0 30px',
     contain: 'layout style paint',
@@ -316,7 +316,7 @@ export const LandingCompatibility = () => {
   return (
     <div className={classes.root}>
       <div className={classes.container}>
-        <p className={classes.title}>Compatible with:</p>
+        <p className={classes.title}>Connect any audio source to any audio output:</p>
         <div className={classes.innerContainer}>
           <PipesCanvas currentPipes={PIPES_CONFIGURATIONS[currentPipeConfiguration]} className={classes.pipeCanvas} audioObjectRefs={audioObjectRefs} />
 
