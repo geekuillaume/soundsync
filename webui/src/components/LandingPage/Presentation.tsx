@@ -45,7 +45,7 @@ export const LandingPresentation = () => {
   return (
     <div className={classes.presentationContainer}>
       <p className={classes.presentationText}>
-        Soundsync links all your speakers, old or new, smart or dumb, from the same brand or not, in one easy-to-use interface
+        Soundsync links all your speakers, old or new, smart or dumb, from the same brand or not, in one easy-to-use interface to enjoy your music in sync anywhere in your home
       </p>
       <div className={classes.presentationFeaturesContainer}>
         <div className={classes.presentationFeature}>
