@@ -22,7 +22,7 @@ export const createSystray = () => {
       const {
         Menu, Tray, nativeImage,
       } = electron;
-      const image = nativeImage.createFromPath(resolve(__dirname, '../../res/logo_small.png'));
+      const image = nativeImage.createFromPath(resolve(__dirname, '../../../res/logo_small.png'));
       const tray = new Tray(image.resize({ width: 20, height: 20 })); // necessary for macos, else it will become huge in the systray
 
       const onAutostartClick = async () => {
