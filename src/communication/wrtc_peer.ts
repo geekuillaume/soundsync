@@ -6,12 +6,12 @@ import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
 import {
-  CONTROLLER_CHANNEL_ID, NO_RESPONSE_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_JITTER, AUDIO_CHANNEL_OPTIONS,
+  CONTROLLER_CHANNEL_ID, AUDIO_CHANNEL_OPTIONS,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer, Capacity } from './peer';
 import { DataChannelStream } from '../utils/network/datachannel_stream';
-import { now, once } from '../utils/misc';
+import { once } from '../utils/misc';
 import { getConfigField } from '../coordinator/config';
 
 const CONNECTION_RETRY_DELAY = 1000 * 2;
@@ -28,7 +28,6 @@ export class WebrtcPeer extends Peer {
   private controllerChannel: RTCDataChannel;
   hasSentOffer = false;
   shouldIgnoreOffer = false;
-  private heartbeatInterval;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
   initiator: WebrtcInitiator;
 
@@ -73,8 +72,6 @@ export class WebrtcPeer extends Peer {
 
     this.controllerChannel.addEventListener('open', () => {
       this.initiator.stopPolling();
-      this.heartbeatInterval = setInterval(this.sendHeartbeat, HEARTBEAT_INTERVAL + (Math.random() * HEARTBEAT_JITTER));
-      this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
       this.sendControllerMessage({
         type: 'peerInfo',
         peer: getLocalPeer().toDescriptor(),
@@ -99,14 +96,6 @@ export class WebrtcPeer extends Peer {
     delete this.connection;
     delete this.controllerChannel;
     this.datachannelsBySourceUuid = {};
-    if (this.missingPeerResponseTimeout) {
-      clearTimeout(this.missingPeerResponseTimeout);
-      delete this.missingPeerResponseTimeout;
-    }
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      delete this.heartbeatInterval;
-    }
   }
 
   initiateConnection = async (): Promise<RTCSessionDescription> => {
@@ -209,19 +198,11 @@ export class WebrtcPeer extends Peer {
   }
 
   private handleControllerMessage = (message: ControllerMessage) => {
-    if (message.type === 'ping' || message.type === 'pong') {
-      this.handleReceivedHeartbeat(message.type === 'ping');
-      return;
-    }
     if (message.type === 'disconnect') {
       this.destroy('received disconnect message from peer');
       return;
     }
     this._onReceivedMessage(message);
-  }
-
-  private handleNoHeartbeat = () => {
-    this.destroy('no heartbeat received', { advertiseDestroy: true, canTryReconnect: true });
   }
 
   sendControllerMessage(message: ControllerMessage) {
@@ -231,34 +212,8 @@ export class WebrtcPeer extends Peer {
     if (!this.logPerMessageType[message.type]) {
       this.logPerMessageType[message.type] = this.log.extend(message.type);
     }
-    if (message.type !== 'ping' && message.type !== 'pong') {
-      this.logPerMessageType[message.type]('Sending controller message', message);
-    }
+    this.logPerMessageType[message.type]('Sending controller message', message);
     return this.controllerChannel.send(JSON.stringify(message));
-  }
-
-  private missingPeerResponseTimeout;
-  private lastHeartbeatReceivedTime;
-  private handleReceivedHeartbeat(receivedPing = false) {
-    this.lastHeartbeatReceivedTime = now();
-    if (this.missingPeerResponseTimeout) {
-      clearTimeout(this.missingPeerResponseTimeout);
-      this.missingPeerResponseTimeout = null;
-    }
-    if (receivedPing) {
-      this.sendControllerMessage({ type: 'pong' });
-    }
-    this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
-  }
-
-  private sendHeartbeat = () => {
-    if (now() - this.lastHeartbeatReceivedTime < HEARTBEAT_INTERVAL) {
-      return;
-    }
-    if (!this.missingPeerResponseTimeout) {
-      this.missingPeerResponseTimeout = setTimeout(this.handleNoHeartbeat, NO_RESPONSE_TIMEOUT);
-    }
-    this.sendControllerMessage({ type: 'ping' });
   }
 
   createAudioSourceChannel = async (sourceUuid: string) => {

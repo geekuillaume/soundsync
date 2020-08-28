@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import _ from 'lodash';
 import debug, { Debugger } from 'debug';
+import { NO_RESPONSE_TIMEOUT } from '../utils/constants';
 import { handleSharedStateFromPeer } from '../coordinator/shared_state';
 import {
   RPCType, RPCRequestBody, RPCResponseBody, rpcHandlers,
@@ -15,16 +16,15 @@ import {
   RPCMessage,
 } from './messages';
 import { now } from '../utils/misc';
-import { TIMEKEEPER_REFRESH_INTERVAL } from '../utils/constants';
 import { BasicNumericStatsTracker } from '../utils/basicNumericStatsTracker';
 
-
-const TIME_DELTAS_TO_KEEP = 30;
+const TIME_DELTAS_TO_KEEP = 100;
 // if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
 // this is used to not reupdate the sound sinks for every small difference in the timedelta but only if there is too much diff
-const MS_DIFF_TO_UPDATE_TIME_DELTA = 20;
+const MS_DIFF_TO_UPDATE_TIME_DELTA = 5;
 // we use multiple time requests when starting the connection to prevent having a incorrect value from a network problem at this specific moment
-const TIMESYNC_INIT_REQUEST_COUNT = 3;
+const TIMESYNC_INIT_REQUEST_COUNT = 10;
+const TIMEKEEPER_REFRESH_INTERVAL = 100;
 
 export enum Capacity {
   Librespot = 'librespot',
@@ -42,7 +42,7 @@ export abstract class Peer extends EventEmitter {
   name: string;
   state: 'connecting' | 'connected' | 'deleted' = 'connecting';
   timeDelta = 0;
-  private timedeltas = new BasicNumericStatsTracker(30);
+  private timedeltas = new BasicNumericStatsTracker(TIME_DELTAS_TO_KEEP);
   log: Debugger;
   protected logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
@@ -50,6 +50,7 @@ export abstract class Peer extends EventEmitter {
   isLocal: boolean;
   private onRemoteDisconnect: () => any;
   private timekeepInterval: NodeJS.Timeout;
+  private missingPeerResponseTimeout: NodeJS.Timeout;
 
   constructor({
     uuid, name, capacities, instanceUuid,
@@ -77,7 +78,7 @@ export abstract class Peer extends EventEmitter {
       const receivedByPeerAt = message.sentAt + (roundtripTime / 2);
       const delta = message.respondedAt - receivedByPeerAt;
       this.timedeltas.push(delta);
-      if (this.timedeltas.full(this.timeDelta === 0 ? TIMESYNC_INIT_REQUEST_COUNT : TIME_DELTAS_TO_KEEP)) {
+      if (this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)) {
         // we have enough measures to calculate a precise time delta between peers
         const realTimeDelta = this.timedeltas.mean();
         if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
@@ -175,6 +176,12 @@ export abstract class Peer extends EventEmitter {
   abstract sendControllerMessage(message: ControllerMessage): void;
   // need to be called by class which implement peer when a message is received
   protected _onReceivedMessage = (message) => {
+    if (this.missingPeerResponseTimeout) {
+      clearTimeout(this.missingPeerResponseTimeout);
+    }
+    if (!this.isLocal) {
+      this.missingPeerResponseTimeout = setTimeout(this.handleNoResponseTimeout, NO_RESPONSE_TIMEOUT);
+    }
     if (!this.logPerMessageType[message.type]) {
       this.logPerMessageType[message.type] = this.log.extend(message.type);
     }
@@ -182,6 +189,10 @@ export abstract class Peer extends EventEmitter {
     this.emit(`controllerMessage:all`, { peer: this, message });
     this.emit(`controllerMessage:${message.type}`, { peer: this, message });
     getPeersManager().emit(`controllerMessage:${message.type}`, { message, peer: this });
+  }
+
+  private handleNoResponseTimeout = () => {
+    this.destroy('no messages for a too long, timeout', { advertiseDestroy: true, canTryReconnect: true });
   }
 
   onControllerMessage: ControllerMessageHandler<this> = (type, handler) => this.on(`controllerMessage:${type}`, ({ message, peer }) => handler(message, peer))
@@ -220,6 +231,9 @@ export abstract class Peer extends EventEmitter {
   isTimeSynchronized = () => this === getLocalPeer() || this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)
   getCurrentTime = () => (this === getLocalPeer() ? now() : now() + this.timeDelta);
   private _sendTimekeepRequest = () => {
+    if (this.isLocal) {
+      return;
+    }
     this.sendControllerMessage({
       type: 'timekeepRequest',
       sentAt: now(),
