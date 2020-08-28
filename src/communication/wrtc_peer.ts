@@ -6,7 +6,7 @@ import { WebrtcInitiator, InitiatorMessage } from './initiators/initiator';
 import { getLocalPeer } from './local_peer';
 import { getPeersManager } from './get_peers_manager';
 import {
-  CONTROLLER_CHANNEL_ID, AUDIO_CHANNEL_OPTIONS,
+  CONTROLLER_CHANNEL_ID, AUDIO_CHANNEL_OPTIONS, TIMEKEEP_CHANNEL_ID,
 } from '../utils/constants';
 import { ControllerMessage } from './messages';
 import { Peer, Capacity } from './peer';
@@ -26,6 +26,8 @@ interface WebrtcPeerConstructorParams {
 export class WebrtcPeer extends Peer {
   private connection: RTCPeerConnection;
   private controllerChannel: RTCDataChannel;
+  // we send timekeep request on another WebRTC channel which is UDP-like to prevent lags from TCP packet queue and resends, we do not care if some timekeep packets are lost
+  private timekeepChannel: RTCDataChannel;
   hasSentOffer = false;
   shouldIgnoreOffer = false;
   private datachannelsBySourceUuid: {[sourceUuid: string]: RTCDataChannel} = {};
@@ -68,6 +70,12 @@ export class WebrtcPeer extends Peer {
       negotiated: true,
       id: CONTROLLER_CHANNEL_ID,
     });
+    this.timekeepChannel = this.connection.createDataChannel('timekeep', {
+      negotiated: true,
+      id: TIMEKEEP_CHANNEL_ID,
+      ordered: false,
+      maxRetransmits: 0,
+    });
     this.connection.ondatachannel = this.handleRequestedAudioSourceChannel;
 
     this.controllerChannel.addEventListener('open', () => {
@@ -83,6 +91,9 @@ export class WebrtcPeer extends Peer {
     this.controllerChannel.addEventListener('message', (e) => {
       this.handleControllerMessage(JSON.parse(e.data));
     });
+    this.timekeepChannel.addEventListener('message', (e) => {
+      this.handleControllerMessage(JSON.parse(e.data));
+    });
   }
 
   cleanWebrtcState = () => {
@@ -95,6 +106,7 @@ export class WebrtcPeer extends Peer {
     this.connection.close();
     delete this.connection;
     delete this.controllerChannel;
+    delete this.timekeepChannel;
     this.datachannelsBySourceUuid = {};
   }
 
@@ -206,14 +218,15 @@ export class WebrtcPeer extends Peer {
   }
 
   sendControllerMessage(message: ControllerMessage) {
-    if (!this.controllerChannel || this.controllerChannel.readyState !== 'open') {
+    const channel = ['timekeepRequest', 'timekeepResponse'].includes(message.type) ? this.timekeepChannel : this.controllerChannel;
+    if (!channel || channel.readyState !== 'open') {
       return Promise.resolve(false);
     }
     if (!this.logPerMessageType[message.type]) {
       this.logPerMessageType[message.type] = this.log.extend(message.type);
     }
     this.logPerMessageType[message.type]('Sending controller message', message);
-    return this.controllerChannel.send(JSON.stringify(message));
+    return channel.send(JSON.stringify(message));
   }
 
   createAudioSourceChannel = async (sourceUuid: string) => {
