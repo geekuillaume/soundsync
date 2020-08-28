@@ -80,7 +80,7 @@ export abstract class Peer extends EventEmitter {
       this.timedeltas.push(delta);
       if (this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)) {
         // we have enough measures to calculate a precise time delta between peers
-        const realTimeDelta = this.timedeltas.mean();
+        const realTimeDelta = this.timedeltas.median();
         if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
           this.log(`Updating timedelta to ${realTimeDelta}, diff was ${(realTimeDelta - this.timeDelta).toFixed(2)}ms`);
           this.timeDelta = realTimeDelta;
