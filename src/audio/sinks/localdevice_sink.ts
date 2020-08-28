@@ -48,6 +48,7 @@ export class LocalDeviceSink extends AudioSink {
       sampleRate: OPUS_ENCODER_RATE,
       name: source.name,
       format: AudioServer.F32LE,
+      channels: this.channels,
     });
     this.worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
     this.audioStream.start();
