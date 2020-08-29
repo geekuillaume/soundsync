@@ -1,5 +1,30 @@
 # Changelog
 
+<a name="0.3.6"></a>
+## 0.3.6 (2020-08-28)
+
+### Changed
+
+- ⚡ Use median instead of mean for timekeep value [[56dc139](https://github.com/geekuillaume/soundsync/commit/56dc1393b41f5ed6466db0782e9eed1e0cfb95f7)]
+- ⚡ Use a UDP like webrtc datachannel for timekeep messages [[87642e1](https://github.com/geekuillaume/soundsync/commit/87642e11f90856b1a70a140ae83b680134dd2a96)]
+- ⬆️ upgrade some deps [[2fc40bf](https://github.com/geekuillaume/soundsync/commit/2fc40bf3d0efd9b73564a72954f192908760cbce)]
+
+### Removed
+
+- 🔥 remove unused constants and reduce clock drift tolerance [[e162e0e](https://github.com/geekuillaume/soundsync/commit/e162e0e1ac0f5fcb20ca6b79bbef170499ae8ab0)]
+- 🔥 Removes heartbeat and use timekeep messages for timeout detection [[5f64292](https://github.com/geekuillaume/soundsync/commit/5f64292af765330314603dc7e7b8ad6c51c475e1)]
+
+### Fixed
+
+- 🐛 Set channels when creating speaker instead of autodetection [[9e4b963](https://github.com/geekuillaume/soundsync/commit/9e4b963cc56647f9bc292005e76a5e4cf802b90d)]
+
+### Miscellaneous
+
+-  👷 add action to delete old github actions artifacts [[49e0124](https://github.com/geekuillaume/soundsync/commit/49e0124556b413b22993295119db26a374846b56)]
+-  👷 disable artifact storing on github actions [[c0d4d1c](https://github.com/geekuillaume/soundsync/commit/c0d4d1cc65e02597954ae7685b10da80fa68d129)]
+- 🚧 Bump to dev version [[3149114](https://github.com/geekuillaume/soundsync/commit/31491144ee7554718a1524f56231ba0e51dd0df7)]
+
+
 <a name="0.3.5"></a>
 ## 0.3.5 (2020-08-20)
 
