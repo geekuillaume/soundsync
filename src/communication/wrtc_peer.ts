@@ -151,12 +151,18 @@ export class WebrtcPeer extends Peer {
           //   || this.connection.signalingState === 'have-remote-pranswer' ? 'offer' : 'answer',
           //   sdp: (await this.connection.createAnswer()).sdp,
           // };
-          await this.connection.setLocalDescription(await this.connection.createAnswer());
+          this.log('Creating answer');
+          const answer = await this.connection.createAnswer();
+          this.log('Setting local description');
+          await this.connection.setLocalDescription(answer);
+          this.log('Sending answer');
           try {
             await this.initiator.sendMessage({
               description: this.connection.localDescription,
             });
-          } catch {}
+          } catch (e) {
+            this.log('Error while sending answer', e);
+          }
         }
       } else if (candidate) {
         if (!this.connection) {
