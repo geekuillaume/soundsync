@@ -2,7 +2,7 @@ import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import { assert } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
-import { SOUNDSYNC_VERSION } from '../../utils/constants';
+import { BUILD_VERSION } from '../../utils/version';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
@@ -41,7 +41,7 @@ export class PeerRelayInitiator extends WebrtcInitiator {
       type: 'peerConnectionInfo',
       messageUuid: uuidv4(),
       targetUuid: this.targetUuid,
-      senderVersion: SOUNDSYNC_VERSION,
+      senderVersion: BUILD_VERSION,
       senderUuid: getLocalPeer().uuid,
       senderInstanceUuid: getLocalPeer().instanceUuid,
       initiatorUuid: this.uuid,
@@ -59,14 +59,12 @@ export const handlePeerRelayInitiatorMessage = async (message: PeerConnectionInf
   try {
     const { initiatorUuid } = message;
     const {
-      senderUuid, senderInstanceUuid, senderVersion,
+      senderUuid, senderInstanceUuid,
     } = message;
 
     assert(senderUuid !== getLocalPeer().uuid, 'Connecting to own peer');
 
     if (!initiatorsListener[initiatorUuid]) {
-      assert(senderVersion === SOUNDSYNC_VERSION, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
-
       const peer = new WebrtcPeer({
         uuid: `placeholderForPeerRelayInitiatorRequest_${initiatorUuid}`,
         name: `placeholderForPeerRelayInitiatorRequest_${senderUuid}`,

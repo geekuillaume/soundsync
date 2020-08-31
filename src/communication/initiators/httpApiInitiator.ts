@@ -1,8 +1,8 @@
 import superagent from 'superagent';
 
 import Router from 'koa-router';
+import { BUILD_VERSION } from '../../utils/version';
 import { getLocalPeer } from '../local_peer';
-import { SOUNDSYNC_VERSION } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
@@ -43,7 +43,7 @@ export class HttpApiInitiator extends WebrtcInitiator {
       message: {
         senderUuid: getLocalPeer().uuid,
         senderInstanceUuid: getLocalPeer().instanceUuid,
-        senderVersion: SOUNDSYNC_VERSION,
+        senderVersion: BUILD_VERSION,
         ...message,
       },
     };
@@ -117,7 +117,6 @@ export const initHttpServerRoutes = (router: Router) => {
 
     if (!initiators[initiatorUuid]) {
       ctx.assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 400, 'senderUuid, senderInstanceUuid and senderVersion should be set');
-      ctx.assert(senderVersion === SOUNDSYNC_VERSION, 400, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
 
       const peer = new WebrtcPeer({
         uuid: `placeholderForHttpInitiatorRequest_${initiatorUuid}`,

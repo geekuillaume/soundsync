@@ -3,7 +3,8 @@ import debug from 'debug';
 import { onSniRequest } from '../https_sni_request';
 import { assert, addDashesToUuid } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
-import { SOUNDSYNC_VERSION, EMPTY_IMAGE } from '../../utils/constants';
+import { BUILD_VERSION } from '../../utils/version';
+import { EMPTY_IMAGE } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
@@ -38,7 +39,7 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
     await postRendezvousMessage(this.uuid, {
       senderUuid: getLocalPeer().uuid,
       senderInstanceUuid: getLocalPeer().instanceUuid,
-      senderVersion: SOUNDSYNC_VERSION,
+      senderVersion: BUILD_VERSION,
       ...message,
     } as InitiatorMessage, this.isPrimary);
     try {
@@ -94,7 +95,6 @@ const handleRendezvousMessageNotification = async (initiatorUuid: string, host: 
         senderUuid, senderInstanceUuid, senderVersion,
       } = messages[0];
       assert(!!senderUuid && !!senderInstanceUuid && !!senderVersion, 'senderUuid, senderInstanceUuid and senderVersion should be set');
-      assert(senderVersion === SOUNDSYNC_VERSION, `Different version of Soundsync, please check each client is on the same version.\nOwn version: ${SOUNDSYNC_VERSION}\nOther peer version: ${senderVersion}`);
 
       const peer = new WebrtcPeer({
         uuid: `placeholderForRendezvousInitiatorRequest_${initiatorUuid}`,

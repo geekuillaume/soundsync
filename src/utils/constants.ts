@@ -12,8 +12,6 @@ export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
 };
 export const ICE_GATHERING_TIMEOUT = 20000;
 
-export const SOUNDSYNC_VERSION = '0.1.0';
-
 // if more than 10ms of drift, start correcting with soft sync (inserting or removing samples in the stream)
 export const SOFT_SYNC_MIN_AUDIO_DRIFT = 5;
 // if more than 100ms of drift, correct by making a hard sync (pausing the output or discarding a chunk of samples)

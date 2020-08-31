@@ -12,6 +12,8 @@ import { getPeersManager } from '../../../src/communication/get_peers_manager';
 import { PeersManager } from '../../../src/communication/peers_manager';
 import { AudioSource } from '../../../src/audio/sources/audio_source';
 import { AudioSink } from '../../../src/audio/sinks/audio_sink';
+import { getLocalPeer } from '../../../src/communication/local_peer';
+import { useSnackbar } from 'notistack';
 
 const initialState = {
   stateVersion: 0,
@@ -32,6 +34,8 @@ const unregisterForPipe = createAction('unregisterForPipe');
 const changeHiddenVisibility = createAction('changeHiddenVisibility');
 
 export const SoundSyncProvider = ({ children }) => {
+  const { enqueueSnackbar } = useSnackbar();
+
   const [state, dispatch] = useReducer(handleActions({
     [stateUpdate.toString()]: produce((s) => {
       // used to force react refresh, the state is already in the audioSourcesSinksManager object
@@ -60,6 +64,11 @@ export const SoundSyncProvider = ({ children }) => {
     refreshData();
     onSoundStateChange(refreshData);
     onPeersChange(refreshData);
+    getPeersManager().on('connectedPeer', (peer) => {
+      if (peer.version !== getLocalPeer().version) {
+        enqueueSnackbar(`${peer.name} is running Soundsync version ${peer.version} but last version is ${getLocalPeer().version}, please update Soundsync on this computer as this can lead to errors`, { autoHideDuration: 3000 })
+      }
+    })
   }, []);
 
   return (

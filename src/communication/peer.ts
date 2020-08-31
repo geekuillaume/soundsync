@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 import debug, { Debugger } from 'debug';
 import { NO_RESPONSE_TIMEOUT } from '../utils/constants';
+import { BUILD_VERSION } from '../utils/version';
 import { handleSharedStateFromPeer } from '../coordinator/shared_state';
 import {
   RPCType, RPCRequestBody, RPCResponseBody, rpcHandlers,
@@ -40,6 +41,7 @@ export abstract class Peer extends EventEmitter {
   uuid: string;
   instanceUuid: string;
   name: string;
+  version: string;
   state: 'connecting' | 'connected' | 'deleted' = 'connecting';
   timeDelta = 0;
   private timedeltas = new BasicNumericStatsTracker(TIME_DELTAS_TO_KEEP);
@@ -53,7 +55,7 @@ export abstract class Peer extends EventEmitter {
   private missingPeerResponseTimeout: NodeJS.Timeout;
 
   constructor({
-    uuid, name, capacities, instanceUuid,
+    uuid, name, capacities, instanceUuid, version,
   }: PeerDescriptor, { onRemoteDisconnect = () => {} } = {}) {
     super();
     this.setMaxListeners(1000);
@@ -63,6 +65,7 @@ export abstract class Peer extends EventEmitter {
     this.log = debug(`soundsync:peer:${uuid}`);
     this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
+    this.version = version;
     this.onRemoteDisconnect = onRemoteDisconnect;
     this.log(`Created new peer`);
     this.onControllerMessage(`timekeepRequest`, (message) => {
@@ -106,6 +109,7 @@ export abstract class Peer extends EventEmitter {
       this.name = message.peer.name;
       this.capacities = message.peer.capacities;
       this.uuid = message.peer.uuid;
+      this.version = message.peer.version;
       if (this.state !== 'connected') {
         this.log = debug(`soundsync:peer:${message.peer.uuid}`);
         this.setState('connected');
@@ -170,6 +174,9 @@ export abstract class Peer extends EventEmitter {
     setImmediate(() => {
       this.emit('stateChange', this);
       getPeersManager().emit('peerChange', this);
+      if (state === 'connected') {
+        getPeersManager().emit('connectedPeer', this);
+      }
     });
   }
 
@@ -266,6 +273,7 @@ export abstract class Peer extends EventEmitter {
     name: this.name,
     instanceUuid: this.instanceUuid,
     capacities: this.capacities,
+    version: BUILD_VERSION,
   })
 
   sendRcp = <T extends RPCType>(type: T, message: RPCRequestBody<T>) => new Promise<RPCResponseBody<T>>((resolve, reject) => {
@@ -295,4 +303,5 @@ export interface PeerDescriptor {
   name: string;
   host?: string;
   capacities?: Capacity[];
+  version?: string;
 }
