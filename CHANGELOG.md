@@ -1,5 +1,26 @@
 # Changelog
 
+<a name="0.3.7"></a>
+## 0.3.7 (2020-08-31)
+
+### Added
+
+- 🔊 Adds logs to detect hard to reproduce bug [[81544d4](https://github.com/geekuillaume/soundsync/commit/81544d472e99d442545c61fc3d2e3c96e848a6a1)]
+
+### Changed
+
+- 🎨 fix package.json indentation [[a16f4fe](https://github.com/geekuillaume/soundsync/commit/a16f4fecf66dadf2a0c50e3edb5d582544123589)]
+- 🎨 Use build version from package.json [[791251b](https://github.com/geekuillaume/soundsync/commit/791251b3e5f422c0b104d6bc5edfaacb380bc1cc)]
+
+### Fixed
+
+- 🐛 Fix version constant and show a message in webui if different version [[1a0d7d5](https://github.com/geekuillaume/soundsync/commit/1a0d7d5bcfcff7af1bdc081dc18071156ed0d714)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[a05619c](https://github.com/geekuillaume/soundsync/commit/a05619c8729208f22080722909a74dcf5e632f14)]
+
+
 <a name="0.3.6"></a>
 ## 0.3.6 (2020-08-28)
 

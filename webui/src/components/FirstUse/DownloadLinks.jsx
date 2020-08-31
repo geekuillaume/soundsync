@@ -9,11 +9,11 @@ import LinuxIcon from '../../res/linux.svg';
 import RaspberryIcon from '../../res/raspberry.svg';
 
 export const DOWNLOAD_LINKS_TARGETS = {
-  windows: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.6/soundsync-0.3.6.exe',
-  macos: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.6/soundsync-0.3.6.dmg',
-  linuxDeb: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.6/soundsync-amd64-0.3.6.deb',
-  linuxPacman: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.6/soundsync-x64-0.3.6.pacman',
-  armDeb: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.6/soundsync-armv7l-0.3.6.deb',
+  windows: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-0.3.7.exe',
+  macos: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-0.3.7.dmg',
+  linuxDeb: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-amd64-0.3.7.deb',
+  linuxPacman: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-x64-0.3.7.pacman',
+  armDeb: 'https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-armv7l-0.3.7.deb',
 };
 
 export const DownloadLinks = ({ twoLinesLayout }) => (
