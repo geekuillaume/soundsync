@@ -3,6 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import { find } from 'lodash-es';
 import { setupCanvas } from 'components/utils/canvas';
 import { useTheme } from '@material-ui/core/styles';
+import { pageVisible } from 'components/utils/pageVisible';
 import { useSinks, useSources, useShowHidden } from '../utils/useSoundSyncState';
 import { isHidden } from '../utils/hiddenUtils';
 
@@ -53,7 +54,7 @@ export const Pipe = ({ pipe }) => {
     let animationFrameRequest;
     let offset = 0;
     const draw = () => {
-      if (ctxRef.current && canvasRef.current) {
+      if (ctxRef.current && canvasRef.current && pageVisible()) {
         const ctx = ctxRef.current;
         const dpr = window.devicePixelRatio || 1;
         const height = canvasRef.current.height / dpr;
