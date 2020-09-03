@@ -274,7 +274,7 @@ export const createAudioChunkStream = (startTime: number, sourceStream: NodeJS.R
 };
 
 export const createAudioEncodedStream = (channels: number) => {
-  const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_AUDIO);
+  const opusEncoderStream = new OpusEncodeStream(OPUS_ENCODER_RATE, channels, OpusApplication.OPUS_APPLICATION_RESTRICTED_LOWDELAY);
   const chunkEncoder = new AudioChunkStreamEncoder();
   opusEncoderStream.pipe(chunkEncoder);
   return { input: opusEncoderStream, output: chunkEncoder };
