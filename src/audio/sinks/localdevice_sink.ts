@@ -76,8 +76,7 @@ export class LocalDeviceSink extends AudioSink {
     const syncDeviceVolume = () => {
       this.audioStream.setVolume(this.volume);
     };
-    this.on('update', syncDeviceVolume);
-
+    const latencySyncInterval = setInterval(this.setDelayFromLocalNow, 1000);
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
@@ -87,6 +86,7 @@ export class LocalDeviceSink extends AudioSink {
       }
       this.off('update', syncDeviceVolume);
       this.audioStream.stop();
+      clearInterval(latencySyncInterval);
       delete this.audioStream;
       delete this.audioStream;
     };
@@ -116,7 +116,7 @@ export class LocalDeviceSink extends AudioSink {
     // we are not using this.latency here because this is directly handled by the audio worklet and makes it much more precise
     // the audioworklet handles the synchronization between the audio device clock and the system clock
     // this method is here to handle the synchronization between the system clock and the remote peer clock
-    this.delayFromLocalNowBuffer[0] = this.pipedSource.peer.getCurrentTime()
+    this.delayFromLocalNowBuffer[0] = this.pipedSource.peer.getCurrentTime(true)
       - this.pipedSource.startedAt
       - this.pipedSource.latency
       - now();

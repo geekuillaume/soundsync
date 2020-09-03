@@ -236,7 +236,12 @@ export abstract class Peer extends EventEmitter {
   }
 
   isTimeSynchronized = () => this === getLocalPeer() || this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)
-  getCurrentTime = () => (this === getLocalPeer() ? now() : now() + this.timeDelta);
+  getCurrentTime = (realDelta = false) => {
+    if (this === getLocalPeer()) {
+      return now();
+    }
+    return now() + (realDelta ? this.timedeltas.median() : this.timeDelta);
+  }
   private _sendTimekeepRequest = () => {
     if (this.isLocal) {
       return;
