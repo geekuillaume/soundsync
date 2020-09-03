@@ -27,7 +27,10 @@ class NodeAudioworklet extends AudioWorkletProcessor {
         this.buffer,
         this.channels,
         this.getIdealAudioPosition,
-        event.data.debug,
+        {
+          debug: event.data.debug,
+          softSyncThreshold: 2,
+        },
       );
     }
   }

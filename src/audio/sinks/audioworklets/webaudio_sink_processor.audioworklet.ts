@@ -32,7 +32,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
 
   handleMessage_(event) {
     if (event.data.type === 'init') {
-      this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, event.data.debug, DRIFT_HISTORY_SIZE);
+      this.synchronizedBuffer = new SynchronizedAudioBuffer(this.buffer, CHANNELS, this.getIdealAudioPosition, { debug: event.data.debug, driftHistorySize: DRIFT_HISTORY_SIZE });
     }
     if (event.data.type === 'chunk') {
       const offset = event.data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * CHANNELS;
