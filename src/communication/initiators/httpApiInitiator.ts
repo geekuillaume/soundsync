@@ -62,6 +62,9 @@ export class HttpApiInitiator extends WebrtcInitiator {
       if (e.status === 409 || e.status === 500) {
         e.shouldAbort = true;
       }
+      if (e.status && e.response?.text) {
+        throw new Error(`http initiator error: ${e.status}: ${e.response.text}`);
+      }
       throw e;
     }
     for (const receivedMessage of body) {
