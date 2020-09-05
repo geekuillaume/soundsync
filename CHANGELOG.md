@@ -1,5 +1,35 @@
 # Changelog
 
+<a name="0.3.8"></a>
+## 0.3.8 (2020-09-05)
+
+### Added
+
+- ✨ Use rendezvous service download url instead of Github release url [[f5dc2e3](https://github.com/geekuillaume/soundsync/commit/f5dc2e3dceca731724ad4232c0b2876377ed2896)]
+- ✨ Create a route in rendezvous service for downloading last soundsync version [[4c61398](https://github.com/geekuillaume/soundsync/commit/4c613986f2617f0aa6434598a62c4bcc9ced81f0)]
+- 🔊 Adds logs for http initiator error [[7c83ca0](https://github.com/geekuillaume/soundsync/commit/7c83ca021290df28d21ffa83ac398ba81ac0eb93)]
+
+### Changed
+
+- ⚡ Use real peer time delta when synchronizing audio instead of smoothed value [[5f07d86](https://github.com/geekuillaume/soundsync/commit/5f07d86d8aaf4662698f3424cd9d2da209cf831b)]
+- ⚡ Use Opus LowLatency mode to reduce lantecy mismatch between opus and raw streams [[f2764fc](https://github.com/geekuillaume/soundsync/commit/f2764fc1d0ce3ba9599300e79b456a377bef6082)]
+- ⚡ Improved SynchronizedAudioBuffer latency measures [[74ed203](https://github.com/geekuillaume/soundsync/commit/74ed203cbc24f58209905319b298cbfa667ce870)]
+- 🎨 Fix logging message when old chunk is received [[d7a2059](https://github.com/geekuillaume/soundsync/commit/d7a20595f2e9378be6742571d330631c9e3cc476)]
+- ⚡ Do not draw pipes if tab is not visible [[e07011d](https://github.com/geekuillaume/soundsync/commit/e07011d33f71b7ecb475343175c9f8eb48b1fe15)]
+- 💄 Add message about latest version of Soundsync in webui [[3b21417](https://github.com/geekuillaume/soundsync/commit/3b21417dc6a951ae59ed44f0797194eed5f60a8b)]
+
+### Fixed
+
+- 🐛 Prevent error message when rendezvous service is used with nodejs [[124107d](https://github.com/geekuillaume/soundsync/commit/124107d4d74f15549b297e47911042eb60e54f14)]
+- ✏️ Fix typo [[22c94c7](https://github.com/geekuillaume/soundsync/commit/22c94c71e5fed97030ed5036a23e3fbb0bc41691)]
+- 🐛 Fix Dockerfile for rendezvous service [[a654696](https://github.com/geekuillaume/soundsync/commit/a6546969c994c6658bc2bd57aac80d05377715ee)]
+- 🐛 Fix indentation error in deploy script [[9b2502b](https://github.com/geekuillaume/soundsync/commit/9b2502b88162561ec70c18fba28acc251958bc12)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[e302e48](https://github.com/geekuillaume/soundsync/commit/e302e4808f50b5a554c7a5725a411840818addd5)]
+
+
 <a name="0.3.7"></a>
 ## 0.3.7 (2020-08-31)
 
