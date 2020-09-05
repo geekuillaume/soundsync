@@ -11,6 +11,7 @@ import { resolve } from 'path';
 import { readFileSync } from 'fs';
 import internalAddressRouter from './routes/internalAddress';
 import wrtcMessengerRouter from './routes/wrtc_messenger';
+import downloadRouter from './routes/download';
 
 export const initHttpServer = () => {
   const app = new Koa();
@@ -55,6 +56,8 @@ export const initHttpServer = () => {
     .use(internalAddressRouter.routes());
   app.use(wrtcMessengerRouter.allowedMethods())
     .use(wrtcMessengerRouter.routes());
+  app.use(downloadRouter.allowedMethods())
+    .use(downloadRouter.routes());
 
   if (config.get('proxyTarget')) {
     // eslint-disable-next-line
