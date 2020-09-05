@@ -8,7 +8,9 @@ import { EMPTY_IMAGE } from '../../utils/constants';
 import { getPeersManager } from '../get_peers_manager';
 import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
-import { fetchRendezvousMessages, postRendezvousMessage, notifyPeerOfRendezvousMessage } from '../rendezvous_service';
+import {
+  fetchRendezvousMessages, postRendezvousMessage, notifyPeerOfRendezvousMessage, canNotifyPeerOfRendezvousMessage,
+} from '../rendezvous_service';
 import { Mdns } from '../../utils/network/mdns';
 
 const POLLING_INTERVAL = 3000;
@@ -42,12 +44,13 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
       senderVersion: BUILD_VERSION,
       ...message,
     } as InitiatorMessage, this.isPrimary);
-    try {
+    if (canNotifyPeerOfRendezvousMessage()) {
+      // if we are running inside a browser context we can notify it with of a message
+      // else if it's connecting from nodejs to a browser context, do nothing and wait for interval to fetch message
       await notifyPeerOfRendezvousMessage(this.uuid, this.host, this.peerUuid);
-      const fetchedMessages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
-      for (const fetchedMessage of fetchedMessages) {
-        await this.handleReceiveMessage(fetchedMessage);
-      }
+    }
+    try {
+      this.poll();
     } catch (e) {
       if (e.status === 409) {
         e.shouldAbort = true;

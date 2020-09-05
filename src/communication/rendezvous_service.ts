@@ -1,6 +1,6 @@
 import superagent from 'superagent';
 import debug from 'debug';
-import { randomString } from '../utils/misc';
+import { isBrowser } from '../utils/environment/isBrowser';
 import { InitiatorMessage } from './initiators/initiator';
 import { getPeersManager } from './get_peers_manager';
 import {
@@ -92,13 +92,9 @@ export const fetchRendezvousMessages = async (conversationUuid: string, isPrimar
   return messages as InitiatorMessage[];
 };
 
+export const canNotifyPeerOfRendezvousMessage = () => isBrowser;
+
 export const notifyPeerOfRendezvousMessage = async (conversationUuid: string, host: string, peerUuid: string) => {
-  if (typeof document === 'undefined') {
-    const err = new Error('This method is meant to be used in a web context, not in a NodeJS one');
-    // @ts-ignore
-    err.shouldAbort = true;
-    throw err;
-  }
   const [ip, port] = host.split(':');
   const ipParts = ip.split('.');
   const domainName = `${conversationUuid.replace(/-/g, '_')}-${ipParts.join('-')}.${WILDCARD_DNS_DOMAIN_NAME}:${Number(port) + 1}`; // the https port is the http port + 1
