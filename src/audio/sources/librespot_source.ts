@@ -47,7 +47,7 @@ export class LibrespotSource extends AudioSource {
     const librespotLog = this.log.extend('librespot');
     this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
     this.librespotProcess.on('exit', (code) => {
-      this.log('Librespot excited with code:', code);
+      this.log('Librespot exited with code:', code);
     });
 
     return createAudioChunkStream(this.startedAt, this.librespotProcess.stdout, this.rate, this.channels);
