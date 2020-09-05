@@ -26,20 +26,20 @@ Download and install Soundsync for you operating system on every device in your 
 <table width="100%" align="center"><tr>
   <td align="center">
     <h3>Windows</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-0.3.7.exe">Download</a></p>
+    <p><a href="https://soundsync.app/download/soundsync-win.exe">Download</a></p>
   </td>
   <td align="center">
     <h3>MacOS</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-0.3.7.dmg">Download</a></p>
+    <p><a href="https://soundsync.app/download/soundsync-macos.dmg">Download</a></p>
   </td>
   <td align="center">
     <h3>Linux</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-amd64-0.3.7.deb">Download (.deb for Ubuntu/Debian)</a></p>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-x64-0.3.7.pacman">Download (.pacman for Archlinux)</a></p>
+    <p><a href="https://soundsync.app/download/soundsync-deb-x64.deb">Download (.deb for Ubuntu/Debian)</a></p>
+    <p><a href="https://soundsync.app/download/soundsync-pacman.pacman">Download (.pacman for Archlinux)</a></p>
   </td>
   <td align="center">
     <h3>Linux ARM (Raspberry)</h3>
-    <p><a href="https://github.com/geekuillaume/soundsync/releases/download/v0.3.7/soundsync-armv7l-0.3.7.deb">Download (.deb for Ubuntu/Debian/Raspbian)</a></p>
+    <p><a href="https://soundsync.app/download/soundsync-deb-arm.deb">Download (.deb for Ubuntu/Debian/Raspbian)</a></p>
   </td>
 </tr></table>
 
@@ -91,7 +91,7 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 
 - *Is it available offline?* <br/> Every Soundsync peer (a device on which Soundsync is installed) can be used offline. Each peer will detect other peer on the local network with Bonjour and if connected to internet, will use a rendez-vous service to detect other peer with the same IP address. As Bonjour isn't available in a web browser, you need to connect to a peer on your local network with its IP and the port 6512 (for example `http://192.168.1.12:6512`). Also note that you won't be able to use the webpage as an audio output because the page cannot be served in a `https` context.
 
-- *How to install on a headless RaspberryPi Install?* <br/> Assuming you're using raspbian, first download the package with `wget https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb`, install it with `sudo dpkg -i ./soundsync_0.1.0_armv7l.deb`, if some dependencies are missing install them with `sudo apt-get install -f` than start Soundsync and activate it to be started at startup with `sudo systemctl enable --now soundsync.service`.
+- *How to install on a headless RaspberryPi Install?* <br/> Assuming you're using raspbian, first download the package with `wget https://soundsync.app/download/soundsync-deb-arm.deb`, install it with `sudo dpkg -i ./soundsync-deb-arm.deb`, if some dependencies are missing install them with `sudo apt-get install -f` than start Soundsync and activate it to be started at startup with `sudo systemctl enable --now soundsync.service`.
 
 - *How to disable telemetry?* <br/> Soundsync sends some non-identifiable information to our own usage tracker (based on [Posthog](https://github.com/PostHog/posthog) and hosted on our own server). You can see the list of events sent in the [Posthog integration file](./src/utils/vendor_integrations/posthog.ts). If you want to disable this, you can set the `disableTelemetry` flag in the config file to `true`.
 

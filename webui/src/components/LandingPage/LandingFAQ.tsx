@@ -241,10 +241,10 @@ export const LandingFAQ = () => {
             <p>
               Assuming you&apos;re using raspbian, first download the package with
               {' '}
-              <code>wget https://github.com/geekuillaume/soundsync/releases/download/bleeding-edge/soundsync_0.1.0_armv7l.deb</code>
+              <code>wget https://soundsync.app/download/soundsync-deb-arm.deb</code>
               , install it with
               {' '}
-              <code>sudo dpkg -i ./soundsync_0.1.0_armv7l.deb</code>
+              <code>sudo dpkg -i ./soundsync-deb-arm.deb</code>
               , if some dependencies are missing install them with
               {' '}
               <code>sudo apt-get install -f</code>

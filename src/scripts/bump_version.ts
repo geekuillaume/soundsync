@@ -35,23 +35,6 @@ const main = async () => {
     await writeFile(path, content);
   }));
 
-  console.log(`==== Updating Readme links`);
-  const readmePath = resolve(__dirname, '../../README.md');
-  let readmeContent = (await readFile(readmePath)).toString();
-  readmeContent = readmeContent.replace(
-    /"https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)"/g,
-    `"https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3"`,
-  );
-  await writeFile(readmePath, readmeContent.toString());
-
-  console.log(`==== Updating Webui download links`);
-  const webuiDownloadLinksPath = resolve(__dirname, '../../webui/src/components/FirstUse/DownloadLinks.jsx');
-  let downloadLinksContent = (await readFile(webuiDownloadLinksPath)).toString();
-  downloadLinksContent = downloadLinksContent.replace(
-    /'https:\/\/github\.com\/geekuillaume\/soundsync\/releases\/download\/[^/]+\/(.+[-_])(\d+\.\d+\.\d+)\.([a-z]+)'/g,
-    `'https://github.com/geekuillaume/soundsync/releases/download/v${newVersion}/$1${newVersion}.$3'`,
-  );
-  await writeFile(webuiDownloadLinksPath, downloadLinksContent.toString());
   await execPromisify(`npm run gitmoji-changelog`);
   await execPromisify(`git add --all`);
   await execPromisify(`git commit -m ":bookmark: v${newVersion}"`);
