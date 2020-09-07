@@ -134,7 +134,6 @@ export const getConfigField = <T extends keyof ConfigData>(field: T, c?: ConfigD
   return (c || config.configData)[field];
 };
 
-
 export function updateConfigArrayItem(field: 'sources', item: AudioSource): void;
 export function updateConfigArrayItem(field: 'sinks', item: AudioSink): void;
 export function updateConfigArrayItem(field: 'sources' | 'sinks', sourceOrSink) {
@@ -145,6 +144,15 @@ export function updateConfigArrayItem(field: 'sources' | 'sinks', sourceOrSink) 
     // @ts-ignore
     c[field] = c[field].filter((s) => s.uuid && s.uuid !== descriptor.uuid);
     c[field].push(descriptor);
+    c[field].sort((a, b) => {
+      if (a.uuid > b.uuid) {
+        return 1;
+      }
+      if (a.uuid < b.uuid) {
+        return -1;
+      }
+      return 0;
+    });
   });
 }
 
