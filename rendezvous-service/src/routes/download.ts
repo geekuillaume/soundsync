@@ -38,7 +38,7 @@ router.get('/download/:binaryQuery', async (ctx) => {
   }
 });
 
-router.get('/download-dev/:platform/:arch?', async (ctx) => {
+router.get('/download-dev/:binaryQuery', async (ctx) => {
   const binaryQuery = ctx.params.binaryQuery as string;
 
   const match = binaryQuery.match(/^soundsync-(?<platform>\w+)(-(?<arch>\w+))?\.(?<extension>\w+)$/);
