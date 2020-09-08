@@ -63,6 +63,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
     const audioDevices = getAudioDevices();
     onAudioDevicesChange(this.autodetectDevices);
     audioDevices.outputDevices.forEach((device) => {
+      if (device.state === 'disabled') {
+        return;
+      }
       this.addSink({
         type: 'localdevice',
         deviceId: device.id,
@@ -75,6 +78,9 @@ export class AudioSourcesSinksManager extends EventEmitter {
       });
     });
     audioDevices.inputDevices.forEach((device) => {
+      if (device.state === 'disabled') {
+        return;
+      }
       this.addSource({
         type: 'localdevice',
         uuid: uuidv4(),
