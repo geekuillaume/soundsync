@@ -468,14 +468,14 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-audioworklet@4.1.3:
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-4.1.3.tgz#fdb37662a83e87bac318a86ff09d53210a7c48ac"
-  integrity sha512-/SXxuH8UWRCPkCj/BBKIugi1SZRlBRDu+pra8E9C1QAabFuti3BWgspssjswqbHDQhbq9ReHq23J2+1ukVAouA==
+audioworklet@4.2.3:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-4.2.3.tgz#75941d61c3c02ceedf61b8f81804e925bfb4cbd2"
+  integrity sha512-fj1oE7VE9p2b3XLf6IPlaLZS+6w3e13FLT9nwtDGfrFTJYhc9eee9vxmhWOBS98bfkxuEbqyaEgjWBUmtkqrKw==
   dependencies:
     bindings "^1.5.0"
-    cmake-js "^6.0.0"
-    node-addon-api "^2.0.0"
+    cmake-js "^6.1.0"
+    node-addon-api "^3.0.0"
     prebuild-install "^5.3.3"
 
 auto-launch@^5.0.5:
@@ -737,7 +737,7 @@ cliui@^6.0.0:
     strip-ansi "^6.0.0"
     wrap-ansi "^6.2.0"
 
-cmake-js@^6.0.0:
+cmake-js@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/cmake-js/-/cmake-js-6.1.0.tgz#bec7381b58d454acee09d4fb0047153a005063a6"
   integrity sha512-utmukLQftpgrCpGRCaHnkv4K27HZNNFqmBl4vnvccy0xp4c1erxjFU/Lq4wn5ngAhFZmpwBPQfoKWKThjSBiwg==
@@ -2108,10 +2108,10 @@ node-abi@^2.7.0:
   dependencies:
     semver "^5.4.1"
 
-node-addon-api@^2.0.0:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-2.0.2.tgz#432cfa82962ce494b132e9d72a15b29f71ff5d32"
-  integrity sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==
+node-addon-api@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-3.0.0.tgz#812446a1001a54f71663bed188314bba07e09247"
+  integrity sha512-sSHCgWfJ+Lui/u+0msF3oyCgvdkhxDbkCS6Q8uiJquzOimkJBvX6hl5aSSA7DR1XbMpdM8r7phjcF63sF4rkKg==
 
 node-aead-crypto@^2.0.0:
   version "2.2.0"
