@@ -1,5 +1,23 @@
 # Changelog
 
+<a name="0.3.9"></a>
+## 0.3.9 (2020-09-08)
+
+### Changed
+
+- ⚡ Don&#x27;t add disabled devices when auto detecting local devices [[49b3803](https://github.com/geekuillaume/soundsync/commit/49b38031a607ba30ea31a3a679e8cec7b00c3b4a)]
+- ⬆️ Upgrade audioworklet [[734c9ac](https://github.com/geekuillaume/soundsync/commit/734c9aceb6420785339d3841148a7533f7d58c10)]
+- 🎨 Always order sinks/sources in config file by uuid [[a103dc6](https://github.com/geekuillaume/soundsync/commit/a103dc66d5e140126a5a09316c6b8427fec82d84)]
+
+### Fixed
+
+- 🐛 Fix dev download url on rendezvous service [[fc4637d](https://github.com/geekuillaume/soundsync/commit/fc4637dd1d432802114b2b20d2c11bfc83762855)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[b5c1f35](https://github.com/geekuillaume/soundsync/commit/b5c1f3587a887b1d68d1c03cf017269b0009cd8c)]
+
+
 <a name="0.3.8"></a>
 ## 0.3.8 (2020-09-05)
 
