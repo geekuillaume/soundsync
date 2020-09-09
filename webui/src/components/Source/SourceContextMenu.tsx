@@ -139,7 +139,7 @@ export const SourceContextMenu = (
           {canBeDeleted && (
             <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>
           )}
-          {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(audioStream)}>Log info</PopoverButton>}
+          {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(source)}>Log info</PopoverButton>}
         </>
       )}
     </EditPopover>
