@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.3.10"></a>
+## 0.3.10 (2020-09-09)
+
+### Fixed
+
+- 🐛 Only use enabled local audio devices [[47f3b16](https://github.com/geekuillaume/soundsync/commit/47f3b16d2457b78bee5e5e0b64891369eeddf14e)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[6528312](https://github.com/geekuillaume/soundsync/commit/6528312e9065fdb96098f582e6fc1dff741be4a3)]
+
+
 <a name="0.3.9"></a>
 ## 0.3.9 (2020-09-08)
 
