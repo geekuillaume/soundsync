@@ -12,6 +12,7 @@ import SpotifyLogo from 'res/spotify.svg';
 import computerIcon from 'res/computer.svg';
 import nullSinkLogo from 'res/null.svg';
 import airplayIcon from 'res/airplay.svg';
+import { AudioErrorIndicator } from 'components/utils/AudioErrorIndicator';
 import { nameWithoutHiddenMeta, isHidden } from '../../utils/hiddenUtils';
 import { HiddenIndicator } from '../utils/HiddenIndicator';
 import { SourceContextMenu } from './SourceContextMenu';
@@ -114,6 +115,7 @@ export const Source = ({ source }) => {
           <p className="peer-name">{peer.name}</p>
           {hidden && <HiddenIndicator />}
           {source.active && <div className={styles.activeIndicator} alt="Currently playing" />}
+          {source.error && <AudioErrorIndicator error={source.error} />}
         </div>
         <SourceContextMenu isOpen={contextMenuOpen} source={source} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
       </div>

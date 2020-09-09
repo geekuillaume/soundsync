@@ -71,6 +71,7 @@ export class LocalDeviceSource extends AudioSource {
     channels: this.channels,
 
     ...(!sanitizeForConfigSave && {
+      error: this.error,
       peerUuid: this.peerUuid,
       instanceUuid: this.instanceUuid,
       latency: this.latency,

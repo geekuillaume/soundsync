@@ -38,6 +38,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
   available: boolean;
   started: boolean;
   active: boolean; // is source currently outputting sound or has been silent for INACTIVE_TIMEOUT ms
+  error?: string;
 
   // we separate the two streams so that we can synchronously create the encodedAudioStream which will be empty while the
   // real source initialize, this simplify the code needed to handle the source being started twice at the same time
@@ -66,6 +67,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     this.available = descriptor.available;
     this.active = descriptor.active ?? false; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
     this.started = descriptor.started ?? false;
+    this.error = descriptor.error;
     this.log = debug(`soundsync:audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
@@ -155,6 +157,13 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
         this.directSourceStream.pipe(this.sourceStream);
       } catch (e) {
         this.log('Error while starting source', e);
+        this.updateInfo({
+          error: e.toString(),
+        });
+        return;
+      }
+      if (this.error) {
+        this.updateInfo({ error: null });
       }
     }
   }
@@ -206,6 +215,9 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     this.consumersStreams.forEach((consumerStream) => {
       consumerStream.end();
     });
+    if (this.error) {
+      this.updateInfo({ error: null });
+    }
     this.consumersStreams = [];
     this.manager.off('soundstateUpdated', this.updateLatencyFromSinks);
     this._stop();
@@ -231,6 +243,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     channels: this.channels,
 
     ...(!sanitizeForConfigSave && {
+      error: this.error,
       started: this.started,
       latency: this.latency,
       peerUuid: this.peerUuid,

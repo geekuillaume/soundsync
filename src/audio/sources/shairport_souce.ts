@@ -39,15 +39,23 @@ export class ShairportSource extends AudioSource {
       },
     });
     if (this.shairportProcess.pid === undefined) {
-      throw new Error('Process didn\'t started');
+      throw new Error('Unknown error while starting Shairport');
     }
     this.shairportProcess.on('error', (e) => {
       this.log('Error while starting shairport process', e);
+      this.updateInfo({
+        error: e.toString(),
+      });
     });
     const shairportLog = this.log.extend('shairport');
     this.shairportProcess.stderr.on('data', (d) => shairportLog(d.toString()));
     this.shairportProcess.on('exit', (code) => {
       this.log('Shairport excited with code:', code);
+      if (code) {
+        this.updateInfo({
+          error: `Shairport process exited with error code ${code}`,
+        });
+      }
     });
 
     return createAudioChunkStream(this.startedAt, this.shairportProcess.stdout, this.rate, this.channels);
@@ -66,6 +74,7 @@ export class ShairportSource extends AudioSource {
     channels: this.channels,
 
     ...(!sanitizeForConfigSave && {
+      error: this.error,
       peerUuid: this.peerUuid,
       instanceUuid: this.instanceUuid,
       latency: this.latency,

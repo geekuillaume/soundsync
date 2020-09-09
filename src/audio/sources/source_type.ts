@@ -11,6 +11,7 @@ export interface BaseSourceDescriptor {
   available: boolean;
   started: boolean;
   active: boolean; // has emitted an audio chunk in the last [INACTIVE_TIMEOUT]ms
+  error?: string;
 }
 
 export interface LibresportSourceDescriptor extends BaseSourceDescriptor {

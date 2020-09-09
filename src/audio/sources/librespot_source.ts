@@ -39,22 +39,32 @@ export class LibrespotSource extends AudioSource {
       ] : []),
     ]);
     if (this.librespotProcess.pid === undefined) {
-      throw new Error('Process didn\'t started');
+      throw new Error('Unknown error while starting Librespot');
     }
     this.librespotProcess.on('error', (e) => {
       this.log('Error while starting librespot process', e);
+      this.updateInfo({
+        error: e.toString(),
+      });
     });
     const librespotLog = this.log.extend('librespot');
     this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
     this.librespotProcess.on('exit', (code) => {
       this.log('Librespot exited with code:', code);
+      if (code) {
+        this.updateInfo({
+          error: code === 101 ? `Spotify username or password invalid` : `Spotify process exited with error code ${code}`,
+        });
+      }
     });
 
     return createAudioChunkStream(this.startedAt, this.librespotProcess.stdout, this.rate, this.channels);
   }
 
   _stop = () => {
-    this.librespotProcess.kill();
+    if (this.librespotProcess) {
+      this.librespotProcess.kill();
+    }
     delete this.librespotProcess;
   }
 
@@ -67,6 +77,7 @@ export class LibrespotSource extends AudioSource {
     channels: this.channels,
 
     ...(!sanitizeForConfigSave && {
+      error: this.error,
       peerUuid: this.peerUuid,
       latency: this.latency,
       startedAt: this.startedAt,
