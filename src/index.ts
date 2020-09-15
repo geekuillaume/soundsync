@@ -3,7 +3,6 @@ import { fatalErrorHandler } from './utils/environment/electronErrorHandler';
 import './utils/vendor_integrations/sentry';
 import yargs from 'yargs';
 import debug from 'debug';
-import SoxrResampler from 'wasm-audio-resampler';
 
 import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
@@ -36,7 +35,6 @@ const l = debug('soundsync');
 
 const main = async () => {
   l('Starting soundsync');
-  await SoxrResampler.initPromise;
   const argv = yargs
     .help('h')
     .option('configDir', {

@@ -640,6 +640,11 @@ cache-content-type@^1.0.0:
     mime-types "^2.1.18"
     ylru "^1.2.0"
 
+callsites@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
+  integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
+
 camelcase@^1.0.2:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-1.2.1.tgz#9bb5304d2e0b56698b2c758b08a3eaa9daa58a39"
@@ -1184,6 +1189,11 @@ escodegen@~1.3.2:
   optionalDependencies:
     source-map "~0.1.33"
 
+esm@^3.2.25:
+  version "3.2.25"
+  resolved "https://registry.yarnpkg.com/esm/-/esm-3.2.25.tgz#342c18c29d56157688ba5ce31f8431fbb795cc10"
+  integrity sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==
+
 esprima@^1.0.3:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-1.2.5.tgz#0993502feaf668138325756f30f9a51feeec11e9"
@@ -1654,6 +1664,13 @@ is-iojs@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/is-iojs/-/is-iojs-1.1.0.tgz#4c11033b5d5d94d6eab3775dedc9be7d008325f1"
   integrity sha1-TBEDO11dlNbqs3dd7cm+fQCDJfE=
+
+is-observable@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/is-observable/-/is-observable-1.1.0.tgz#b3e986c8f44de950867cab5403f5a3465005975e"
+  integrity sha512-NqCa4Sa2d+u7BWc6CukaObG3Fh+CU9bvixbpcXYhy2VvYS7vVGIdAgnIS5Ks3A/cqk4rebLJ9s8zBstT2aKnIA==
+  dependencies:
+    symbol-observable "^1.1.0"
 
 is-regex@^1.0.4, is-regex@^1.1.0:
   version "1.1.1"
@@ -2267,6 +2284,11 @@ object.assign@^4.1.0:
     function-bind "^1.1.1"
     has-symbols "^1.0.0"
     object-keys "^1.0.11"
+
+observable-fns@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/observable-fns/-/observable-fns-0.5.1.tgz#9b56478690dd0fa8603e3a7e7d2975d88bca0904"
+  integrity sha512-wf7g4Jpo1Wt2KIqZKLGeiuLOEMqpaOZ5gJn7DmSdqXgTdxRwSdBhWegQQpPteQ2gZvzCKqNNpwb853wcpA0j7A==
 
 on-finished@^2.3.0:
   version "2.3.0"
@@ -2934,6 +2956,11 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
+symbol-observable@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
+  integrity sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==
+
 tar-fs@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-2.1.0.tgz#d1cdd121ab465ee0eb9ccde2d35049d3f3daf0d5"
@@ -2968,6 +2995,18 @@ tar@^4:
     safe-buffer "^5.1.2"
     yallist "^3.0.3"
 
+threads@^1.6.3:
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/threads/-/threads-1.6.3.tgz#89324a93509403c90a169344023151ae1fe4986b"
+  integrity sha512-tKwFIWRgfAT85KGkrpDt2jWPO8IVH0sLNfB/pXad/VW9eUIY2Zlz+QyeizypXhPHv9IHfqRzvk2t3mPw+imhWw==
+  dependencies:
+    callsites "^3.1.0"
+    debug "^4.1.1"
+    is-observable "^1.1.0"
+    observable-fns "^0.5.1"
+  optionalDependencies:
+    tiny-worker ">= 2"
+
 through2@~0.4.1:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/through2/-/through2-0.4.2.tgz#dbf5866031151ec8352bb6c4db64a2292a840b9b"
@@ -2985,6 +3024,13 @@ tiny-typed-emitter@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/tiny-typed-emitter/-/tiny-typed-emitter-2.0.2.tgz#8f28385851a627acc8a4f5e63b8c654ae75ad23f"
   integrity sha512-mTodzBLyisJpj8tQuXOowrYHIW8548XqJHEJdqo4vw1QMV7ZOZYDZKk75/5VkYMTJTvDlUpDtJUHjOowAvs0wA==
+
+"tiny-worker@>= 2":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/tiny-worker/-/tiny-worker-2.3.0.tgz#715ae34304c757a9af573ae9a8e3967177e6011e"
+  integrity sha512-pJ70wq5EAqTAEl9IkGzA+fN0836rycEuz2Cn6yeZ6FRzlVS5IDOkFHpIoEsksPRQV34GDqXm65+OlnZqUSyK2g==
+  dependencies:
+    esm "^3.2.25"
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
@@ -3164,10 +3210,12 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-wasm-audio-resampler@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/wasm-audio-resampler/-/wasm-audio-resampler-1.0.0.tgz#62af00ea1dd9aa8f76134724b89328a600b2738d"
-  integrity sha512-OcOF8pAsKmpsZNdgp1mp0v1DNXT+oL55WMtVYLMOo0XkfyLnmhX0iPLhs9f0pC6xEJLpOBrfP0heZbIHm9kGcw==
+wasm-audio-resampler@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/wasm-audio-resampler/-/wasm-audio-resampler-2.0.0.tgz#128dbecc7ceccf546006a7d2c1690046258f559c"
+  integrity sha512-7ktS4JJdpGHznQsQzw+7oB5ZYibqGgXv1xgiXN8K7+JknBTWrkFcCRre12CYLORNaEaXCMbozMuPvOOc75VeKg==
+  dependencies:
+    threads "^1.6.3"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

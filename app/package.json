@@ -1,10 +1,10 @@
 {
     "name": "soundsync",
-  "version": "0.3.10-dev",
+    "version": "0.3.10-dev",
     "description": "Plug virtual cables between any audio source and any speakers in your home",
     "author": "Guillaume Besson <guillaume@besson.co>",
-    "main": "./index.js",
-    "bin": "./index.js",
+    "main": "./entrypoint.js",
+    "bin": "./entrypoint.js",
     "license": "BSL 1.1",
     "dependencies": {
         "@koa/cors": "^3.0.0",
@@ -41,7 +41,7 @@
         "tiny-typed-emitter": "^2.0.2",
         "unzipper": "^0.10.11",
         "uuid": "^3.3.3",
-        "wasm-audio-resampler": "1.0.0",
+        "wasm-audio-resampler": "2.0.0",
         "wrtc": "0.4.6",
         "yargs": "^15.1.0"
     },

@@ -4,7 +4,7 @@ const path = require('path');
 const cp = require('child_process');
 
 exports.default = async function (context) {
-  if (_.some(context.targets, (t) => t.name === 'deb')) {
+  if (_.some(context.targets, (t) => t.name === 'deb' || t.name === 'pacman')) {
     fs.renameSync(
       path.resolve(context.appOutDir, 'soundsync'),
       path.resolve(context.appOutDir, 'soundsync_electron'),
