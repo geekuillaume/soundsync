@@ -12,6 +12,8 @@ emcc \
   -s USE_ES6_IMPORT_META=0 \
   -s EXPORT_NAME="Alac" \
   -s ASSERTIONS=0 \
+  -s NODEJS_CATCH_REJECTION=0 \
+  -s NODEJS_CATCH_EXIT=0 \
   -s EXPORTED_RUNTIME_METHODS="['setValue', 'getValue', 'AsciiToString']" \
   -s ENVIRONMENT=node,web \
   -s EXPORTED_FUNCTIONS="['_malloc', '_free', '_initiate_alac_encoder','_alac_encode','_destroy_encoder']" \
