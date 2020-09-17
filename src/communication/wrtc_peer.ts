@@ -60,12 +60,14 @@ export class WebrtcPeer extends Peer {
         });
       } catch {}
     });
-    // this.connection.addEventListener('error', (e) => {
-    //   console.error('Error from webrtc connection', e);
-    // });
-    // this.connection.addEventListener('icecandidateerror', (e) => {
-    //   console.error('Error from ice candidates', e);
-    // });
+    this.connection.addEventListener('error', (e) => {
+      this.log('Error from webrtc connection', e);
+    });
+    this.connection.addEventListener('icecandidateerror', (e) => {
+      if (e.errorCode !== 701) {
+        this.log('Error from ice candidates', e);
+      }
+    });
     this.controllerChannel = this.connection.createDataChannel('controller', {
       negotiated: true,
       id: CONTROLLER_CHANNEL_ID,
