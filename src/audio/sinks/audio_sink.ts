@@ -179,6 +179,7 @@ export abstract class AudioSink extends EventEmitter {
     delete this.sourceStream;
     // we should delete this.pipedSource at the end of this method because this._stopSink can still rely on it
     delete this.pipedSource;
+    this.lastReceivedChunkIndex = -1;
   }
 
   _handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
