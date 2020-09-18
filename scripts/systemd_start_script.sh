@@ -13,7 +13,7 @@ fi
 DIR="$( dirname "$( readlink -f "$0" )")"
 if [ -z "$DISPLAY" ]
 then
-  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron "$@"
+  ELECTRON_RUN_AS_NODE=1 $DIR/soundsync_electron --experimental-wasm-threads $DIR/resources/app/index.js "$@"
 else
   $DIR/soundsync_electron "$@"
 fi
