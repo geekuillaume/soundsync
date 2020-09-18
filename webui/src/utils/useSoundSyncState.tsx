@@ -88,7 +88,7 @@ export const useIsConnected = () => some(useContext(soundSyncContext).peersManag
 
 const audioSourceSinkGetter = (collection) => {
   const inputCollection = Array.from(collection) as (AudioSource | AudioSink)[];
-  const sortedCollection = inputCollection.sort((a, b) => a.name.localeCompare(b.name));
+  const sortedCollection = inputCollection.sort((a, b) => a.uuid.localeCompare(b.uuid));
   const availableCollection = sortedCollection.filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
   const [visible, hidden] = partition(availableCollection, (s) => !isHidden(s.name));
   return [...visible, ...hidden];
