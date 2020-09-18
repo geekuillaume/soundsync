@@ -24,6 +24,7 @@ import { PeersManager } from './communication/peers_manager';
 import { isDepAvailableForPlatform } from './utils/environment/deps_downloader';
 import { startKioskMode } from './utils/environment/kioskMode';
 import { initMdnsForRendezvousInitiator } from './communication/initiators/rendezvousServiceInititor';
+import { registerEventLoopMonitor } from './utils/environment/nodeEventLoopStats';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
@@ -34,6 +35,7 @@ if (process.env.DEBUG_AUDIO) {
 const l = debug('soundsync');
 
 const main = async () => {
+  registerEventLoopMonitor();
   l('Starting soundsync');
   const argv = yargs
     .help('h')
