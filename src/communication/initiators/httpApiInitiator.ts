@@ -20,6 +20,7 @@ interface HttpApiPostMessage {
 
 export class HttpApiInitiator extends WebrtcInitiator {
   type = 'http api';
+  forceMessagesQueue = false;
   public messagesToEmitBuffer: InitiatorMessage[] = [];
   private pollingInterval;
 
@@ -48,7 +49,7 @@ export class HttpApiInitiator extends WebrtcInitiator {
       },
     };
 
-    if (!this.httpEndpoint) {
+    if (!this.httpEndpoint || this.forceMessagesQueue) {
       this.messagesToEmitBuffer.push(requestBody.message);
       return;
     }
@@ -63,6 +64,7 @@ export class HttpApiInitiator extends WebrtcInitiator {
         e.shouldAbort = true;
       }
       if (e.status && e.response?.text) {
+        console.log(e);
         throw new Error(`http initiator error: ${e.status}: ${e.response.text}`);
       }
       throw e;
@@ -132,7 +134,10 @@ export const initHttpServerRoutes = (router: Router) => {
       });
       getPeersManager().registerPeer(peer);
     }
+    // prevent initiator to respond with a http request, instead queue messages that will be transmitted in this request
+    initiators[initiatorUuid].forceMessagesQueue = true;
     await initiators[initiatorUuid].handleReceiveMessage(body.message);
+    initiators[initiatorUuid].forceMessagesQueue = true;
     // this can happens as the handleInitiatorMessage method can throw an error that will destroy the peer instance
     ctx.assert(initiators[initiatorUuid], 500, 'Error while handling initiator message');
 
