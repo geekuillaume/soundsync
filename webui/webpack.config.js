@@ -11,7 +11,6 @@ const config = {
   target: 'web',
   optimization: {
     usedExports: true,
-    mangleWasmImports: true,
   },
   output: {
     filename: '[name]-[contenthash].js',
@@ -74,6 +73,16 @@ const config = {
     }),
   ],
   module: {
+    defaultRules: [
+      {
+        type: 'javascript/auto',
+        resolve: {},
+      },
+      {
+        test: /\.json$/i,
+        type: 'json',
+      },
+    ],
     rules: [
       {
         oneOf: [
@@ -123,7 +132,7 @@ const config = {
           },
           {
             loader: 'file-loader',
-            exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
+            exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/, /.wasm$/],
             options: {
               name: '[name]-[contenthash].[ext]',
             },

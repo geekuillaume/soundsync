@@ -3,6 +3,16 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import Opus from './opus_wasm';
 import { OPUS_ENCODER_CHUNK_DURATION } from '../constants';
+import { isBrowser } from '../environment/isBrowser';
+
+const locateWasmFile = (path, scriptDirectory) => {
+  if (isBrowser) {
+    // eslint-disable-next-line
+    const url = require('!!file-loader!./opus_wasm.wasm').default;
+    return url;
+  }
+  return scriptDirectory.replace(`/app/`, `/src/`) + path;
+};
 
 interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
   _opus_decoder_create(samplingRate: number, channels: number, error_ptr: number): number;
@@ -52,7 +62,9 @@ export class OpusDecoder {
   // The promise decorator is necessarry because else the js engine will try to call .then in loop
   // and so will create an infinite loop
   setup = () => new Promise((resolve) => {
-    Opus().then((Module: EmscriptenModuleOpusEncoder) => {
+    Opus({
+      locateFile: locateWasmFile,
+    }).then((Module: EmscriptenModuleOpusEncoder) => {
       this.module = Module;
       const err = this.module._malloc(4);
       this.handle = this.module._opus_decoder_create(this.sampleRate, this.channels, err);
@@ -109,7 +121,9 @@ export class OpusEncoder {
   // The promise decorator is necessarry because else the js engine will try to call .then in loop
   // and so will create an infinite loop
   setup = () => new Promise((resolve) => {
-    Opus().then((Module: EmscriptenModuleOpusEncoder) => {
+    Opus({
+      locateFile: locateWasmFile,
+    }).then((Module: EmscriptenModuleOpusEncoder) => {
       this.module = Module;
       const err = this.module._malloc(4);
       this.handle = this.module._opus_encoder_create(this.sampleRate, this.channels, this.application, err);

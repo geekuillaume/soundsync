@@ -112,7 +112,6 @@ emcc -s INITIAL_MEMORY=10MB \
 -o audio/opus_wasm.js \
 -s EXPORT_ES6=1 \
 -s MODULARIZE=1 \
--s SINGLE_FILE=1 \
 -s EXPORT_NAME="Opus" \
 -s USE_ES6_IMPORT_META=0 \
 -s FILESYSTEM=0 \
