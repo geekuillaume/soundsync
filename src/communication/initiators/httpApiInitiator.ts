@@ -64,7 +64,6 @@ export class HttpApiInitiator extends WebrtcInitiator {
         e.shouldAbort = true;
       }
       if (e.status && e.response?.text) {
-        console.log(e);
         throw new Error(`http initiator error: ${e.status}: ${e.response.text}`);
       }
       throw e;
