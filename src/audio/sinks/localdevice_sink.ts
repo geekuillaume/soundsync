@@ -76,6 +76,7 @@ export class LocalDeviceSink extends AudioSink {
     const syncDeviceVolume = () => {
       this.audioStream.setVolume(this.volume);
     };
+    this.on('update', syncDeviceVolume);
     const latencySyncInterval = setInterval(this.setDelayFromLocalNow, 1000);
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
