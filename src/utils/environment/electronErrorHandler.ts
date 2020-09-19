@@ -11,7 +11,7 @@ export const fatalErrorHandler = (e: Error) => {
     open('https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads');
   }
   // eslint-disable-next-line no-console
-  console.error(dialogText);
+  console.error(e);
   Sentry.captureException(e);
   if (electron) {
     if (electron.app.isReady()) {
@@ -35,6 +35,8 @@ export const fatalErrorHandler = (e: Error) => {
     }
   }
   Sentry.close(2000).then(() => {
+    process.exit(1);
+  }).catch(() => {
     process.exit(1);
   });
 };
