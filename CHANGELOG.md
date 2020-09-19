@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.3.12"></a>
+## 0.3.12 (2020-09-19)
+
+### Fixed
+
+- 🐛 Fix Opus wasm location on build package [[18be38c](https://github.com/geekuillaume/soundsync/commit/18be38cc21e1bb4e32e47824daac39f9091b962e)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[9e67b09](https://github.com/geekuillaume/soundsync/commit/9e67b093ade12eb30aa7e5354f13ca4a98f4a04d)]
+
+
 <a name="0.3.11"></a>
 ## 0.3.11 (2020-09-19)
 
