@@ -8,7 +8,8 @@
   "bin": "app/entrypoint.js",
   "scripts": {
     "test": "echo Not implemented yet",
-    "build": "tsc -b",
+    "build": "./scripts/build.sh",
+    "build:ts": "tsc -b",
     "build:watch": "tsc -w",
     "start": "node -r source-map-support/register --experimental-wasm-threads app/index.js",
     "start:inspect": "node --inspect -r source-map-support/register --experimental-wasm-threads app/index.js",

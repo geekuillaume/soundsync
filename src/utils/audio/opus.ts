@@ -1,6 +1,7 @@
 /// <reference types="emscripten" />
 
 /* eslint-disable @typescript-eslint/camelcase */
+import fs from 'fs';
 import Opus from './opus_wasm';
 import { OPUS_ENCODER_CHUNK_DURATION } from '../constants';
 import { isBrowser } from '../environment/isBrowser';
@@ -11,7 +12,10 @@ const locateWasmFile = (path, scriptDirectory) => {
     const url = require('!!file-loader!./opus_wasm.wasm').default;
     return url;
   }
-  return scriptDirectory.replace(`/app/`, `/src/`) + path;
+  if (fs.existsSync(scriptDirectory.replace(`/app/`, `/src/`) + path)) {
+    return scriptDirectory.replace(`/app/`, `/src/`) + path;
+  }
+  return scriptDirectory + path;
 };
 
 interface EmscriptenModuleOpusEncoder extends EmscriptenModule {
