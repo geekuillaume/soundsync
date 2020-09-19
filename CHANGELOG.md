@@ -1,5 +1,54 @@
 # Changelog
 
+<a name="0.3.11"></a>
+## 0.3.11 (2020-09-19)
+
+### Added
+
+- ✨ Add logs messages about event loop blocking [[ae86bf0](https://github.com/geekuillaume/soundsync/commit/ae86bf09d6b40f35811b0cc86913e402cba250af)]
+- 🔊 Add webrtc error logs [[11431f4](https://github.com/geekuillaume/soundsync/commit/11431f489891e5e47bcd125906acaaf11b48aebd)]
+- ✨ Adds error indicator for Audio Source [[8f68296](https://github.com/geekuillaume/soundsync/commit/8f68296a6d0b0987a8383323cffdbe2db957c75a)]
+
+### Changed
+
+- ⚡ Improve timekeeper clock delta measure and separate it in its own file [[f7bf57d](https://github.com/geekuillaume/soundsync/commit/f7bf57db7cfc5c0b725c3bb46f5635a494d18ec6)]
+- ⚡ Separate Opus wasm in its own file to improve webui load speed [[efd08a3](https://github.com/geekuillaume/soundsync/commit/efd08a39fdb1e1ab4b44a9cb9af92db1d5caae4b)]
+- 💄 Sort sources and sinks on webui by uuid instead of name [[7fdfda8](https://github.com/geekuillaume/soundsync/commit/7fdfda829ba8589054ed703f238fbb5e0df2b131)]
+- ⬆️ Update to last audioworklet version [[1cf76d0](https://github.com/geekuillaume/soundsync/commit/1cf76d0001b0ee75e53d15c045e93c9f93176043)]
+- ⚡ Move soxr-resampler in its own worker_thread [[cf6ac1f](https://github.com/geekuillaume/soundsync/commit/cf6ac1fcb00e497ecc4b7a6fe9fd3a897eb76824)]
+- ⬆️ Bump bl from 3.0.0 to 3.0.1 in /src [[3d5cf37](https://github.com/geekuillaume/soundsync/commit/3d5cf37ca0c7d44cc70589d13afb8b90429442d4)]
+- ⬆️ Bump node-fetch in /.github/actions/create-dev-release [[b7ebc88](https://github.com/geekuillaume/soundsync/commit/b7ebc883c6c191964d600f8100fd8ceb712d01a8)]
+- ⬆️ Bump http-proxy from 1.18.0 to 1.18.1 in /webui [[30e5027](https://github.com/geekuillaume/soundsync/commit/30e50274d2869b8742433b9d5c75e842684f0f50)]
+- ⬆️ Bump http-proxy from 1.18.0 to 1.18.1 in /rendezvous-service [[ee0082e](https://github.com/geekuillaume/soundsync/commit/ee0082e08bb574db414209656cf3e478df51f738)]
+
+### Removed
+
+- 🔇 Prevent out of order chunk message after restarting sink [[7b6430e](https://github.com/geekuillaume/soundsync/commit/7b6430eb1e2320a7057f804fb6d20aa5f6264602)]
+- 🔇 Remove debug log [[fe2ca46](https://github.com/geekuillaume/soundsync/commit/fe2ca4692acdda25f59e0145178a872cc4b9e29c)]
+
+### Fixed
+
+- 🐛 Fix infinite loop on error catching and Sentry not initialized [[9465dc6](https://github.com/geekuillaume/soundsync/commit/9465dc67071a2067753eb1cb35b6839a7bf159b3)]
+- 🐛 Adds file-loader resolver to root package.json because of wasm import requiring it [[7f4219c](https://github.com/geekuillaume/soundsync/commit/7f4219ce6c37e1816482f88b058080dbb6c3938f)]
+- 🐛 Don&#x27;t crash if logging error without stack [[8604c4a](https://github.com/geekuillaume/soundsync/commit/8604c4af9cf4a58cbe44a585b5fb09103bb36b48)]
+- 🐛 Fix volume on localdevice sink [[6929fcb](https://github.com/geekuillaume/soundsync/commit/6929fcb7c9565b175630c189a5beaa1aae85b8cd)]
+- 🐛 Fix httpInitiator sending message too early [[f7448ef](https://github.com/geekuillaume/soundsync/commit/f7448efdb8222cf20c23e4d8ffc1f50879e8f473)]
+- 🐛 Fix systemd start script on headless linux [[b8df6bb](https://github.com/geekuillaume/soundsync/commit/b8df6bb9aa502787214f582812f7536fafeef2b3)]
+- 🐛 Fix bug with electron not always ready and systray not showing [[a86f934](https://github.com/geekuillaume/soundsync/commit/a86f934003d72c7b45b53678f79125f479fa5c5d)]
+- 🐛 Prevent wasm from catching any unexpected error [[3fd2e1f](https://github.com/geekuillaume/soundsync/commit/3fd2e1fb0d2eb97a4cf2cdd49ba7b5589d3201bb)]
+- 🐛 Fix debug variable on webui for source info [[b8c5b4d](https://github.com/geekuillaume/soundsync/commit/b8c5b4dda45fa78c6824aaf8d44c6527bc58560c)]
+
+### Miscellaneous
+
+-  Merge pull request [#30](https://github.com/geekuillaume/soundsync/issues/30) from ThisIsAreku/remove-node-sass [[e8c684d](https://github.com/geekuillaume/soundsync/commit/e8c684d4bf39bd18c7685c127310479dc0da4a09)]
+-  Merge pull request [#26](https://github.com/geekuillaume/soundsync/issues/26) from geekuillaume/dependabot/npm_and_yarn/src/bl-3.0.1 [[5a31168](https://github.com/geekuillaume/soundsync/commit/5a31168b6e30dabdd7cd64c23f5500f7dc9289cc)]
+-  Merge pull request [#28](https://github.com/geekuillaume/soundsync/issues/28) from geekuillaume/dependabot/npm_and_yarn/rendezvous-service/http-proxy-1.18.1 [[1a3b2a4](https://github.com/geekuillaume/soundsync/commit/1a3b2a4547aa021d9615194da9688e41fbaaa5f6)]
+-  Merge pull request [#29](https://github.com/geekuillaume/soundsync/issues/29) from geekuillaume/dependabot/npm_and_yarn/webui/http-proxy-1.18.1 [[b835ad4](https://github.com/geekuillaume/soundsync/commit/b835ad4efb51dfe8862673155517e78de8b3850a)]
+-  Merge pull request [#31](https://github.com/geekuillaume/soundsync/issues/31) from geekuillaume/dependabot/npm_and_yarn/dot-github/actions/create-dev-release/node-fetch-2.6.1 [[4007212](https://github.com/geekuillaume/soundsync/commit/40072127dc0c773c62a4641708cab6ea532ca895)]
+-  Remove node-sass dependency for webui [[e240f41](https://github.com/geekuillaume/soundsync/commit/e240f413c0c20f89e3488c0999902660ae586d2e)]
+- 🚧 Bump to dev version [[85c6fd4](https://github.com/geekuillaume/soundsync/commit/85c6fd478aafb432ec6ef2c54972830534e2c522)]
+
+
 <a name="0.3.10"></a>
 ## 0.3.10 (2020-09-09)
 
