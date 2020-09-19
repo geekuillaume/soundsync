@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 
-import _ from 'lodash';
 import debug, { Debugger } from 'debug';
 import { NO_RESPONSE_TIMEOUT } from '../utils/constants';
 import { BUILD_VERSION } from '../utils/version';
@@ -17,15 +16,7 @@ import {
   RPCMessage,
 } from './messages';
 import { now } from '../utils/misc';
-import { BasicNumericStatsTracker } from '../utils/basicNumericStatsTracker';
-
-const TIME_DELTAS_TO_KEEP = 100;
-// if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
-// this is used to not reupdate the sound sinks for every small difference in the timedelta but only if there is too much diff
-const MS_DIFF_TO_UPDATE_TIME_DELTA = 5;
-// we use multiple time requests when starting the connection to prevent having a incorrect value from a network problem at this specific moment
-const TIMESYNC_INIT_REQUEST_COUNT = 10;
-const TIMEKEEPER_REFRESH_INTERVAL = 100;
+import { Timekeeper } from '../utils/network/timekeeper';
 
 export enum Capacity {
   Librespot = 'librespot',
@@ -43,23 +34,21 @@ export abstract class Peer extends EventEmitter {
   name: string;
   version: string;
   state: 'connecting' | 'connected' | 'deleted' = 'connecting';
-  timeDelta = 0;
-  private timedeltas = new BasicNumericStatsTracker(TIME_DELTAS_TO_KEEP);
+  private timekeeper = new Timekeeper();
   log: Debugger;
   protected logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
   capacities: Capacity[];
   isLocal: boolean;
   private onRemoteDisconnect: () => any;
-  private timekeepInterval: NodeJS.Timeout;
   private missingPeerResponseTimeout: NodeJS.Timeout;
 
   constructor({
     uuid, name, capacities, instanceUuid, version,
-  }: PeerDescriptor, { onRemoteDisconnect = () => {} } = {}) {
+  }: PeerDescriptor, { onRemoteDisconnect = () => {}, isLocal = false } = {}) {
     super();
     this.setMaxListeners(1000);
-    this.isLocal = false;
+    this.isLocal = isLocal;
     this.name = name;
     this.uuid = uuid;
     this.log = debug(`soundsync:peer:${uuid}`);
@@ -76,24 +65,19 @@ export abstract class Peer extends EventEmitter {
       });
     });
     this.onControllerMessage(`timekeepResponse`, (message) => {
-      const receivedAt = now();
-      const roundtripTime = receivedAt - message.sentAt;
-      const receivedByPeerAt = message.sentAt + (roundtripTime / 2);
-      const delta = message.respondedAt - receivedByPeerAt;
-      this.timedeltas.push(delta);
-      if (this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)) {
-        // we have enough measures to calculate a precise time delta between peers
-        const realTimeDelta = this.timedeltas.median();
-        if (Math.abs(realTimeDelta - this.timeDelta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
-          this.log(`Updating timedelta to ${realTimeDelta}, diff was ${(realTimeDelta - this.timeDelta).toFixed(2)}ms`);
-          this.timeDelta = realTimeDelta;
-          this.emit('timedeltaUpdated');
-        }
-      }
+      this.timekeeper.handleResponse(message);
       this.emit('timesyncStateUpdated');
-      // networkLatency = roundtripTime / 2;
     });
-    this.timekeepInterval = setInterval(this._sendTimekeepRequest, TIMEKEEPER_REFRESH_INTERVAL);
+    this.timekeeper.on('requestNeeded', (request) => {
+      this.sendControllerMessage({
+        type: 'timekeepRequest',
+        ...request,
+      });
+    });
+    this.timekeeper.on('deltaUpdated', (delta, previousDelta) => {
+      this.log(`Updating timedelta to ${delta}, diff: ${(delta - previousDelta).toFixed(2)}ms`);
+      this.emit('timedeltaUpdated');
+    });
 
     this.onControllerMessage('peerInfo', (message) => {
       const existingPeer = getPeersManager().getConnectedPeerByUuid(message.peer.uuid);
@@ -148,15 +132,13 @@ export abstract class Peer extends EventEmitter {
     });
     this.on('stateChange', () => {
       if (this.state !== 'connected') {
-        this.timedeltas.flush();
+        this.timekeeper.flush();
       }
       if (this.state === 'connected') {
-        getPeersManager().emit('newConnectedPeer', this);
         if (!this.isLocal) {
-          _.times(TIMESYNC_INIT_REQUEST_COUNT, (i) => {
-            setTimeout(this._sendTimekeepRequest, i * 10); // 10 ms between each request
-          });
+          this.timekeeper.start();
         }
+        getPeersManager().emit('newConnectedPeer', this);
       }
     });
     getPeersManager().emit('peerChange', this);
@@ -235,21 +217,12 @@ export abstract class Peer extends EventEmitter {
     });
   }
 
-  isTimeSynchronized = () => this === getLocalPeer() || this.timedeltas.full(TIMESYNC_INIT_REQUEST_COUNT)
+  isTimeSynchronized = () => this === getLocalPeer() || this.timekeeper.isSynchronized()
   getCurrentTime = (realDelta = false) => {
     if (this === getLocalPeer()) {
       return now();
     }
-    return now() + (realDelta ? this.timedeltas.median() : this.timeDelta);
-  }
-  private _sendTimekeepRequest = () => {
-    if (this.isLocal) {
-      return;
-    }
-    this.sendControllerMessage({
-      type: 'timekeepRequest',
-      sentAt: now(),
-    });
+    return now() + (realDelta ? this.timekeeper.rawDelta : this.timekeeper.delta);
   }
 
   destroy = (reason = 'unknown', { advertiseDestroy = false, canTryReconnect = false } = {}) => {
@@ -263,7 +236,7 @@ export abstract class Peer extends EventEmitter {
     this.log(`Destroying peer, reason: ${reason}`);
     this._destroy();
     getPeersManager().unregisterPeer(this);
-    clearInterval(this.timekeepInterval);
+    this.timekeeper.destroy();
     this.removeAllListeners();
     getPeersManager().emit('peerChange');
     if (this.onRemoteDisconnect && canTryReconnect) {

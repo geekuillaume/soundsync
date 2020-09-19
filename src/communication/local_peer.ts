@@ -12,9 +12,8 @@ class LocalPeer extends Peer {
       name,
       capacities,
       instanceUuid,
-    });
+    }, { isLocal: true });
     this.log(`Registering local peer with instaceUuid: ${this.instanceUuid}`);
-    this.isLocal = true;
     this.sendControllerMessage({
       type: 'peerInfo',
       peer: this.toDescriptor(),

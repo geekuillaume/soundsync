@@ -3,7 +3,7 @@
 // It  will hard or soft sync depending on the clock drift between the audio device and the ideal time
 
 import { CircularTypedArray } from '../circularTypedArray';
-import { BasicNumericStatsTracker } from '../basicNumericStatsTracker';
+import { NumericStatsTracker } from '../basicNumericStatsTracker';
 import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from '../constants';
 
 // this method handle an audio buffer and will resize it to the target length by either
@@ -41,7 +41,7 @@ const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: n
 export class SynchronizedAudioBuffer {
   // stores diff between ideal and actual buffer position
   // if is > 0 it means the audio device is going too fast
-  private driftData: BasicNumericStatsTracker;
+  private driftData: NumericStatsTracker<number>;
   private returnBuffer = Buffer.alloc(128 * Float32Array.BYTES_PER_ELEMENT * 2); // start with a reasonably large buffer that will be resized if necessary
   private typedReturnBuffer = new Float32Array(this.returnBuffer.buffer);
   private delayedDriftCorrection = 0;
@@ -61,7 +61,7 @@ export class SynchronizedAudioBuffer {
   ) {
     // eslint-disable-next-line no-console
     this.log = debug ? console.log : () => null;
-    this.driftData = new BasicNumericStatsTracker(driftHistorySize);
+    this.driftData = new NumericStatsTracker((v) => v, driftHistorySize);
     this.softSyncThreshold = softSyncThreshold;
     this.hardSyncThreshold = hardSyncThreshold;
   }
