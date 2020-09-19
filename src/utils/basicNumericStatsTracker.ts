@@ -20,6 +20,11 @@ export class NumericStatsTracker<T> {
     return mean(buffer.map(getter));
   }
 
+  meanInStandardDeviation({ age = this.maxAge, getter = this.defaultGetter, deviationGetter = this.defaultGetter } = {}) {
+    const stdDev = this.standardDeviation(age, deviationGetter);
+    return this.mean(age, getter, (v) => Math.abs(deviationGetter(v) - stdDev.mean) <= stdDev.standardDeviation);
+  }
+
   median(age = this.maxAge, getter = this.defaultGetter, filter?: (point: T) => boolean) {
     if (age > this.maxAge) {
       throw new Error('Asked age is greater than maxAge');

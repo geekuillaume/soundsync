@@ -69,16 +69,16 @@ export class Timekeeper extends TypedEmitter<TimekeeperEvents> {
       delta,
       roundtripTime,
     });
-    this.rawDelta = this.getRawDelta();
+    // We use the roundtripTime as the standard deviation filter because a incorrect latency means that the network
+    // was choppy during the measure or that one of the peer was too busy with something else to respond quickly or
+    // to treat the incoming message quickly, this means that the measure is probably of poor quality
+    this.rawDelta = this.measures.meanInStandardDeviation({
+      deviationGetter: (m) => m.roundtripTime,
+    });
     if (Math.abs(this.rawDelta - this.delta) > MS_DIFF_TO_UPDATE_TIME_DELTA) {
       const previousDelta = this.delta;
       this.delta = this.rawDelta;
       this.emit('deltaUpdated', this.delta, previousDelta);
     }
-  }
-
-  private getRawDelta() {
-    const { mean, standardDeviation } = this.measures.standardDeviation(undefined, (measure) => measure.roundtripTime);
-    return this.measures.mean(undefined, undefined, (measure) => Math.abs(mean - measure.roundtripTime) < standardDeviation);
   }
 }
