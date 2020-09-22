@@ -3,7 +3,6 @@
 // It  will hard or soft sync depending on the clock drift between the audio device and the ideal time
 
 import { CircularTypedArray } from '../circularTypedArray';
-import { NumericStatsTracker } from '../basicNumericStatsTracker';
 import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from '../constants';
 
 // this method handle an audio buffer and will resize it to the target length by either
@@ -39,12 +38,11 @@ const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: n
 };
 
 export class SynchronizedAudioBuffer {
-  // stores diff between ideal and actual buffer position
-  // if is > 0 it means the audio device is going too fast
-  private driftData: NumericStatsTracker<number>;
   private returnBuffer = Buffer.alloc(128 * Float32Array.BYTES_PER_ELEMENT * 2); // start with a reasonably large buffer that will be resized if necessary
   private typedReturnBuffer = new Float32Array(this.returnBuffer.buffer);
   private delayedDriftCorrection = 0;
+  // number of samples to wait until starting to correct for drift again, used to prevent over correction
+  private ignoreDriftFor = 0;
   public softSyncThreshold: number;
   public hardSyncThreshold: number;
 
@@ -54,14 +52,12 @@ export class SynchronizedAudioBuffer {
     public idealPositionPerChannelGetter: () => number,
     {
       debug = false,
-      driftHistorySize = 400,
       softSyncThreshold = SOFT_SYNC_MIN_AUDIO_DRIFT,
       hardSyncThreshold = HARD_SYNC_MIN_AUDIO_DRIFT,
     } = {},
   ) {
     // eslint-disable-next-line no-console
     this.log = debug ? console.log : () => null;
-    this.driftData = new NumericStatsTracker((v) => v, driftHistorySize);
     this.softSyncThreshold = softSyncThreshold;
     this.hardSyncThreshold = hardSyncThreshold;
   }
@@ -81,17 +77,16 @@ export class SynchronizedAudioBuffer {
       if (sampleDelta === 0) {
         this.log(`= finished delayed soft drift correction`);
         this.delayedDriftCorrection = 0;
-        this.driftData.flush();
+        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
       }
-    } else if (this.driftData.full()) {
-      // we got enough data history about the drift to start making hard or soft resync if necessary
-      const drift = Math.floor(this.driftData.mean());
-      const driftDuration = drift / (OPUS_ENCODER_RATE / 1000) / this.channels;
+    } else if (!this.ignoreDriftFor) {
+      const drift = Math.floor(idealBufferPosition - this.buffer.getReaderPointer());
+      const driftDuration = drift / (OPUS_ENCODER_RATE / 1000);
       if (Math.abs(driftDuration) > this.hardSyncThreshold) {
         // the drift is too important, this can happens in case the CPU was locked for a while (after suspending the device for example)
         // this will induce a audible glitch
         this.buffer.setReaderPointer(idealBufferPosition);
-        this.driftData.flush();
+        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
         this.log(`= hard sync: ${driftDuration}ms`);
       } else if (Math.abs(driftDuration) > this.softSyncThreshold) {
         // we should be correcting for the drift but it's small enough that we can do this only by adding
@@ -99,14 +94,13 @@ export class SynchronizedAudioBuffer {
         // if drift is > 0, it means the audio device is going too fast
         // so we need to slow down the rate at which we read from the audio buffer to go back to the correct time
         sampleDelta = Math.floor(Math.min(samplesPerChannel * 0.02, Math.abs(drift) * 0.1)) * Math.sign(drift); // max 1% sample to remove or duplicate, or 10% of drift
-        this.driftData.flush();
+        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
         this.delayedDriftCorrection = Math.floor((drift - sampleDelta) * 0.4);
         this.log(`= soft sync: ${driftDuration}ms (${drift} samples), injecting ${sampleDelta} samples now`);
       }
     }
-    if (sampleDelta === 0) {
-      // only measure drift if we are not soft syncing
-      this.driftData.push(idealBufferPosition - this.buffer.getReaderPointer());
+    if (this.ignoreDriftFor) {
+      this.ignoreDriftFor = Math.max(0, this.ignoreDriftFor - samplesPerChannel);
     }
     const samplesToReadByChannel = samplesPerChannel + sampleDelta;
     if (this.returnBuffer.byteLength !== samplesToReadByChannel * this.channels * Float32Array.BYTES_PER_ELEMENT) {

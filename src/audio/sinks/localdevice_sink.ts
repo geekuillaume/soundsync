@@ -15,13 +15,18 @@ import { getOutputDeviceFromId, getAudioServer } from '../../utils/audio/localAu
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
+import { NumericStatsTracker } from '../../utils/basicNumericStatsTracker';
+
+const AUDIO_DRIFT_HISTORY_INTERVAL = 50;
+const AUDIO_DRIFT_HISTORY_DURATION = 2 * 60 * 1000;
 
 export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
   local: true = true;
   deviceId: string;
   buffer: CircularTypedArray<Float32Array>;
-  delayFromLocalNowBuffer = new Float64Array(new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT));
+  audioClockDrift = new Float64Array(new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT));
+  audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
 
   private worklet: Worker;
   private cleanStream;
@@ -30,20 +35,23 @@ export class LocalDeviceSink extends AudioSink {
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceId = descriptor.deviceId;
-    this.available = false; // device is considered not available at first before this.updateAvailability
-    this.updateAvailability();
-    setInterval(this.updateAvailability, 5000);
+    this.available = false; // device is considered not available at first before this.updateDeviceInfo
+    this.updateDeviceInfo();
+    setInterval(this.updateDeviceInfo, 5000);
   }
 
   isDeviceAvailable = async () => !!(await getOutputDeviceFromId(this.deviceId))
-  private updateAvailability = async () => {
-    this.updateInfo({ available: await this.isDeviceAvailable() });
+  private updateDeviceInfo = async () => {
+    this.updateInfo({
+      available: await this.isDeviceAvailable(),
+    });
   }
 
   async _startSink(source: AudioSource) {
     this.log(`Creating speaker`);
     await source.peer.waitForFirstTimeSync();
     const device = getOutputDeviceFromId(this.deviceId);
+    this.channels = Math.min(device.maxChannels, 2);
     this.audioStream = getAudioServer().initOutputStream(this.deviceId, {
       sampleRate: OPUS_ENCODER_RATE,
       name: source.name,
@@ -57,18 +65,18 @@ export class LocalDeviceSink extends AudioSink {
     const bufferData = new SharedArrayBuffer(bufferSize);
     this.buffer = new CircularTypedArray(Float32Array, bufferData);
     this.updateInfo({ latency: device.minLatency });
-    this.setDelayFromLocalNow();
+    this.registerDrift();
     this.worklet.postMessage({
       type: 'buffer',
       buffer: bufferData,
-      delayFromLocalNowBuffer: this.delayFromLocalNowBuffer.buffer,
+      audioClockDrift: this.audioClockDrift.buffer,
       channels: this.channels,
       debug: debug.enabled('soundsync:audioSinkDebug'),
     });
 
     const handleTimedeltaUpdate = () => {
       this.log(`Resynchronizing sink after update from timedelta with peer or source latency`);
-      this.setDelayFromLocalNow();
+      this.registerDrift();
     };
     this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
     // this is needed to resync the audioworklet when the source latency is updated
@@ -77,7 +85,7 @@ export class LocalDeviceSink extends AudioSink {
       this.audioStream.setVolume(this.volume);
     };
     this.on('update', syncDeviceVolume);
-    const latencySyncInterval = setInterval(this.setDelayFromLocalNow, 1000);
+    const driftRegisterInterval = setInterval(this.registerDrift, AUDIO_DRIFT_HISTORY_INTERVAL);
     this.cleanStream = () => {
       if (this.pipedSource.peer) {
         this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
@@ -87,7 +95,7 @@ export class LocalDeviceSink extends AudioSink {
       }
       this.off('update', syncDeviceVolume);
       this.audioStream.stop();
-      clearInterval(latencySyncInterval);
+      clearInterval(driftRegisterInterval);
       delete this.audioStream;
       delete this.audioStream;
     };
@@ -110,17 +118,26 @@ export class LocalDeviceSink extends AudioSink {
     }
     const chunk = new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
     const offset = data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels;
-    this.buffer.set(chunk, offset);
+    if (this.channels === 1 && this.pipedSource.channels === 2) { // TODO: handle all possible combo of channels
+      // remap stero to mono by taking the mean value of both channels samples
+      for (let sample = 0; sample < OPUS_ENCODER_CHUNK_SAMPLES_COUNT; sample++) {
+        chunk[sample] = (chunk[(sample * this.pipedSource.channels)] + chunk[(sample * this.pipedSource.channels) + 1]) / 2;
+      }
+      this.buffer.set(new Float32Array(chunk.buffer, chunk.byteOffset, OPUS_ENCODER_CHUNK_SAMPLES_COUNT), offset);
+    } else {
+      this.buffer.set(chunk, offset);
+    }
   }
 
-  setDelayFromLocalNow = () => {
-    // we are not using this.latency here because this is directly handled by the audio worklet and makes it much more precise
-    // the audioworklet handles the synchronization between the audio device clock and the system clock
-    // this method is here to handle the synchronization between the system clock and the remote peer clock
-    this.delayFromLocalNowBuffer[0] = this.pipedSource.peer.getCurrentTime(true)
-      - this.pipedSource.startedAt
-      - this.pipedSource.latency
-      - now();
+  registerDrift = () => {
+    const audioClockDrift = (( // ideal position
+      this.pipedSource.peer.getCurrentTime(true)
+        - this.pipedSource.startedAt
+        - this.pipedSource.latency
+        + this.latencyCorrection
+    ) * (this.rate / 1000)) - (this.audioStream.getPosition());
+    this.audioClockDriftHistory.push(audioClockDrift);
+    this.audioClockDrift[0] = this.audioClockDriftHistory.mean();
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSinkDescriptor> => ({
@@ -130,6 +147,8 @@ export class LocalDeviceSink extends AudioSink {
     deviceId: this.deviceId,
     pipedFrom: this.pipedFrom,
     volume: this.volume,
+    latencyCorrection: this.latencyCorrection,
+
     ...(!sanitizeForConfigSave && {
       peerUuid: this.peerUuid,
       instanceUuid: this.instanceUuid,

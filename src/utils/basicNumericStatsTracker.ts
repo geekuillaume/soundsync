@@ -3,7 +3,10 @@ const mean = (vals: number[]) => vals.reduce((a, b) => a + b, 0) / vals.length;
 export class NumericStatsTracker<T> {
   private buffer: T[] = [];
 
-  constructor(public defaultGetter: (val: T) => number, private maxAge: number) {}
+  constructor(
+    public defaultGetter: (val: T) => number,
+    private maxAge: number,
+  ) {}
 
   push(point: T) {
     this.buffer.unshift(point);

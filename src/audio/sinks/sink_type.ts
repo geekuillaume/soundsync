@@ -8,6 +8,7 @@ export interface BaseSinkDescriptor {
   uuid: SinkUUID;
   peerUuid: string;
   latency?: number;
+  latencyCorrection?: number;
   error?: string;
   pipedFrom: SourceUUID | null;
   available: boolean;

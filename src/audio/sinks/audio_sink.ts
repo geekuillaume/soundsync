@@ -31,6 +31,7 @@ export abstract class AudioSink extends EventEmitter {
   latency = 0;
   instanceUuid: string; // this is an id only for this specific instance, not saved between restart it is used to prevent a sink or source info being overwritten by a previous instance of the same sink/source
   error?: string;
+  latencyCorrection: number;
 
   protected pipedSource?: AudioSource;
   protected log: debug.Debugger;
@@ -54,6 +55,7 @@ export abstract class AudioSink extends EventEmitter {
     this.available = descriptor.available ?? true;
     this.volume = descriptor.volume ?? 1;
     this.error = descriptor.error;
+    this.latencyCorrection = descriptor.latencyCorrection || 0;
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.latency = descriptor.latency ?? 0;
@@ -209,7 +211,7 @@ export abstract class AudioSink extends EventEmitter {
   getCurrentStreamTime = () => this.pipedSource.peer.getCurrentTime()
       - this.pipedSource.startedAt
       - this.pipedSource.latency
-      + this.latency
+      + this.latency + this.latencyCorrection
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<BaseSinkDescriptor> => ({
     type: this.type,
@@ -217,6 +219,7 @@ export abstract class AudioSink extends EventEmitter {
     uuid: this.uuid,
     pipedFrom: this.pipedFrom,
     volume: this.volume,
+    latencyCorrection: this.latencyCorrection,
 
     ...(!sanitizeForConfigSave && {
       available: this.available,

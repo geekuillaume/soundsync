@@ -1,14 +1,13 @@
 import { AudioWorkletProcessor } from 'audioworklet';
-import { OPUS_ENCODER_RATE } from '../../../utils/constants';
 import { CircularTypedArray } from '../../../utils/circularTypedArray';
 import { SynchronizedAudioBuffer } from '../../../utils/audio/synchronizedAudioBuffer';
-import { now } from '../../../utils/misc';
 
 class NodeAudioworklet extends AudioWorkletProcessor {
   buffer: CircularTypedArray<Float32Array>;
   synchronizedBuffer: SynchronizedAudioBuffer;
-  delayFromLocalNowBuffer: Float64Array;
+  audioClockDrift: Float64Array;
   channels: number;
+  position = 0;
 
   constructor() {
     super();
@@ -16,38 +15,37 @@ class NodeAudioworklet extends AudioWorkletProcessor {
     this.port.onmessage = this.handleMessage_.bind(this);
   }
 
-  getIdealAudioPosition = () => Math.floor(((now() + this.delayFromLocalNowBuffer[0]) * (OPUS_ENCODER_RATE / 1000)) - this.getLatency())
+  getIdealAudioPosition = () => this.audioClockDrift[0] + this.position
 
   handleMessage_(event) {
     if (event.data.type === 'buffer') {
       this.channels = event.data.channels;
       this.buffer = new CircularTypedArray(Float32Array, event.data.buffer);
-      this.delayFromLocalNowBuffer = new Float64Array(event.data.delayFromLocalNowBuffer);
+      this.audioClockDrift = new Float64Array(event.data.audioClockDrift);
       this.synchronizedBuffer = new SynchronizedAudioBuffer(
         this.buffer,
         this.channels,
         this.getIdealAudioPosition,
         {
           debug: event.data.debug,
-          softSyncThreshold: 2,
         },
       );
     }
   }
 
   process(channels: Float32Array[]) {
-    if (!this.synchronizedBuffer) {
-      return true;
-    }
-    const samplesForCurrentFrame = this.synchronizedBuffer.readNextChunk(channels[0].length);
-    let currentSampleIndexForCurrentFrame = 0;
-    for (let sampleIndex = 0; sampleIndex < channels[0].length; sampleIndex++) {
-      for (let channelIndex = 0; channelIndex < channels.length; channelIndex++) {
-        channels[channelIndex][sampleIndex] = samplesForCurrentFrame[currentSampleIndexForCurrentFrame];
-        currentSampleIndexForCurrentFrame++;
+    if (this.synchronizedBuffer) {
+      const samplesForCurrentFrame = this.synchronizedBuffer.readNextChunk(channels[0].length);
+      let currentSampleIndexForCurrentFrame = 0;
+      for (let sampleIndex = 0; sampleIndex < channels[0].length; sampleIndex++) {
+        for (let channelIndex = 0; channelIndex < channels.length; channelIndex++) {
+          channels[channelIndex][sampleIndex] = samplesForCurrentFrame[currentSampleIndexForCurrentFrame];
+          currentSampleIndexForCurrentFrame++;
+        }
       }
     }
 
+    this.position += channels[0].length;
     return true;
   }
 }
