@@ -2,8 +2,8 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { now } from '../misc';
 import { NumericStatsTracker } from '../basicNumericStatsTracker';
 
-const TIME_DELTAS_TO_KEEP = 100;
 const TIMEKEEPER_REFRESH_INTERVAL = 300;
+const TIME_DELTAS_HISTORY_DURATION = 2 * 60 * 1000;
 // if there is less than this diff between the newly computed time delta and the saved time delta, update it and emit a event
 // this is used to not reupdate the sound sinks for every small difference in the timedelta but only if there is too much diff
 const MS_DIFF_TO_UPDATE_TIME_DELTA = 5;
@@ -30,7 +30,7 @@ interface TimekeeperComputedMeasure {
 }
 
 export class Timekeeper extends TypedEmitter<TimekeeperEvents> {
-  private measures = new NumericStatsTracker<TimekeeperComputedMeasure>((measure) => measure.delta, TIME_DELTAS_TO_KEEP);
+  private measures = new NumericStatsTracker<TimekeeperComputedMeasure>((measure) => measure.delta, TIME_DELTAS_HISTORY_DURATION / TIMEKEEPER_REFRESH_INTERVAL);
   private refreshInterval: NodeJS.Timeout;
 
   public delta = 0;
