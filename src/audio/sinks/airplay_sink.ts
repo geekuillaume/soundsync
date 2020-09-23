@@ -6,7 +6,6 @@
 //     protocol: 'tcp',
 //   });
 
-
 //   detector.on('up', (e) => {
 //     console.log(e);
 //   });
@@ -88,6 +87,7 @@ export class AirplaySink extends AudioSink {
     uuid: this.uuid,
     pipedFrom: this.pipedFrom,
     volume: this.volume,
+    latencyCorrection: this.latencyCorrection,
 
     host: this.host,
     port: this.port,

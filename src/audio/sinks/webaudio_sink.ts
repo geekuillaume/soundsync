@@ -81,7 +81,6 @@ export class WebAudioSink extends AudioSink {
       this.cleanAudioContext = undefined;
     };
 
-
     // The context can be blocked from starting because of new webaudio changes
     // we need to wait for a user input to start it
     if (this.context.state === 'suspended') {
@@ -126,6 +125,8 @@ export class WebAudioSink extends AudioSink {
     uuid: this.uuid,
     pipedFrom: this.pipedFrom,
     volume: this.volume,
+    latencyCorrection: this.latencyCorrection,
+
     ...(!sanitizeForConfigSave && {
       peerUuid: this.peerUuid,
       instanceUuid: this.instanceUuid,

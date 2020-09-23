@@ -36,7 +36,6 @@ export class HueLightSink extends AudioSink {
   private audioBuffer: AudioChunkStreamOutput[] = [];
   private analyser: FFTStream;
 
-
   constructor(descriptor: HueLightSinkDescriptor, manager: AudioSourcesSinksManager) {
     super({
       ...descriptor,
@@ -187,6 +186,7 @@ export class HueLightSink extends AudioSink {
     uuid: this.uuid,
     pipedFrom: this.pipedFrom,
     volume: this.volume,
+    latencyCorrection: this.latencyCorrection,
 
     hueHost: this.hueHost,
     status: this.status,
