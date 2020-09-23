@@ -165,6 +165,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
       if (this.error) {
         this.updateInfo({ error: null });
       }
+      this.manager.on('soundstateUpdated', this.updateLatencyFromSinks);
     }
   }
 
@@ -193,7 +194,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     } else {
       this.consumersStreams.push(instanceStream);
     }
-    this.manager.on('soundstateUpdated', this.updateLatencyFromSinks);
+    this.updateLatencyFromSinks();
     return instanceStream;
   }
 
@@ -228,7 +229,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     if (!pipedSinks.length) {
       return;
     }
-    const maxLatency = Math.max(...pipedSinks.map(({ latency }) => latency)) + LATENCY_MARGIN;
+    const maxLatency = Math.max(...pipedSinks.map(({ latency, latencyCorrection }) => latency + (latencyCorrection || 0))) + LATENCY_MARGIN;
     if (maxLatency > this.latency || this.latency - maxLatency > SOURCE_MIN_LATENCY_DIFF_TO_RESYNC) {
       this.updateInfo({
         latency: maxLatency,
