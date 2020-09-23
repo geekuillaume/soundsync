@@ -27,6 +27,16 @@ export class LocalDeviceSource extends AudioSource {
   constructor(descriptor: LocalDeviceSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceId = descriptor.deviceId;
+    this.updateDeviceInfo();
+    // TODO: clearInterval this when source is deleted
+    setInterval(this.updateDeviceInfo, 5000);
+  }
+
+  isDeviceAvailable = async () => !!(await getInputDeviceFromId(this.deviceId))
+  private updateDeviceInfo = async () => {
+    this.updateInfo({
+      available: await this.isDeviceAvailable(),
+    });
   }
 
   async _getAudioChunkStream() {

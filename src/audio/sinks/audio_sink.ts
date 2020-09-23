@@ -108,6 +108,7 @@ export abstract class AudioSink extends EventEmitter {
     if (
       !sourceToPipeFrom
       || !this.available
+      || !sourceToPipeFrom.available
       || !sourceToPipeFrom.peer
       || sourceToPipeFrom.peer.state !== 'connected'
     ) {
