@@ -12,6 +12,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
 import VolumeUp from '@material-ui/icons/VolumeUp';
+import RestoreIcon from '@material-ui/icons/Restore';
+import UpdateIcon from '@material-ui/icons/Update';
 
 import { useRegisterForPipe, useUnpipeAction } from 'utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
@@ -56,6 +58,16 @@ const useStyles = makeStyles(() => ({
       margin: '0 13px',
     },
   },
+  latencyContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    margin: '9px 0',
+    '& > svg': {
+      cursor: 'pointer',
+    }
+  }
 }));
 
 
@@ -147,6 +159,17 @@ export const SinkContextMenu = ({
     sink.peer.sendRcp('deleteSink', sink.uuid);
   };
 
+  const handleDecreaseLatencyCorrection = () => {
+    sink.patch({
+      latencyCorrection: Math.max(0, sink.latencyCorrection - 5),
+    });
+  };
+  const handleIncreaseLatencyCorrection = () => {
+    sink.patch({
+      latencyCorrection: Math.min(400, sink.latencyCorrection + 5),
+    });
+  };
+
   const defaultModalContent = (
     <>
       <div className={styles.volumeContainer}>
@@ -154,10 +177,18 @@ export const SinkContextMenu = ({
         <Slider value={sink.volume} min={0} max={1} step={0.01} onChange={handleVolumeChange} />
         <VolumeUp />
       </div>
+      {sink.latencyCorrection !== 0 &&
+        <div className={styles.latencyContainer}>
+          <RestoreIcon onClick={handleDecreaseLatencyCorrection} />
+          <p>{sink.latencyCorrection} ms</p>
+          <UpdateIcon onClick={handleIncreaseLatencyCorrection} />
+        </div>
+      }
       <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
       {isPiped && <PopoverButton disableElevation variant="contained" onClick={handleUnlink}>Unlink</PopoverButton>}
       <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
       <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
+      {sink.latencyCorrection === 0 && <PopoverButton disableElevation variant="contained" onClick={handleIncreaseLatencyCorrection}>Set latency correction</PopoverButton>}
       {canBeDeleted && <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>}
       {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(sink)}>Log info</PopoverButton>}
     </>
