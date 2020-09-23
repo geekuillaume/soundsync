@@ -9,6 +9,10 @@ import { WebAudioSinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
+import { NumericStatsTracker } from '../../utils/basicNumericStatsTracker';
+
+const AUDIO_DRIFT_HISTORY_INTERVAL = 50;
+const AUDIO_DRIFT_HISTORY_DURATION = 2 * 60 * 1000;
 
 export class WebAudioSink extends AudioSink {
   type: 'webaudio' = 'webaudio';
@@ -16,6 +20,7 @@ export class WebAudioSink extends AudioSink {
   workletNode: AudioWorkletNode;
   context: AudioContext;
   cleanAudioContext;
+  audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -71,6 +76,7 @@ export class WebAudioSink extends AudioSink {
       volumeNode.gain.value = this.volume;
     };
     this.on('update', syncDeviceVolume);
+    const driftRegisterInterval = setInterval(this.registerDrift, AUDIO_DRIFT_HISTORY_INTERVAL);
     // this should be set before any await to make sure we have the clean method available if _stopSink is called between _startSink ends
     this.cleanAudioContext = () => {
       this.off('update', syncDeviceVolume);
@@ -79,6 +85,7 @@ export class WebAudioSink extends AudioSink {
       this.context.suspend();
       delete this.context;
       this.cleanAudioContext = undefined;
+      clearInterval(driftRegisterInterval);
     };
 
     // The context can be blocked from starting because of new webaudio changes
@@ -115,8 +122,25 @@ export class WebAudioSink extends AudioSink {
       type: 'chunk',
       i: data.i,
       chunk,
-      currentTimeRelativeToAudioContext: this.getCurrentStreamTime() - (this.context.getOutputTimestamp().contextTime * 1000),
+      audioClockDrift: this.audioClockDriftHistory.full(1) ? this.audioClockDriftHistory.mean() : -1,
     }, [chunk.buffer]); // we transfer the chunk.buffer to the audio worklet to prevent a memory copy
+  }
+
+  registerDrift = () => {
+    const contextTime = this.context.getOutputTimestamp().contextTime;
+    if (contextTime === 0) {
+      // audio context is not started yet, could be because it's waiting for a user interaction to start
+      return;
+    }
+    const audioClockDrift = ((
+      this.pipedSource.peer.getCurrentTime(true)
+        - this.pipedSource.startedAt
+        - this.pipedSource.latency
+        + this.latencyCorrection
+    ) - (contextTime * 1000)) * (this.rate / 1000);
+    if (!Number.isNaN(audioClockDrift)) {
+      this.audioClockDriftHistory.push(audioClockDrift);
+    }
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<WebAudioSinkDescriptor> => ({

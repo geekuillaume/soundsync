@@ -5,6 +5,8 @@
 import { CircularTypedArray } from '../circularTypedArray';
 import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from '../constants';
 
+const DRIFT_CORRECTION_MIN_INTERVAL = OPUS_ENCODER_RATE * 5; // force minimum 5 seconds between each latency correction
+
 // this method handle an audio buffer and will resize it to the target length by either
 // dropping samples if the source buffer is too big or duplicating samples if the source buffer is too small
 const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: number, channels: number) => {
@@ -77,7 +79,7 @@ export class SynchronizedAudioBuffer {
       if (sampleDelta === 0) {
         this.log(`= finished delayed soft drift correction`);
         this.delayedDriftCorrection = 0;
-        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
+        this.ignoreDriftFor = DRIFT_CORRECTION_MIN_INTERVAL;
       }
     } else if (!this.ignoreDriftFor) {
       const drift = Math.floor(idealBufferPosition - this.buffer.getReaderPointer());
@@ -86,7 +88,7 @@ export class SynchronizedAudioBuffer {
         // the drift is too important, this can happens in case the CPU was locked for a while (after suspending the device for example)
         // this will induce a audible glitch
         this.buffer.setReaderPointer(idealBufferPosition);
-        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
+        this.ignoreDriftFor = DRIFT_CORRECTION_MIN_INTERVAL;
         this.log(`= hard sync: ${driftDuration}ms`);
       } else if (Math.abs(driftDuration) > this.softSyncThreshold) {
         // we should be correcting for the drift but it's small enough that we can do this only by adding
@@ -94,7 +96,7 @@ export class SynchronizedAudioBuffer {
         // if drift is > 0, it means the audio device is going too fast
         // so we need to slow down the rate at which we read from the audio buffer to go back to the correct time
         sampleDelta = Math.floor(Math.min(samplesPerChannel * 0.02, Math.abs(drift) * 0.1)) * Math.sign(drift); // max 1% sample to remove or duplicate, or 10% of drift
-        this.ignoreDriftFor = OPUS_ENCODER_RATE; // ignore for 1s
+        this.ignoreDriftFor = DRIFT_CORRECTION_MIN_INTERVAL;
         this.delayedDriftCorrection = Math.floor((drift - sampleDelta) * 0.4);
         this.log(`= soft sync: ${driftDuration}ms (${drift} samples), injecting ${sampleDelta} samples now`);
       }
