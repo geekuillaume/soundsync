@@ -3,6 +3,7 @@
 import debug from 'debug';
 import path from 'path';
 import koaStatic from 'koa-static';
+import send from 'koa-send';
 
 import { SoundSyncHttpServer } from '../communication/http_server';
 // import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
@@ -10,13 +11,21 @@ import { SoundSyncHttpServer } from '../communication/http_server';
 
 const log = debug(`soundsync:api`);
 
+const WEBUI_ROOT_PATH = path.join(__dirname, '../../webui/dist');
 export const attachApi = (httpServer: SoundSyncHttpServer) => {
   // this.httpServer.router.get('/state', this.handleStateRoute);
   // this.httpServer.router.post('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleCreatePipe);
   // this.httpServer.router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
   // this.httpServer.router.put('/source/:sourceUuid', this.handleSourceUpdate);
   // this.httpServer.router.put('/sink/:sinkUuid', this.handleSinkUpdate);
-  httpServer.app.use(koaStatic(path.join(__dirname, '../../webui/dist')));
+  httpServer.app.use(koaStatic(WEBUI_ROOT_PATH));
+  httpServer.app.use(async (ctx, next) => {
+    await next();
+    if (ctx.status === 404) {
+      // Because the webui handles its own router, we need to return index.html on every 404
+      await send(ctx, `index.html`, { root: WEBUI_ROOT_PATH });
+    }
+  });
   log(`Regitered API`);
 };
 
