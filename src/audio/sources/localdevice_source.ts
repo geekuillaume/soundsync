@@ -32,16 +32,16 @@ export class LocalDeviceSource extends AudioSource {
     setInterval(this.updateDeviceInfo, 5000);
   }
 
-  isDeviceAvailable = async () => !!(await getInputDeviceFromId(this.deviceId))
+  isDeviceAvailable = () => !!getInputDeviceFromId(this.deviceId)
   private updateDeviceInfo = async () => {
     this.updateInfo({
-      available: await this.isDeviceAvailable(),
+      available: this.isDeviceAvailable(),
     });
   }
 
-  async _getAudioChunkStream() {
+  _getAudioChunkStream = async () => {
     this.log(`Creating localdevice source`);
-    const device = await getInputDeviceFromId(this.deviceId);
+    const device = getInputDeviceFromId(this.deviceId);
     this.rate = getClosestMatchingRate(device, OPUS_ENCODER_RATE);
     const inputStream = new PassThrough();
     this.audioStream = getAudioServer().initInputStream(device.id, {
@@ -51,10 +51,11 @@ export class LocalDeviceSource extends AudioSource {
       latencyFrames: this.rate / 10,
     });
     this.audioStream.start();
-    const worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
-    worklet.on('message', (d) => {
-      inputStream.write(Buffer.from(d.buffer));
-    });
+    // TODO: adapt this to audioworklet v5.0.0
+    // const worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
+    // worklet.on('message', (d) => {
+    //   inputStream.write(Buffer.from(d.buffer));
+    // });
     const stream = createAudioChunkStream(this.startedAt, inputStream, this.rate, this.channels);
 
     this.cleanStream = () => {

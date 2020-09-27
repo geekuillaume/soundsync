@@ -1,21 +1,19 @@
-import { Worker } from 'worker_threads';
+import debug from 'debug';
 import { AudioServer, AudioStream } from 'audioworklet';
 
-import { resolve } from 'path';
-import debug from 'debug';
-import { now } from '../../utils/misc';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId, getAudioServer } from '../../utils/audio/localAudioDevice';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
-import { CircularTypedArray } from '../../utils/circularTypedArray';
 import { NumericStatsTracker } from '../../utils/basicNumericStatsTracker';
+import { remapChannels } from '../../utils/audio/audio-utils';
+import { DriftAwareAudioBufferTransformer } from '../../utils/audio/synchronizedAudioBuffer';
 
 const AUDIO_DRIFT_HISTORY_INTERVAL = 50;
 const AUDIO_DRIFT_HISTORY_DURATION = 2 * 60 * 1000;
@@ -24,13 +22,11 @@ export class LocalDeviceSink extends AudioSink {
   type: 'localdevice' = 'localdevice';
   local: true = true;
   deviceId: string;
-  buffer: CircularTypedArray<Float32Array>;
-  audioClockDrift = new Float64Array(new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT));
   audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
 
-  private worklet: Worker;
-  private cleanStream;
+  private cleanStream: () => void;
   private audioStream: AudioStream;
+  private audioBufferTransformer: DriftAwareAudioBufferTransformer;
 
   constructor(descriptor: LocalDeviceSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -40,15 +36,15 @@ export class LocalDeviceSink extends AudioSink {
     setInterval(this.updateDeviceInfo, 5000);
   }
 
-  isDeviceAvailable = async () => !!(await getOutputDeviceFromId(this.deviceId))
-  private updateDeviceInfo = async () => {
+  isDeviceAvailable = () => !!getOutputDeviceFromId(this.deviceId)
+  private updateDeviceInfo = () => {
     this.updateInfo({
-      available: await this.isDeviceAvailable(),
+      available: this.isDeviceAvailable(),
     });
   }
 
   async _startSink(source: AudioSource) {
-    this.log(`Creating speaker`);
+    this.log(`Starting localdevice sink`);
     await source.peer.waitForFirstTimeSync();
     const device = getOutputDeviceFromId(this.deviceId);
     this.channels = Math.min(device.maxChannels, 2);
@@ -58,21 +54,16 @@ export class LocalDeviceSink extends AudioSink {
       format: AudioServer.F32LE,
       channels: this.channels,
     });
-    this.worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/node_audioworklet.js'));
-    this.audioStream.start();
+    this.audioBufferTransformer = new DriftAwareAudioBufferTransformer(
+      this.channels,
+      () => this.audioClockDriftHistory.mean(),
+      {
+        debug: debug.enabled('soundsync:audioSinkDebug'),
+      },
+    );
 
-    const bufferSize = MAX_LATENCY * (OPUS_ENCODER_RATE / 1000) * this.channels * Float32Array.BYTES_PER_ELEMENT;
-    const bufferData = new SharedArrayBuffer(bufferSize);
-    this.buffer = new CircularTypedArray(Float32Array, bufferData);
     this.updateInfo({ latency: device.minLatency });
     this.registerDrift();
-    this.worklet.postMessage({
-      type: 'buffer',
-      buffer: bufferData,
-      audioClockDrift: this.audioClockDrift.buffer,
-      channels: this.channels,
-      debug: debug.enabled('soundsync:audioSinkDebug'),
-    });
 
     const handleTimedeltaUpdate = () => {
       this.log(`Resynchronizing sink after update from timedelta with peer or source latency`);
@@ -99,6 +90,7 @@ export class LocalDeviceSink extends AudioSink {
       delete this.audioStream;
       delete this.audioStream;
     };
+    this.audioStream.start();
   }
 
   _stopSink() {
@@ -109,35 +101,30 @@ export class LocalDeviceSink extends AudioSink {
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
-    if (!this.worklet) {
+    if (!this.audioStream) {
       return;
     }
     if (!this.pipedSource || !this.pipedSource.peer) {
       this.log(`Received a chunk for a not piped sink, ignoring`);
       return;
     }
-    const chunk = new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
-    const offset = data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels;
-    if (this.channels === 1 && this.pipedSource.channels === 2) { // TODO: handle all possible combo of channels
-      // remap stero to mono by taking the mean value of both channels samples
-      for (let sample = 0; sample < OPUS_ENCODER_CHUNK_SAMPLES_COUNT; sample++) {
-        chunk[sample] = (chunk[(sample * this.pipedSource.channels)] + chunk[(sample * this.pipedSource.channels) + 1]) / 2;
-      }
-      this.buffer.set(new Float32Array(chunk.buffer, chunk.byteOffset, OPUS_ENCODER_CHUNK_SAMPLES_COUNT), offset);
-    } else {
-      this.buffer.set(chunk, offset);
+    const chunk = remapChannels(new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT), this.pipedSource.channels, this.channels);
+    const { bufferTimestamp, buffer } = this.audioBufferTransformer.transformChunk(chunk, (data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT));
+    try {
+      this.audioStream.pushAudioChunk(bufferTimestamp, buffer);
+    } catch (e) {
+
     }
   }
 
   registerDrift = () => {
-    const audioClockDrift = (( // ideal position
+    const audioClockDrift = (this.audioStream.getPosition()) - (( // ideal position
       this.pipedSource.peer.getCurrentTime(true)
         - this.pipedSource.startedAt
         - this.pipedSource.latency
         + this.latencyCorrection
-    ) * (this.rate / 1000)) - (this.audioStream.getPosition());
+    ) * (this.rate / 1000));
     this.audioClockDriftHistory.push(audioClockDrift);
-    this.audioClockDrift[0] = this.audioClockDriftHistory.mean();
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<LocalDeviceSinkDescriptor> => ({
