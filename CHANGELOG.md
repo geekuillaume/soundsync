@@ -1,5 +1,37 @@
 # Changelog
 
+<a name="0.3.13"></a>
+## 0.3.13 (2020-09-27)
+
+### Added
+
+- ✨ Check availability of localdevice source [[d3cc966](https://github.com/geekuillaume/soundsync/commit/d3cc966779996d48a2dc7036cd2b26d1c1301b9d)]
+- ✨ Adds webui control for latency correction per sink [[ff83b27](https://github.com/geekuillaume/soundsync/commit/ff83b27fd2815de9d4f26bce3513806deb242539)]
+
+### Changed
+
+- ⚡ Improve DriftAwareAudioBufferTransformer drift compensation [[c901abd](https://github.com/geekuillaume/soundsync/commit/c901abd83b6d6f5534159ffd31f5791a3cdd903c)]
+- ⬆️ Upgrades to audioworklet v5 and adapt to new API [[5d254eb](https://github.com/geekuillaume/soundsync/commit/5d254ebca6b01f567683320abcb95e084a3cbc6c)]
+- ⚡ Adapted webaudio sink to new clock drift measure method [[3328a20](https://github.com/geekuillaume/soundsync/commit/3328a20d808c04335c6299c4efa36a6f27568014)]
+- ⚡ Reduce soft sync threshold to 2ms drift [[77e4b82](https://github.com/geekuillaume/soundsync/commit/77e4b82ef4c084ab86c84d8f1840fabefc8740f5)]
+- ⚡ Keep 2 minutes of timekeep measures to better smooth clock sync [[c92f865](https://github.com/geekuillaume/soundsync/commit/c92f865fd519e02d742e77d89629684c8a3a922b)]
+- ⚡ Improve localdevice audio drift measure [[7833b95](https://github.com/geekuillaume/soundsync/commit/7833b95124053320f4ea68806ad24513e94d4615)]
+- ⬆️ Update to last audioworklet version [[17524fe](https://github.com/geekuillaume/soundsync/commit/17524fe20ed72083d60695f5943b96a96e2069ae)]
+- 🎨 Integrate meanInStandardDeviation in NumericStatsTracker [[730c847](https://github.com/geekuillaume/soundsync/commit/730c84749631191cfe589152416ad7a33fc27057)]
+- ⬆️ Update to last audioworklet version [[1b84ded](https://github.com/geekuillaume/soundsync/commit/1b84ded60eae30694f80c8a1ed43385ca7c674ce)]
+
+### Fixed
+
+- 🐛 Fix audio source not being available by default [[a1f9e57](https://github.com/geekuillaume/soundsync/commit/a1f9e572a077bacd57440e6f359ec94e5ac66bb8)]
+- 🐛 Fix webui local serving with react router [[1f29303](https://github.com/geekuillaume/soundsync/commit/1f2930379752ca4e4d9acffbb6f5c26dc6d04e79)]
+- 🐛 Handle latencyCorrection when computing source latency [[5ebc0aa](https://github.com/geekuillaume/soundsync/commit/5ebc0aa5719320e8ba9a1d533d72857c51d2af56)]
+- 🐛 Save latencyCorrection in all sink description [[e0ad48f](https://github.com/geekuillaume/soundsync/commit/e0ad48fefbdb70bee9c0c507f35dd9db20a99e1a)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[5f30495](https://github.com/geekuillaume/soundsync/commit/5f304952bd0d97a9c44b71ae8dbca1af3c927a04)]
+
+
 <a name="0.3.12"></a>
 ## 0.3.12 (2020-09-19)
 
