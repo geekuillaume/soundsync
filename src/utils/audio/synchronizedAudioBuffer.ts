@@ -48,7 +48,7 @@ export class DriftAwareAudioBufferTransformer {
   /** Number of samples to add or remove in the next received audio chunks to handle drift between audio and system clock */
   private delayedDriftCorrection = 0;
   /** number of samples to wait until starting to correct for drift again, used to prevent over correction */
-  private ignoreDriftFor = 0;
+  public ignoreDriftFor = 0;
 
   constructor(
     public channels: number,
@@ -76,7 +76,7 @@ export class DriftAwareAudioBufferTransformer {
     if (this.delayedDriftCorrection) {
       sampleDelta = Math.floor(Math.min((chunk.length / this.channels) * 0.02, Math.abs(this.delayedDriftCorrection) * 0.1)) * Math.sign(this.delayedDriftCorrection); // max 1% sample to remove or duplicate, or 10% of drift
       this.delayedDriftCorrection -= sampleDelta;
-      if (sampleDelta <= 0) {
+      if (sampleDelta === 0) {
         this.log(`= finished delayed soft drift correction`);
         this.delayedDriftCorrection = 0;
         this.ignoreDriftFor = DRIFT_CORRECTION_MIN_INTERVAL;
@@ -97,7 +97,7 @@ export class DriftAwareAudioBufferTransformer {
         // so we need to slow down the rate at which we read from the audio buffer to go back to the correct time
         sampleDelta = Math.floor(Math.min((chunk.length / this.channels) * 0.02, Math.abs(drift) * 0.1)) * Math.sign(drift); // max 1% sample to remove or duplicate, or 10% of drift
         this.ignoreDriftFor = DRIFT_CORRECTION_MIN_INTERVAL;
-        this.delayedDriftCorrection = Math.floor((drift - sampleDelta) * 0.4);
+        this.delayedDriftCorrection = drift - sampleDelta;
         this.log(`= soft sync: ${driftDuration}ms (${drift} samples), injecting ${sampleDelta} samples now`);
       }
     }
