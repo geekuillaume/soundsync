@@ -64,7 +64,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     this.latency = descriptor.latency || DEFAULT_LATENCY;
     this.channels = descriptor.channels || 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
-    this.available = descriptor.available;
+    this.available = descriptor.available ?? true;
     this.active = descriptor.active ?? false; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
     this.started = descriptor.started ?? false;
     this.error = descriptor.error;
