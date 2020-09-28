@@ -1,6 +1,7 @@
 import Minipass from 'minipass';
 import debug from 'debug';
-import { SoxrDatatype, SoxrResamplerThread } from 'wasm-audio-resampler';
+import SoxrResampler, { SoxrDatatype, SoxrResamplerThread } from 'wasm-audio-resampler';
+import { createWriteStream } from 'fs';
 import { now } from '../misc';
 import {
   OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
@@ -219,41 +220,43 @@ export class AudioChunkStreamOrderer extends Minipass {
 }
 
 export class AudioChunkStreamResampler extends Minipass {
-  resampler: SoxrResamplerThread;
-  private chunkAlignementBuffer: Uint8Array;
-  private resamplerOutputBuffer: Uint8Array;
-  private chunkAlignementFillLength = 0;
+  private resampler: SoxrResampler;
+
+  private alignementBuffer: Uint8Array;
+  private bufferSize = 0;
+
   private chunkIndexToEmit: number[] = [];
+  private outputChunkTargetLength: number;
 
   constructor(public channels: number, public inRate: number, public outRate: number) {
     super({
       objectMode: true,
     });
-    this.resampler = new SoxrResamplerThread(channels, inRate, outRate, SoxrDatatype.SOXR_INT16, SoxrDatatype.SOXR_FLOAT32);
+    this.resampler = new SoxrResampler(channels, inRate, outRate, SoxrDatatype.SOXR_INT16, SoxrDatatype.SOXR_FLOAT32);
     // chunks can be delayed and returned in one call so we need to realign them
-    this.chunkAlignementBuffer = new Uint8Array(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT * 6);
-    this.resamplerOutputBuffer = new Uint8Array(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT * 3);
+    this.outputChunkTargetLength = OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT;
+    this.alignementBuffer = new Uint8Array(this.outputChunkTargetLength * 3);
   }
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
+    // TODO: Use threaded version of soxr resampler
     this.resampler.init().then(async () => {
-      const callback = typeof encoding === 'function' ? encoding : cb;
-      const outputChunkTargetLength = OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT;
       this.chunkIndexToEmit.push(d.i);
-      const outputChunk = await this.resampler.processChunk(d.chunk, this.resamplerOutputBuffer);
-      this.chunkAlignementBuffer.set(this.resamplerOutputBuffer.subarray(0, outputChunk.length), this.chunkAlignementFillLength);
-      this.chunkAlignementFillLength += outputChunk.length;
 
-      while (this.chunkAlignementFillLength >= outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
+      const outputChunk = this.resampler.processChunk(d.chunk, this.alignementBuffer.subarray(this.bufferSize));
+      this.bufferSize += outputChunk.length;
+
+      while (this.bufferSize >= this.outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
         const [chunkIndex] = this.chunkIndexToEmit.splice(0, 1);
         super.write({
           i: chunkIndex,
-          chunk: this.chunkAlignementBuffer.slice(0, outputChunkTargetLength),
+          chunk: this.alignementBuffer.slice(0, this.outputChunkTargetLength),
         });
-        this.chunkAlignementBuffer.copyWithin(0, outputChunkTargetLength);
-        this.chunkAlignementFillLength -= outputChunkTargetLength;
+        this.alignementBuffer.copyWithin(0, this.outputChunkTargetLength);
+        this.bufferSize -= this.outputChunkTargetLength;
       }
 
+      const callback = typeof encoding === 'function' ? encoding : cb;
       if (callback) {
         callback();
       }
