@@ -1,5 +1,21 @@
 # Changelog
 
+<a name="0.3.14"></a>
+## 0.3.14 (2020-09-28)
+
+### Fixed
+
+- 🐛 Fix some edge cases with localdevice sink [[55ca1b6](https://github.com/geekuillaume/soundsync/commit/55ca1b60e13eb43c89bd3ae97354a0fdd82d70f1)]
+- 🐛 Fix localdevice source for use with new version of audioworklet [[5893a7a](https://github.com/geekuillaume/soundsync/commit/5893a7a5cdadd2ee8d3f6c5f24a37c2420ae21dc)]
+- 🐛 Fix resampler by going back to non-worker implementation [[dd82e34](https://github.com/geekuillaume/soundsync/commit/dd82e34e6173f24e8ffc3aead7817be7d1574ed4)]
+
+### Miscellaneous
+
+- 🔨 Adds latencyMeasurer script [[16f0f7e](https://github.com/geekuillaume/soundsync/commit/16f0f7e6da9e2aed6bed863679dde56665155f53)]
+- 🗑️ Clean unused files left from audioworklet upgrade [[0518767](https://github.com/geekuillaume/soundsync/commit/051876798ea148e549b6a0a7ed3e95f8d79ca9c8)]
+- 🚧 Bump to dev version [[86739f7](https://github.com/geekuillaume/soundsync/commit/86739f77ffd304375e13170d71120f8bfdbacb4a)]
+
+
 <a name="0.3.13"></a>
 ## 0.3.13 (2020-09-27)
 
