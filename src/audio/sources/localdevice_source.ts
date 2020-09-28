@@ -2,7 +2,6 @@ import { PassThrough } from 'stream';
 import {
   AudioServer, AudioStream,
 } from 'audioworklet';
-import { resolve } from 'path';
 import { getInputDeviceFromId, getClosestMatchingRate, getAudioServer } from '../../utils/audio/localAudioDevice';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
@@ -51,11 +50,10 @@ export class LocalDeviceSource extends AudioSource {
       latencyFrames: this.rate / 10,
     });
     this.audioStream.start();
-    // TODO: adapt this to audioworklet v5.0.0
-    // const worklet = this.audioStream.attachProcessFunctionFromWorker(resolve(__dirname, './audioworklets/input_audioworklet.js'));
-    // worklet.on('message', (d) => {
-    //   inputStream.write(Buffer.from(d.buffer));
-    // });
+    this.audioStream.registerReadHandler((d) => {
+      inputStream.write(Buffer.from(d.buffer, d.byteOffset, d.byteLength));
+    });
+
     const stream = createAudioChunkStream(this.startedAt, inputStream, this.rate, this.channels);
 
     this.cleanStream = () => {
