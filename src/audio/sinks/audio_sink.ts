@@ -192,11 +192,12 @@ export abstract class AudioSink extends EventEmitter {
       // we received old chunks, discard them
       return;
     }
-    if (this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1) {
+    const outOfOrder = this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1;
+    if (outOfOrder) {
       this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
     }
 
-    this.handleAudioChunk(chunk);
+    this.handleAudioChunk(chunk, outOfOrder);
     // we should update lastReceivedChunkIndex after handleAudioChunk to let the sink implementation use this info
     this.lastReceivedChunkIndex = chunk.i;
     if ((chunk.i * OPUS_ENCODER_CHUNK_DURATION) % AUDIO_SINK_EVENT_INTERVAL === 0 && chunk.i !== 0) {
@@ -207,7 +208,7 @@ export abstract class AudioSink extends EventEmitter {
     }
   }
 
-  abstract handleAudioChunk(chunk: AudioChunkStreamOutput);
+  abstract handleAudioChunk(chunk: AudioChunkStreamOutput, outOfOrder: boolean);
 
   getCurrentStreamTime = () => this.pipedSource.peer.getCurrentTime()
       - this.pipedSource.startedAt

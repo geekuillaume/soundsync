@@ -45,7 +45,6 @@ export class LocalDeviceSink extends AudioSink {
 
   async _startSink(source: AudioSource) {
     this.log(`Starting localdevice sink`);
-    await source.peer.waitForFirstTimeSync();
     const device = getOutputDeviceFromId(this.deviceId);
     this.channels = Math.min(device.maxChannels, 2);
     this.audioStream = getAudioServer().initOutputStream(this.deviceId, {
@@ -65,30 +64,31 @@ export class LocalDeviceSink extends AudioSink {
     this.updateInfo({ latency: device.minLatency });
     this.registerDrift();
 
-    const handleTimedeltaUpdate = () => {
-      this.log(`Resynchronizing sink after update from timedelta with peer or source latency`);
-      this.registerDrift();
+    const flushDriftHistory = () => {
+      // in some situation (audio source latency change, peer timedelta big change), we flush the drift history so that we can correct quickly for this change
+      this.audioClockDriftHistory.flush();
     };
-    this.pipedSource.peer.on('timedeltaUpdated', handleTimedeltaUpdate);
-    // this is needed to resync the audioworklet when the source latency is updated
-    this.pipedSource.on('update', handleTimedeltaUpdate);
+    // we keep a reference here instead of using this.pipedSource to always be able remove the event listeners in the clean stream
+    const pipedSource = this.pipedSource;
+    const sourcePeer = this.pipedSource.peer;
+    sourcePeer.on('timedeltaUpdated', flushDriftHistory);
+    pipedSource.on('update', flushDriftHistory);
     const syncDeviceVolume = () => {
-      this.audioStream.setVolume(this.volume);
+      if (this.audioStream) {
+        this.audioStream.setVolume(this.volume);
+      }
     };
     this.on('update', syncDeviceVolume);
     const driftRegisterInterval = setInterval(this.registerDrift, AUDIO_DRIFT_HISTORY_INTERVAL);
     this.cleanStream = () => {
-      if (this.pipedSource.peer) {
-        this.pipedSource.peer.off('timedeltaUpdated', handleTimedeltaUpdate);
-      }
-      if (this.pipedSource) {
-        this.pipedSource.off('update', handleTimedeltaUpdate);
-      }
+      sourcePeer.off('timedeltaUpdated', flushDriftHistory);
+      pipedSource.off('update', flushDriftHistory);
       this.off('update', syncDeviceVolume);
-      this.audioStream.stop();
       clearInterval(driftRegisterInterval);
+      this.audioStream.stop();
+      this.audioClockDriftHistory.flush();
       delete this.audioStream;
-      delete this.audioStream;
+      delete this.cleanStream;
     };
     this.audioStream.start();
   }
@@ -96,11 +96,10 @@ export class LocalDeviceSink extends AudioSink {
   _stopSink() {
     if (this.cleanStream) {
       this.cleanStream();
-      delete this.cleanStream;
     }
   }
 
-  handleAudioChunk = (data: AudioChunkStreamOutput) => {
+  handleAudioChunk = (data: AudioChunkStreamOutput, outOfOrder: boolean) => {
     if (!this.audioStream) {
       return;
     }
@@ -109,11 +108,15 @@ export class LocalDeviceSink extends AudioSink {
       return;
     }
     const chunk = remapChannels(new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT), this.pipedSource.channels, this.channels);
+    if (outOfOrder) {
+      this.audioBufferTransformer.ignoreDriftFor = 0;
+    }
     const { bufferTimestamp, buffer } = this.audioBufferTransformer.transformChunk(chunk, (data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT));
     try {
       this.audioStream.pushAudioChunk(bufferTimestamp, buffer);
     } catch (e) {
-
+      // in case of a hard sync, we can have a buffer added to the queue before a previously pushed buffer
+      // we ignore this error
     }
   }
 
