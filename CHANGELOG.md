@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.3.15"></a>
+## 0.3.15 (2020-09-29)
+
+### Changed
+
+- ⬆️ Upgrades audioworklet to fix bug with localdevice source [[63dd098](https://github.com/geekuillaume/soundsync/commit/63dd09875154903d8bd63ab9b6569ffe4d8ad210)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[c5c8e5a](https://github.com/geekuillaume/soundsync/commit/c5c8e5adf9cd493b352dfc32aa7a4dae0d6a4a13)]
+
+
 <a name="0.3.14"></a>
 ## 0.3.14 (2020-09-28)
 
