@@ -2139,6 +2139,11 @@ node-aead-crypto@^2.0.0:
     nan "2.14.x"
     prebuild-install "^5.2.1"
 
+node-cleanup@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/node-cleanup/-/node-cleanup-2.1.2.tgz#7ac19abd297e09a7f72a71545d951b517e4dde2c"
+  integrity sha1-esGavSl+Caf3KnFUXZUbUX5N3iw=
+
 node-dtls-client@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/node-dtls-client/-/node-dtls-client-0.6.0.tgz#f961afabee29d2199c0408292e1103a72bae85aa"

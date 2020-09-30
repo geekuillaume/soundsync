@@ -1,6 +1,6 @@
 {
     "name": "soundsync",
-  "version": "0.3.15-dev",
+    "version": "0.3.15-dev",
     "description": "Plug virtual cables between any audio source and any speakers in your home",
     "author": "Guillaume Besson <guillaume@besson.co>",
     "main": "./entrypoint.js",
@@ -29,6 +29,7 @@
         "mkdirp": "^0.5.1",
         "ndarray": "^1.0.19",
         "ndarray-fft": "^1.0.3",
+        "node-cleanup": "^2.1.2",
         "node-dtls-client": "^0.6.0",
         "node-hue-api": "^4.0.6",
         "open": "^7.2.1",
