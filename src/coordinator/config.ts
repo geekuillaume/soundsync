@@ -34,6 +34,7 @@ interface ConfigData {
   enableRendezvousService: boolean;
   sharedState: SharedState;
   disableTelemetry: boolean;
+  createLoopbackInterface: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -51,6 +52,7 @@ const defaultConfig: ConfigData = {
     lastUpdateTimestamp: -1,
   },
   disableTelemetry: false,
+  createLoopbackInterface: true,
 };
 
 let config: {

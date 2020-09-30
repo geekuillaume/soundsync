@@ -25,6 +25,7 @@ import { isDepAvailableForPlatform } from './utils/environment/deps_downloader';
 import { startKioskMode } from './utils/environment/kioskMode';
 import { initMdnsForRendezvousInitiator } from './communication/initiators/rendezvousServiceInititor';
 import { registerEventLoopMonitor } from './utils/environment/nodeEventLoopStats';
+import { createLoopbackInterface } from './utils/audio/loopbackDeviceManager';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
@@ -120,6 +121,9 @@ const main = async () => {
   if (getConfigField('enableRendezvousService')) {
     enableRendezvousServicePeersDetection();
     initMdnsForRendezvousInitiator();
+  }
+  if (getConfigField('createLoopbackInterface')) {
+    createLoopbackInterface();
   }
 
   getClientCoordinator();
