@@ -1,5 +1,6 @@
 import open from 'open';
 import { resolve } from 'path';
+import { exit } from '../on_exit';
 import { onElectronReady } from './electron';
 import {
   isAutolaunchedAtStartup,
@@ -46,7 +47,7 @@ export const createSystray = () => {
             id: 'autostart', label: 'Start on computer startup', type: 'checkbox', click: onAutostartClick, checked: await isAutolaunchedAtStartup(),
           },
           {
-            id: 'exit', label: 'Exit', type: 'normal', click: () => process.exit(0),
+            id: 'exit', label: 'Exit', type: 'normal', click: () => exit(0, true),
           },
         ];
 

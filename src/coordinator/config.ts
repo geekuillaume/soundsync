@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
 import _ from 'lodash';
 import produce from 'immer';
+import { exit } from '../utils/on_exit';
 import { isBrowser } from '../utils/environment/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
 import { SourceDescriptor } from '../audio/sources/source_type';
@@ -77,7 +78,7 @@ export const initConfig = (dirOverride?: string) => {
       mkdirp.sync(configDir);
     } catch (e) {
       console.error(`Couldn't create config directory at ${configDir}`, e);
-      process.exit(1);
+      exit(1);
     }
 
     log(`Reading config from ${configFilePath}`);
@@ -102,7 +103,7 @@ export const initConfig = (dirOverride?: string) => {
     console.error(e);
     if (!isBrowser) {
       // if it is running in a browser, do nothing and use default config
-      process.exit(1);
+      exit(1);
     }
   }
 };

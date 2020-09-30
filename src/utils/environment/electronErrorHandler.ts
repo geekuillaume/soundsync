@@ -1,4 +1,5 @@
 import open from 'open';
+import { exit } from '../on_exit';
 import { Sentry } from '../vendor_integrations/sentry';
 import { tryImportElectron } from './electron';
 
@@ -35,9 +36,9 @@ export const fatalErrorHandler = (e: Error) => {
     }
   }
   Sentry.close(2000).then(() => {
-    process.exit(1);
+    exit(1);
   }).catch(() => {
-    process.exit(1);
+    exit(1);
   });
 };
 
