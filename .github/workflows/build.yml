@@ -6,6 +6,7 @@ jobs:
   build-webui:
     name: Build WebUI
     runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, '[build]')"
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v1
@@ -35,6 +36,7 @@ jobs:
     name: Build executable
     needs: build-webui
     runs-on: ${{ matrix.os }}
+    if: "contains(github.event.head_commit.message, '[build]')"
     strategy:
       fail-fast: false
       matrix:
@@ -110,6 +112,7 @@ jobs:
     name: Build executable for ARM
     needs: build-webui
     runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, '[build]')"
     steps:
     - name: Check out Git repository
       uses: actions/checkout@v1
