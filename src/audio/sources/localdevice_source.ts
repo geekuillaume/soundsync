@@ -44,7 +44,7 @@ export class LocalDeviceSource extends AudioSource {
 
   _getAudioChunkStream = async () => {
     this.log(`Creating localdevice source`);
-    const device = getInputDeviceFromId(this.deviceId);
+    const device = this.isLoopback ? getOutputDeviceFromId(this.deviceId) : getInputDeviceFromId(this.deviceId);
     this.rate = getClosestMatchingRate(device, OPUS_ENCODER_RATE);
     const inputStream = new PassThrough();
     this.audioStream = getAudioServer().initInputStream(device.id, {
