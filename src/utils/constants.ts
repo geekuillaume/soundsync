@@ -7,8 +7,8 @@ export const OPUS_ENCODER_CHUNK_DURATION = 1000 / OPUS_ENCODER_CHUNKS_PER_SECOND
 export const OPUS_ENCODER_CHUNK_SAMPLES_COUNT = OPUS_ENCODER_RATE / OPUS_ENCODER_CHUNKS_PER_SECONDS; // 100 chunks per second = 10ms per chunk
 export const NO_RESPONSE_TIMEOUT = 5000; // if there if no response from a wrtc peer during this time, assume connection is lost
 export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
-  ordered: true,
-  maxPacketLifeTime: 1000,
+  ordered: false,
+  maxPacketLifeTime: 300,
 };
 export const ICE_GATHERING_TIMEOUT = 20000;
 
