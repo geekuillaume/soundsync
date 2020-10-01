@@ -2,7 +2,9 @@ import { PassThrough } from 'stream';
 import {
   AudioServer, AudioStream,
 } from 'audioworklet';
-import { getInputDeviceFromId, getClosestMatchingRate, getAudioServer } from '../../utils/audio/localAudioDevice';
+import {
+  getInputDeviceFromId, getClosestMatchingRate, getAudioServer, getOutputDeviceFromId,
+} from '../../utils/audio/localAudioDevice';
 import { CircularTypedArray } from '../../utils/circularTypedArray';
 
 import { OPUS_ENCODER_RATE } from '../../utils/constants';
@@ -33,7 +35,7 @@ export class LocalDeviceSource extends AudioSource {
     setInterval(this.updateDeviceInfo, 5000);
   }
 
-  isDeviceAvailable = () => !!getInputDeviceFromId(this.deviceId)
+  isDeviceAvailable = () => Boolean(this.isLoopback ? getOutputDeviceFromId(this.deviceId) : getInputDeviceFromId(this.deviceId))
   private updateDeviceInfo = async () => {
     this.updateInfo({
       available: this.isDeviceAvailable(),
@@ -80,6 +82,7 @@ export class LocalDeviceSource extends AudioSource {
     uuid: this.uuid,
     deviceId: this.deviceId,
     channels: this.channels,
+    isLoopback: this.isLoopback,
 
     ...(!sanitizeForConfigSave && {
       error: this.error,
