@@ -100,7 +100,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
         this.addSource({
           type: 'localdevice',
           deviceId: device.id,
-          name: device.name,
+          name: device.name.includes('monitor') ? device.name : `${device.name} (monitor)`,
           uuid: uuidv4(),
           peerUuid: getLocalPeer().uuid,
           available: true,
