@@ -18,7 +18,7 @@ import { SinkDescriptor, SinkUUID } from './sinks/sink_type';
 import { LocalDeviceSink } from './sinks/localdevice_sink';
 import { RemoteSink } from './sinks/remote_sink';
 import { getConfigField, updateConfigArrayItem, deleteConfigArrayItem } from '../coordinator/config';
-import { getAudioDevices, onAudioDevicesChange } from '../utils/audio/localAudioDevice';
+import { audioApiSupportsLoopback, getAudioDevices, onAudioDevicesChange } from '../utils/audio/localAudioDevice';
 import { NullSource } from './sources/null_source';
 import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
@@ -92,6 +92,24 @@ export class AudioSourcesSinksManager extends EventEmitter {
         started: false,
       });
     });
+    if (audioApiSupportsLoopback()) {
+      audioDevices.outputDevices.forEach((device) => {
+        if (device.state !== 'enabled') {
+          return;
+        }
+        this.addSource({
+          type: 'localdevice',
+          deviceId: device.id,
+          name: device.name,
+          uuid: uuidv4(),
+          peerUuid: getLocalPeer().uuid,
+          available: true,
+          active: false,
+          started: false,
+          isLoopback: true,
+        });
+      });
+    }
   }
 
   getSourceByUuid = (uuid: SourceUUID) => _.find(this.sources, { uuid });

@@ -24,7 +24,7 @@ export const getAudioDevices = () => getAudioServer().getDevices();
 
 export const onAudioDevicesChange = (listener: () => void) => deviceChangeListeners.push(listener);
 
-export const audioApiSupportsLoopback = () => getAudioServer().getApi() === 'WASAPI';
+export const audioApiSupportsLoopback = () => getAudioServer().getApi() === 'wasapi';
 export const getOutputDeviceFromId = (deviceId: string) => {
   if (!deviceId) {
     return null;

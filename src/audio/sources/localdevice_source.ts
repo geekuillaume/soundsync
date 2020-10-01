@@ -18,6 +18,7 @@ export class LocalDeviceSource extends AudioSource {
   rate = OPUS_ENCODER_RATE;
   channels = 2;
   deviceId: string;
+  isLoopback: boolean;
   buffer: CircularTypedArray<Float32Array>;
 
   private audioStream: AudioStream;
@@ -26,6 +27,7 @@ export class LocalDeviceSource extends AudioSource {
   constructor(descriptor: LocalDeviceSourceDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.deviceId = descriptor.deviceId;
+    this.isLoopback = descriptor.isLoopback ?? false;
     this.updateDeviceInfo();
     // TODO: clearInterval this when source is deleted
     setInterval(this.updateDeviceInfo, 5000);
@@ -48,7 +50,7 @@ export class LocalDeviceSource extends AudioSource {
       name: this.name,
       format: AudioServer.S16LE,
       latencyFrames: this.rate / 10,
-    });
+    }, this.isLoopback);
     this.audioStream.start();
     this.audioStream.registerReadHandler((d) => {
       inputStream.write(Buffer.from(d.buffer, d.byteOffset, d.byteLength));

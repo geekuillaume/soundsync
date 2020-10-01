@@ -40,6 +40,7 @@ export interface NullSourceDescriptor extends BaseSourceDescriptor {
 export interface LocalDeviceSourceDescriptor extends BaseSourceDescriptor {
   type: 'localdevice';
   deviceId: string;
+  isLoopback?: boolean;
 }
 
 export type SourceDescriptor = LibresportSourceDescriptor | NullSourceDescriptor | LocalDeviceSourceDescriptor | ShairportSourceDescriptor;
