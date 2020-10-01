@@ -1,5 +1,32 @@
 # Changelog
 
+<a name="0.4.0"></a>
+## 0.4.0 (2020-10-01)
+
+### Added
+
+- ✨ Activate audioloopback for Windows [[c9c08ef](https://github.com/geekuillaume/soundsync/commit/c9c08ef1238cd76deae07fc4f61ebe60c42a5bc2)]
+- ✨ Add loopback interface creator for pulseaudio [[e5edab3](https://github.com/geekuillaume/soundsync/commit/e5edab3a78fadf8eef1b8a4c79eac3c5a3060e87)]
+
+### Changed
+
+- 💄 Add monitor in name of loopback device [[f5f24c1](https://github.com/geekuillaume/soundsync/commit/f5f24c1c98d633c95862228a9e125bc301fe3b85)]
+- ⚡ Tweak audiochannel webrtc options [[935a33b](https://github.com/geekuillaume/soundsync/commit/935a33bcf044c9a42051de3509d2fb78dec58c7e)]
+
+### Fixed
+
+- 🐛 Fix windows loopback device detection [[7772a70](https://github.com/geekuillaume/soundsync/commit/7772a70a7dbb982008e94a1d62d30f4038a64886)]
+- 🐛 Fix localdevice source loopback available detection [[fd994cb](https://github.com/geekuillaume/soundsync/commit/fd994cbb8bc9044a255e09f703a7738d79c1d94d)]
+- 🐛 Handles all ways of exiting node process in on_exit handler [[6fd0edc](https://github.com/geekuillaume/soundsync/commit/6fd0edcb9c3f87395178541ebebfd801489b06c3)]
+- 🐛 Always use exit handler when stopping process [[cb2ac83](https://github.com/geekuillaume/soundsync/commit/cb2ac8304179640f126ecc78020471c2410baafc)]
+
+### Miscellaneous
+
+-  Revert &quot;👷 Only build on github if commit message contains build str&quot; [[169ebf1](https://github.com/geekuillaume/soundsync/commit/169ebf168d10700ff40e3a585df8e4e8d0affc99)]
+-  👷 Only build on github if commit message contains build str [[9eaa86e](https://github.com/geekuillaume/soundsync/commit/9eaa86eefd2731e3cc0a3f662e87afa738230981)]
+- 🚧 Bump to dev version [[4b8cd56](https://github.com/geekuillaume/soundsync/commit/4b8cd56aa6885ce0f1fd373fe2984eec27717958)]
+
+
 <a name="0.3.15"></a>
 ## 0.3.15 (2020-09-29)
 
