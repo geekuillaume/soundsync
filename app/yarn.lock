@@ -468,10 +468,10 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-audioworklet@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-5.0.1.tgz#4f2ad7e388dca9f1e8a6c1eab4b78dd13ddebcc4"
-  integrity sha512-JoZxrVNYuAWk0SoCZpPq6qNrD9QC9MTwaCY37BHqyxdKeH25s6azSg3uJyO3aIkr8xQXCqpSyfZMb9aBYzFdRA==
+audioworklet@5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-5.0.2.tgz#7388b36e7800c355883b4261d2e0677d4957d3d5"
+  integrity sha512-X41DpUUaF1+2InTw0JrcNZZ0pJ5pJBqbjEBE+iaAILIDGmGjLNPAOgoJg9Ge3wsPPE285h7PbeAaPOeQlVlETw==
   dependencies:
     bindings "^1.5.0"
     cmake-js "^6.1.0"
