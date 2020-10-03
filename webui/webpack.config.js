@@ -4,6 +4,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const SentryWebpackPlugin = require('@sentry/webpack-plugin');
 
 const config = {
   entry: './src/index.tsx',
@@ -159,6 +160,19 @@ if (process.env.NODE_ENV === 'development') {
 if (process.env.ANALYZE) {
   const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
   config.plugins.push(new BundleAnalyzerPlugin());
+}
+
+if (process.env.SENTRY_AUTH_TOKEN) {
+  config.plugins.push(new SentryWebpackPlugin({
+    // sentry-cli configuration
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    org: "soundsync",
+    project: "soundsync-desktop",
+
+    // webpack specific configuration
+    include: ".",
+    ignore: ["node_modules", "webpack.config.js"],
+  }),)
 }
 
 module.exports = config;
