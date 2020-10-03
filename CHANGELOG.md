@@ -1,5 +1,18 @@
 # Changelog
 
+<a name="0.4.1"></a>
+## 0.4.1 (2020-10-03)
+
+### Changed
+
+- ⬆️ upgrades audioworklet [[9dcd385](https://github.com/geekuillaume/soundsync/commit/9dcd3857ae2be72c763a89684ee77df232eef3d5)]
+
+### Miscellaneous
+
+-  👷 upload webui sourcemaps to sentry [[5ba3741](https://github.com/geekuillaume/soundsync/commit/5ba374101d49d30c070015b362194a9b4971268d)]
+- 🚧 Bump to dev version [[c4b8b5e](https://github.com/geekuillaume/soundsync/commit/c4b8b5ea3f9fc34cf142a4b80da100988a8a7c54)]
+
+
 <a name="0.4.0"></a>
 ## 0.4.0 (2020-10-01)
 
