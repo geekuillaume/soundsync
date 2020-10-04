@@ -13,6 +13,7 @@ import {
 } from '../rendezvous_service';
 import { Mdns } from '../../utils/network/mdns';
 
+const log = debug(`soundsync:rendezvous`);
 const POLLING_INTERVAL = 3000;
 const initiatorsListener: {[initiatorUuid: string]: (message: InitiatorMessage) => Promise<void>} = {};
 
@@ -75,8 +76,12 @@ export class RendezVousServiceInitiator extends WebrtcInitiator {
   }
 
   poll = async () => {
-    const messages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
-    messages.forEach(this.handleReceiveMessage);
+    try {
+      const messages = await fetchRendezvousMessages(this.uuid, this.isPrimary);
+      messages.forEach(this.handleReceiveMessage);
+    } catch (e) {
+      log(`Error while fetching rendezvous messages`, e);
+    }
   }
 }
 
@@ -114,11 +119,15 @@ const handleRendezvousMessageNotification = async (initiatorUuid: string, host: 
       assert(initiatorsListener[initiatorUuid], 'Error while handling initiator message');
     }
   } catch (e) {
-    await postRendezvousMessage(initiatorUuid, {
-      error: true,
-      message: e.message,
-      status: e.status,
-    }, false);
+    try {
+      await postRendezvousMessage(initiatorUuid, {
+        error: true,
+        message: e.message,
+        status: e.status,
+      }, false);
+    } catch (ee) {
+      log(`Error while sending error rendezvous message`, ee);
+    }
   }
 };
 
