@@ -20,3 +20,17 @@ export const onElectronReady = (callback: (electron: typeof Electron) => any) =>
     });
   }
 };
+
+export const isAnotherInstanceAlreadyRunning = (onSecondInstance?: () => void) => {
+  const electron = tryImportElectron();
+  if (!electron) {
+    return false; // TODO: find another way to check for another instance if not using electron
+  }
+  const gotTheLock = electron.app.requestSingleInstanceLock();
+  if (gotTheLock && onSecondInstance) {
+    electron.app.on('second-instance', () => {
+      onSecondInstance();
+    });
+  }
+  return !gotTheLock;
+};

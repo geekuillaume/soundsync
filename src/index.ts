@@ -26,6 +26,7 @@ import { startKioskMode } from './utils/environment/kioskMode';
 import { initMdnsForRendezvousInitiator } from './communication/initiators/rendezvousServiceInititor';
 import { registerEventLoopMonitor } from './utils/environment/nodeEventLoopStats';
 import { createLoopbackInterface } from './utils/audio/loopbackDeviceManager';
+import { isAnotherInstanceAlreadyRunning } from './utils/environment/electron';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
@@ -37,6 +38,10 @@ const l = debug('soundsync');
 
 const main = async () => {
   registerEventLoopMonitor();
+  if (isAnotherInstanceAlreadyRunning() && !process.env.DISABLE_RUNNING_CHECK) {
+    l('Another instance of Soundsync is already running. Quitting.');
+    process.exit(0);
+  }
   l('Starting soundsync');
   const argv = yargs
     .help('h')
