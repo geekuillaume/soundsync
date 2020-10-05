@@ -36,7 +36,7 @@ export class AirplaySink extends AudioSink {
   port: number;
   private airplay: AirplaySpeaker;
   private buffer = new CircularTypedArray(Uint16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Uint16Array.BYTES_PER_ELEMENT * CHANNELS);
-  private resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
+  private resampler: SoxrResampler;
 
   constructor(descriptor: AirplaySinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -53,6 +53,10 @@ export class AirplaySink extends AudioSink {
 
   async _startSink() {
     this.log('Connecting to Airplay sink');
+    const resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
+    await resampler.init();
+    // only set it once it's ready to use to prevent handleAudioChunk from calling it before being initialized
+    this.resampler = resampler;
     try {
       await this.airplay.start();
     } catch (e) {
@@ -67,9 +71,13 @@ export class AirplaySink extends AudioSink {
 
   _stopSink = async () => {
     this.airplay.stop();
+    this.resampler = null;
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
+    if (!this.resampler) {
+      return;
+    }
     const resampled = this.resampler.processChunk(data.chunk);
     if (!resampled.length) {
       return;
