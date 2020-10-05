@@ -162,7 +162,7 @@ if (process.env.ANALYZE) {
   config.plugins.push(new BundleAnalyzerPlugin());
 }
 
-if (process.env.SENTRY_AUTH_TOKEN) {
+if (process.env.SENTRY_AUTH_TOKEN && process.env.NODE_ENV === 'production') {
   config.plugins.push(new SentryWebpackPlugin({
     // sentry-cli configuration
     authToken: process.env.SENTRY_AUTH_TOKEN,
