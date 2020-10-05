@@ -1,5 +1,22 @@
 # Changelog
 
+<a name="0.4.2"></a>
+## 0.4.2 (2020-10-05)
+
+### Fixed
+
+- 🐛 Detect localStorage support before loading webui [[cf46734](https://github.com/geekuillaume/soundsync/commit/cf467346bc2a9a08594faef21ee613697dd1ac6c)]
+- 🐛 Fix Airplay sink resampler not initialized error [[a7d2519](https://github.com/geekuillaume/soundsync/commit/a7d2519aaa909e7255b9cc1f6b289e076c5b2778)]
+- 🐛 Adds webassembly support check on webui [[24cbea8](https://github.com/geekuillaume/soundsync/commit/24cbea887a4aaa01eb5aed8588a8be0252c5e97c)]
+- 🐛 Show details if error while connecting to hue bridge [[d702fac](https://github.com/geekuillaume/soundsync/commit/d702fac975d76d763f162f7fe11c2c055775fe7e)]
+- 🐛 Don&#x27;t crash if rendezvous service is down, instead log error and try other methods [[83fb569](https://github.com/geekuillaume/soundsync/commit/83fb569de81c5b1f84de436727c0113e514842ac)]
+
+### Miscellaneous
+
+-  👷 Don&#x27;t send sentry sourcemaps if running in dev mode [[95c3168](https://github.com/geekuillaume/soundsync/commit/95c316838c02188219fcc9895afbc7b5a41bf34b)]
+- 🚧 Bump to dev version [[50fc865](https://github.com/geekuillaume/soundsync/commit/50fc8658432c6b1ebf8a811b4180f95180789e19)]
+
+
 <a name="0.4.1"></a>
 ## 0.4.1 (2020-10-03)
 
