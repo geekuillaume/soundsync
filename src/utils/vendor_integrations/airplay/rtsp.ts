@@ -1,11 +1,11 @@
 import net from 'net';
 import debug from 'debug';
+import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { randomBytes } from 'crypto';
 import { randomBase64 } from '../../misc';
+import { RSA_PRIVATE_KEY } from './airplayConstants';
 
 const log = debug(`soundsync:rtsp`);
-
 
 interface RtspSocketEvents {
   'message': (response: RtspResponse) => void;
@@ -30,9 +30,8 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   announceId = Math.floor(Math.random() * (2 ** 32));
   private onResponseCallback: (response: RtspResponse) => any;
 
-  // aesKey = randomBytes(256).toString('base64').replace(/=/g, '');
-  aesKey = 'VjVbxWcmYgbBbhwBNlCh3K0CMNtWoB844BuiHGUJT51zQS7SDpMnlbBIobsKbfEJ3SCgWHRXjYWf7VQWRYtEcfx7ejA8xDIk5PSBYTvXP5dU2QoGrSBv0leDS6uxlEWuxBq3lIxCxpWO2YswHYKJBt06Uz9P2Fq2hDUwl3qOQ8oXb0OateTKtfXEwHJMprkhsJsGDrIc5W5NJFMAo6zCiM9bGSDeH2nvTlyW6bfI/Q0v0cDGUNeY3ut6fsoafRkfpCwYId+bg3diJh+uzw5htHDyZ2sN+BFYHzEfo8iv4KDxzeya9llqg6fRNQ8d5YjpvTnoeEQ9ye9ivjkBjcAfVw';
-  aesIv = randomBytes(16).toString('base64').replace(/=/g, '');
+  aesKey: Buffer;
+  aesIv: Buffer;
 
   constructor(public host: string, public port: number, public getRtpSequenceCounter: () => number) {
     super();
@@ -52,6 +51,8 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     });
 
     await this.sendRequest('OPTIONS', '*', null, [`Apple-Challenge: ${randomBase64(16)}`]);
+    this.aesKey = crypto.randomBytes(16);
+    this.aesIv = crypto.randomBytes(16);
     const announceBody = [
       `v=0`,
       `o=iTunes ${this.announceId} O IN IP4 ${(this.socket.address() as net.AddressInfo).address}`,
@@ -59,11 +60,15 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `c=IN IP4 ${this.host}`,
       `t=0 0`,
       `m=audio 0 RTP/AVP 96`,
+      // TODO: compress audio with ALAC
       // `a=rtpmap:96 AppleLossless`,
       // `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
       `a=rtpmap:96 L16/44100/2`,
-      // `a=rsaaeskey:${this.aesKey}`,
-      // `a=aesiv:${this.aesIv}`,
+      // TODO: check if aekKey is not supported and fallback to unencrypted stream
+      ...(this.aesKey ? [
+        `a=rsaaeskey:${crypto.publicEncrypt(crypto.createPrivateKey(RSA_PRIVATE_KEY), this.aesKey).toString('base64').replace(/=/g, '')}`,
+        `a=aesiv:${this.aesIv.toString('base64').replace(/=/g, '')}`,
+      ] : []),
     ].join(`\r\n`);
     await this.sendRequest('ANNOUNCE', null, announceBody, ['Content-Type: application/sdp']);
     const res = await this.sendRequest('SETUP', null, null, [`Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port=${udpControlPort};timing_port=${udpTimingPort}`]);
