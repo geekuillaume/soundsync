@@ -1,14 +1,13 @@
 /* eslint-disable no-continue */
 import { RtspSocket } from './rtsp';
 import { AirplayUdpSocket } from './airplayUdpSocket';
-import { delay } from '../../misc';
 import { AlacEncoder } from '../../alac_vendor/alacEncoder';
 import {
-  SAMPLE_RATE, FRAMES_PER_PACKET, CHANNELS, TIME_PER_PACKET, ALAC_HEADER_SIZE,
+  SAMPLE_RATE, FRAMES_PER_PACKET, CHANNELS, ALAC_HEADER_SIZE,
 } from './airplayConstants';
 import { MAX_LATENCY } from '../../constants';
 
-// To prevent negative timestamps, we add MAX_LATENCYms to every timestamp sent to the Airplay speaker
+// To prevent negative timestamps, we add [MAX_LATENCY]ms to every timestamp sent to the Airplay speaker
 const MARGIN_FRAMES = MAX_LATENCY * (SAMPLE_RATE / 1000);
 
 export class AirplaySpeaker {
@@ -18,19 +17,25 @@ export class AirplaySpeaker {
   private audioSocket: AirplayUdpSocket;
   private started = false;
   private encoder = new AlacEncoder(FRAMES_PER_PACKET, SAMPLE_RATE, 16, CHANNELS);
-  private lastSentSampleTimestamp = 0;
+  public lastSentSampleTimestamp = -1;
+
+  // this buffer is used to align to [FRAMES_PER_PACKET * CHANNELS] samples every pushed audio chunk
+  private buffer = new Int16Array(FRAMES_PER_PACKET * CHANNELS);
+  private bufferLength = 0;
+
+  private firstPacket = true; // needed to send a different audio packet type when it's the first in the stream
+  private samplesSinceLastSync = 0; // is used to send a SYNC packet every second
 
   constructor(
     public host: string,
     public port: number,
-    public currentSampleGetter: () => number,
-    public lastAvailableSampleGetter: () => number,
-    public sampleGetter: (offset: number, length: number) => Int16Array,
+    public getCurrentTime: () => number,
+    public latency: number,
   ) {
   }
 
   // we add MAX_LATENCY to every currentSample to prevent negative values when stream is starting
-  getCurrentSampleWithMargin = () => Math.floor(this.currentSampleGetter() + (MAX_LATENCY * (SAMPLE_RATE / 1000)))
+  getCurrentSampleTimestampWithMargin = () => Math.floor(this.getCurrentTime() * (SAMPLE_RATE / 1000)) + MARGIN_FRAMES
 
   async setVolume(volume: number) {
     // airplay volume minimum is -30 up to 0
@@ -47,16 +52,17 @@ export class AirplaySpeaker {
     this.rtspSocket = new RtspSocket(
       this.host,
       this.port,
-      this.getCurrentSampleWithMargin,
+      this.getCurrentSampleTimestampWithMargin,
     );
     this.controlSocket = new AirplayUdpSocket(this.host);
     this.timingSocket = new AirplayUdpSocket(this.host);
     this.audioSocket = new AirplayUdpSocket(this.host);
     this.controlSocket.on('message', (message, header) => {
+      // TODO: handle chunk resend message
       console.log('Received from control socket', message, header);
     });
     this.timingSocket.on('timingRequest', (request, header) => {
-      const currentTimestamp = (this.getCurrentSampleWithMargin() / SAMPLE_RATE) * 1000;
+      const currentTimestamp = (this.getCurrentSampleTimestampWithMargin() / SAMPLE_RATE) * 1000;
       this.timingSocket.packetSender.timingResponse(request, header, currentTimestamp);
     });
     await Promise.all([
@@ -67,61 +73,68 @@ export class AirplaySpeaker {
     this.controlSocket.clientPort = rtspInfo.controlPort;
     this.timingSocket.clientPort = rtspInfo.timingPort;
     this.audioSocket.clientPort = rtspInfo.serverPort;
-    this.audioPusher();
   }
 
-  stop() {
+  async stop() {
     if (!this.started) {
       return;
     }
     this.started = false;
-    this.rtspSocket.stop();
+    await this.rtspSocket.stop();
     this.controlSocket.stop();
     this.timingSocket.stop();
   }
 
-  private async audioPusher() {
-    let firstPacket = true;
-    this.lastSentSampleTimestamp = this.getCurrentSampleWithMargin();
+  setPushTimestamp(timestamp: number) {
+    this.lastSentSampleTimestamp = timestamp + MARGIN_FRAMES;
+  }
 
-    this.sendSync(true);
-    while (this.started) {
-      if (this.lastSentSampleTimestamp - MARGIN_FRAMES + FRAMES_PER_PACKET > this.lastAvailableSampleGetter()) {
-        // TODO: optimize CPU usage by sending packets in bigger chunks
-        await delay(TIME_PER_PACKET);
-        continue;
+  pushAudioChunk(chunk: Int16Array) {
+    if (this.lastSentSampleTimestamp === -1) {
+      return;
+    }
+    while ((this.bufferLength + chunk.length) / CHANNELS >= FRAMES_PER_PACKET) {
+      // console.log(`Pushing ${this.lastSentSampleTimestamp}, buffer length: ${chunk.length + this.bufferLength}`);
+      if (this.samplesSinceLastSync > SAMPLE_RATE) { // every second send a sync packet
+        this.sendSync(this.firstPacket);
+        this.samplesSinceLastSync = 0;
       }
-      // this will be true once per second
-      if (((this.lastSentSampleTimestamp + FRAMES_PER_PACKET) / SAMPLE_RATE) % 1 <= FRAMES_PER_PACKET / SAMPLE_RATE) {
-        this.sendSync(false);
-      }
-      const samples = this.sampleGetter((this.lastSentSampleTimestamp - MARGIN_FRAMES) * CHANNELS, FRAMES_PER_PACKET * CHANNELS);
 
-      // Little to big endian conversion:
-      // const dv = new DataView(samples.buffer, samples.byteOffset, samples.byteLength);
-      // samples.forEach((s, i) => {
-      //   if (Math.abs(s) < 10) {
-      //     samples[i] = 0;
-      //     // s = 0;
-      //   }
-      //   // dv.setInt16(i * 2, s, true);
-      // });
+      let packetSamples: Int16Array;
+      if (this.bufferLength !== 0) {
+        this.buffer.set(chunk.subarray(0, (FRAMES_PER_PACKET * CHANNELS) - this.bufferLength), this.bufferLength);
+        chunk = chunk.subarray((FRAMES_PER_PACKET * CHANNELS) - this.bufferLength);
+        packetSamples = this.buffer;
+        this.bufferLength = 0;
+      } else {
+        packetSamples = chunk.subarray(0, FRAMES_PER_PACKET * CHANNELS);
+        chunk = chunk.subarray(FRAMES_PER_PACKET * CHANNELS);
+      }
+      // if (packetSamples.length / CHANNELS !== FRAMES_PER_PACKET) {
+      //   throw new Error('HERE');
+      // }
+      // console.log(`chunk size: ${packetSamples.length / CHANNELS} - ${this.lastSentSampleTimestamp}`);
 
       const alacBuffer = new Uint8Array(ALAC_HEADER_SIZE + (FRAMES_PER_PACKET * CHANNELS * Int16Array.BYTES_PER_ELEMENT));
-      this.encoder.encode(samples, alacBuffer);
+      this.encoder.encode(packetSamples, alacBuffer);
+      this.audioSocket.packetSender.audioData(alacBuffer, this.lastSentSampleTimestamp, this.firstPacket, this.rtspSocket.announceId, this.rtspSocket.aesKey, this.rtspSocket.aesIv);
 
-      this.audioSocket.packetSender.audioData(alacBuffer, this.lastSentSampleTimestamp, firstPacket, this.rtspSocket.announceId, this.rtspSocket.aesKey, this.rtspSocket.aesIv);
-      firstPacket = false;
+      this.firstPacket = false;
       this.lastSentSampleTimestamp += FRAMES_PER_PACKET;
+      this.samplesSinceLastSync += FRAMES_PER_PACKET;
+    }
+    if (chunk.length > 0) {
+      // console.log(`Filling buffer: ${chunk.length}`);
+      this.buffer.set(chunk);
+      this.bufferLength = chunk.length;
     }
   }
 
   private sendSync(isFirst: boolean) {
-    const currentSample = this.getCurrentSampleWithMargin();
+    const currentSampleTimestamp = this.getCurrentSampleTimestampWithMargin();
     this.controlSocket.packetSender.sync(
-      this.lastSentSampleTimestamp,
-      (currentSample / SAMPLE_RATE) * 1000,
-      22050, // TODO: better manage latency to lower it
+      currentSampleTimestamp,
+      this.latency * (SAMPLE_RATE / 1000),
       isFirst,
     );
   }

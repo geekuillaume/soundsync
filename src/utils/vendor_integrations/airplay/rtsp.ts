@@ -93,7 +93,8 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     };
   }
 
-  stop() {
+  async stop() {
+    await this.sendRequest('TEARDOWN', null, null, ['Session: 1']);
     this.socket.end();
     this.socket = null;
   }

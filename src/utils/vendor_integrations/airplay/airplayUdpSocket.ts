@@ -2,7 +2,7 @@
 import dgram from 'dgram';
 import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { FRAMES_PER_PACKET } from './airplayConstants';
+import { FRAMES_PER_PACKET, SAMPLE_RATE } from './airplayConstants';
 
 const RTP_HEADER_A_EXTENSION = 0x10;
 const RTP_HEADER_A_SOURCE = 0x0f;
@@ -186,7 +186,7 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       data.set(new Uint8Array(audioData.buffer, audioData.byteOffset, audioData.byteLength), 12);
       this.socket.send(data, this.clientPort, this.clientHost);
     },
-    sync: (nextAudioChunkTimestamp: number, currentTime: number, latency: number, isFirst: boolean) => {
+    sync: (currentTimestamp: number, latencySamples: number, isFirst: boolean) => {
       if (this.clientPort === -1) {
         return;
       }
@@ -202,10 +202,9 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       header[0] = isFirst ? 0x90 : 0x80;
       header[1] = 0xd4;
       data.set(header);
-      // dv.setUint32(RTP_HEADER_LENGTH, nextAudioChunkTimestamp - latency);
-      dv.setUint32(RTP_HEADER_LENGTH, nextAudioChunkTimestamp);
-      data.set(this.getNtpTimestamp(currentTime), RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT);
-      dv.setUint32(RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT * 3, nextAudioChunkTimestamp);
+      dv.setUint32(RTP_HEADER_LENGTH, Math.floor(currentTimestamp));
+      data.set(this.getNtpTimestamp((currentTimestamp / SAMPLE_RATE) * 1000), RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT);
+      dv.setUint32(RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT * 3, currentTimestamp + latencySamples);
 
       this.socket.send(data, this.clientPort, this.clientHost);
     },

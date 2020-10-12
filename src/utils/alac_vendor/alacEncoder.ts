@@ -41,7 +41,7 @@ export class AlacEncoder {
     }
 
     // We check that we have as many chunks for each channel and that the last chunk is full (2 bytes)
-    if (chunk && chunk.length % CHANNELS !== 0) {
+    if (!chunk || chunk.length % CHANNELS !== 0) {
       throw new Error(`Chunk length should be a multiple of [channels]`);
     }
 
