@@ -1,12 +1,25 @@
+const checks = [
+  {check: typeof window.RTCPeerConnection !== undefined, message: "WebRTC is not supported"},
+  {check: typeof localStorage !== undefined, message: "LocalStorage is not supported"},
+  {check: typeof WebAssembly !== undefined, message: "WebAssembly is not supported"},
+  {check: typeof WebAssembly.instantiate !== undefined, message: "WebAssembly.instantiate is not supported"},
+  {check: () => new window.RTCPeerConnection, message: "WebRTC is blocked, check your extensions"},
+];
+
 export const hasNecessaryApi = () => {
-  if (
-    typeof window.RTCPeerConnection === undefined ||
-    typeof localStorage === undefined ||
-    typeof WebAssembly === undefined ||
-    typeof WebAssembly.instantiate === undefined ||
-    typeof localStorage === undefined
-  ) {
-    return false;
+  for (const check of checks) {
+    if (typeof check.check === 'boolean') {
+      if (check.check === false) {
+        return {error: true, message: check.message};
+      }
+    } else {
+      try {
+        check.check();
+      } catch (e) {
+        return {error: true, message: check.message};
+      }
+    }
   }
-  return true;
+
+  return {error: false};
 }
