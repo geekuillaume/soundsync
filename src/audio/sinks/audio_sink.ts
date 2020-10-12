@@ -192,8 +192,8 @@ export abstract class AudioSink extends EventEmitter {
       // we received old chunks, discard them
       return;
     }
-    const outOfOrder = this.lastReceivedChunkIndex !== -1 && chunk.i !== this.lastReceivedChunkIndex + 1;
-    if (outOfOrder) {
+    const outOfOrder = this.lastReceivedChunkIndex === -1 || chunk.i !== this.lastReceivedChunkIndex + 1;
+    if (outOfOrder && this.lastReceivedChunkIndex !== -1) {
       this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);
     }
 
