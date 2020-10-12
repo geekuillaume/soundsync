@@ -7,6 +7,7 @@ interface EmscriptenModuleAlacEncoder extends EmscriptenModule {
   _initiate_alac_encoder(chunk_len: number, sampleRate: number, sampleSize: number, channels: number): number;
   _alac_encode(encoderPtr: number, pcmBufferPtr: number, inputFrames: number, alacBufferPtr: number): number;
   _destroy_encoder(encoderPtr: number): void;
+  _alac_encode_raw(dest: number, src: number, size: number);
 
   getValue(ptr: number, type: string): any;
   setValue(ptr: number, value: any, type: string): any;
@@ -17,7 +18,7 @@ let alacModule: EmscriptenModuleAlacEncoder;
 const globalModulePromise = AlacWasm().then((s) => { alacModule = s; });
 
 const CHANNELS = 2;
-const ALAC_MAX_OVERHEAD = 8 + 64;
+const ALAC_HEADER_SIZE = 3;
 
 export class AlacEncoder {
   private encoderPtr = 0;
@@ -31,16 +32,17 @@ export class AlacEncoder {
   constructor(public chunkLength: number, public sampleRate: number, public sampleSize: number, public channels: number) {
   }
 
-  encode(chunk: Uint16Array, outputBuffer: Uint8Array) {
+  encode(chunk: Int16Array | Uint16Array, outputBuffer: Uint8Array) {
     if (!alacModule) {
       throw new Error('You need to wait for AlacEncoder.initPromise before calling this method');
     }
     if (!this.encoderPtr) {
-      this.encoderPtr = alacModule._initiate_alac_encoder(this.chunkLength, this.sampleRate, this.sampleRate, this.channels);
+      this.encoderPtr = alacModule._initiate_alac_encoder(this.chunkLength, this.sampleRate, this.sampleSize, this.channels);
     }
+
     // We check that we have as many chunks for each channel and that the last chunk is full (2 bytes)
     if (chunk && chunk.length % CHANNELS !== 0) {
-      throw new Error(`Chunk length should be a multiple of 2 (channels) * ${Uint16Array.BYTES_PER_ELEMENT} bytes`);
+      throw new Error(`Chunk length should be a multiple of [channels]`);
     }
 
     // Resizing the input buffer in the WASM memory space to match what we need
@@ -53,34 +55,36 @@ export class AlacEncoder {
     }
 
     // Resizing the output buffer in the WASM memory space to match what we need
-    if (this.alacBufferSize < chunk.byteLength + ALAC_MAX_OVERHEAD) {
+    if (this.alacBufferSize < chunk.byteLength + ALAC_HEADER_SIZE) {
       if (this.alacBufferPtr !== -1) {
         alacModule._free(this.alacBufferPtr);
       }
-      this.alacBufferPtr = alacModule._malloc(chunk.byteLength + ALAC_MAX_OVERHEAD);
-      this.alacBufferSize = chunk.byteLength + ALAC_MAX_OVERHEAD;
+      this.alacBufferPtr = alacModule._malloc(chunk.byteLength + ALAC_HEADER_SIZE);
+      this.alacBufferSize = chunk.byteLength + ALAC_HEADER_SIZE;
     }
 
     // Copying the info from the input Buffer in the WASM memory space
-    alacModule.HEAPU8.set(Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength), this.pcmBufferPtr);
+    alacModule.HEAPU8.set(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength), this.pcmBufferPtr);
 
-    const outputLength = alacModule._alac_encode(
-      this.encoderPtr,
-      this.pcmBufferPtr,
-      chunk.length / this.channels,
-      this.alacBufferPtr,
-    );
+    alacModule._alac_encode_raw(this.alacBufferPtr, this.pcmBufferPtr, chunk.byteLength);
 
-    if (outputLength === -1) {
-      throw new Error('Error while encoding');
-    }
-    if (outputBuffer.byteLength < outputLength) {
-      throw new Error(`Provided outputBuffer is too small: ${outputBuffer.byteLength} < ${outputLength}`);
-    }
+    // const outputLength = alacModule._alac_encode(
+    //   this.encoderPtr,
+    //   this.pcmBufferPtr,
+    //   chunk.length / this.channels,
+    //   this.alacBufferPtr,
+    // );
+
+    // if (outputLength === -1) {
+    //   throw new Error('Error while encoding');
+    // }
+    // if (outputBuffer.byteLength < outputLength) {
+    //   throw new Error(`Provided outputBuffer is too small: ${outputBuffer.byteLength} < ${outputLength}`);
+    // }
     outputBuffer.set(alacModule.HEAPU8.subarray(
       this.alacBufferPtr,
-      this.alacBufferPtr + outputLength,
+      this.alacBufferPtr + chunk.byteLength + ALAC_HEADER_SIZE,
     ));
-    return outputLength;
+    // return outputLength;
   }
 }

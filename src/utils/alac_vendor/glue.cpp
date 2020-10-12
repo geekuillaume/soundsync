@@ -41,14 +41,23 @@ extern "C" {
     codec->inputFormat.mReserved = 0;
 
     // and so is the output format
+    // codec->outputFormat.mFormatID = kALACFormatAppleLossless;
+    // codec->outputFormat.mSampleRate = codec->inputFormat.mSampleRate;
+    // codec->outputFormat.mFormatFlags = kTestFormatFlag_16BitSourceData;
+    // codec->outputFormat.mFramesPerPacket = chunk_len;
+    // codec->outputFormat.mChannelsPerFrame = codec->inputFormat.mChannelsPerFrame;
+    // codec->outputFormat.mBytesPerPacket = 0; // we're VBR
+    // codec->outputFormat.mBytesPerFrame = 0; // same
+    // codec->outputFormat.mBitsPerChannel = 0; // each bit doesn't really go with 1 sample
+    // codec->outputFormat.mReserved = 0;
     codec->outputFormat.mFormatID = kALACFormatAppleLossless;
     codec->outputFormat.mSampleRate = codec->inputFormat.mSampleRate;
     codec->outputFormat.mFormatFlags = kTestFormatFlag_16BitSourceData;
     codec->outputFormat.mFramesPerPacket = chunk_len;
     codec->outputFormat.mChannelsPerFrame = codec->inputFormat.mChannelsPerFrame;
-    codec->outputFormat.mBytesPerPacket = 0; // we're VBR
-    codec->outputFormat.mBytesPerFrame = 0; // same
-    codec->outputFormat.mBitsPerChannel = 0; // each bit doesn't really go with 1 sample
+    codec->outputFormat.mBitsPerChannel = sampleSize; // each bit doesn't really go with 1 sample
+    codec->outputFormat.mBytesPerFrame = codec->outputFormat.mBitsPerChannel * codec->outputFormat.mChannelsPerFrame; // same
+    codec->outputFormat.mBytesPerPacket = codec->outputFormat.mBytesPerFrame * codec->outputFormat.mFramesPerPacket; // we're VBR
     codec->outputFormat.mReserved = 0;
 
     codec->encoder->SetFrameSize(codec->outputFormat.mFramesPerPacket);
@@ -61,10 +70,10 @@ extern "C" {
   int alac_encode(struct alac_codec_s *codec, uint8_t *in, int frames, uint8_t *out) {
     int size = min(frames, (int) codec->outputFormat.mFramesPerPacket) * codec->inputFormat.mBytesPerFrame;
     int i;
-    uint16_t *input = (uint16_t *)in;
-    for (i = 0; i < size / 2; i++) {
-      input[i] = ((input[i] & 0xff) >> 8) | (input[i] << 8);
-    }
+    // uint16_t *input = (uint16_t *)in;
+    // for (i = 0; i < size / 2; i++) {
+    //   input[i] = ((input[i] & 0xff) >> 8) | (input[i] << 8);
+    // }
     // seems that ALAC has a bug and creates more data than expected
     // *out = (uint8_t*) malloc(size * 2 + kALACMaxEscapeHeaderBytes + 64);
     codec->encoder->Encode(codec->inputFormat, codec->outputFormat, in, out, &size);
@@ -85,4 +94,81 @@ extern "C" {
     delete codec->encoder;
     free(codec);
   }
+
+
+  /* ------------------------------- MISC HELPERS ----------------------------- */
+
+/* ALAC bits writer - big endian
+ * p    outgoing buffer pointer
+ * val  bitfield value
+ * blen bitfield length, max 8 bits
+ * bpos bit position in the current byte (pointed by *p)
+ */
+void
+alac_write_bits(uint8_t **p, uint8_t val, int blen, int *bpos)
+{
+  int lb;
+  int rb;
+  int bd;
+
+  /* Remaining bits in the current byte */
+  lb = 7 - *bpos + 1;
+
+  /* Number of bits overflowing */
+  rb = lb - blen;
+
+  if (rb >= 0) {
+    bd = val << rb;
+    if (*bpos == 0) {
+    	**p = bd;
+    } else {
+      **p |= bd;
+    }
+
+    /* No over- nor underflow, we're done with this byte */
+    if (rb == 0) {
+      *p += 1;
+      *bpos = 0;
+	  } else {
+      *bpos += blen;
+    }
+  } else {
+    /* Fill current byte */
+    bd = val >> -rb;
+    **p |= bd;
+
+    /* Overflow goes to the next byte */
+    *p += 1;
+    **p = val << (8 + rb);
+    *bpos = -rb;
+  }
+}
+
+/* Raw data must be little endian */
+void
+alac_encode_raw(uint8_t *dst, uint8_t *raw, int len)
+{
+  uint8_t *maxraw;
+  int bpos;
+
+  bpos = 0;
+  maxraw = raw + len;
+  alac_write_bits(&dst, 1, 3, &bpos); /* channel=1, stereo */
+  alac_write_bits(&dst, 0, 4, &bpos); /* unknown */
+  alac_write_bits(&dst, 0, 8, &bpos); /* unknown */
+  alac_write_bits(&dst, 0, 4, &bpos); /* unknown */
+  alac_write_bits(&dst, 0, 1, &bpos); /* hassize */
+
+  alac_write_bits(&dst, 0, 2, &bpos); /* unused */
+  alac_write_bits(&dst, 1, 1, &bpos); /* is-not-compressed */
+
+  for (; raw < maxraw; raw += 4)
+    {
+      /* Byteswap to big endian */
+      alac_write_bits(&dst, *(raw + 1), 8, &bpos);
+      alac_write_bits(&dst, *raw, 8, &bpos);
+      alac_write_bits(&dst, *(raw + 3), 8, &bpos);
+      alac_write_bits(&dst, *(raw + 2), 8, &bpos);
+    }
+}
 }

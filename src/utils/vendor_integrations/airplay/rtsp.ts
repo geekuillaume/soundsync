@@ -2,8 +2,9 @@ import net from 'net';
 import debug from 'debug';
 import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
+import { promisify } from 'util';
 import { randomBase64 } from '../../misc';
-import { RSA_PRIVATE_KEY } from './airplayConstants';
+import { AUTH_SETUP_PUBLIC_KEY, RSA_PRIVATE_KEY } from './airplayConstants';
 
 const log = debug(`soundsync:rtsp`);
 
@@ -23,7 +24,7 @@ const FRAMES_PER_PACKET = 352;
 
 export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   socket: net.Socket;
-  private requestsQueue: {name: string; resolve: (any) => any; reject: (any) => any; body: string }[] = [];
+  private requestsQueue: {name: string; resolve: (any) => any; reject: (any) => any; body: Buffer }[] = [];
   private socketOutputBuffer = '';
   private sequenceCounter = 1;
   // eslint-disable-next-line no-bitwise
@@ -33,7 +34,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   aesKey: Buffer;
   aesIv: Buffer;
 
-  constructor(public host: string, public port: number, public getRtpSequenceCounter: () => number) {
+  constructor(public host: string, public port: number, public getCurrentSample: () => number) {
     super();
   }
 
@@ -51,8 +52,14 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     });
 
     await this.sendRequest('OPTIONS', '*', null, [`Apple-Challenge: ${randomBase64(16)}`]);
-    this.aesKey = crypto.randomBytes(16);
-    this.aesIv = crypto.randomBytes(16);
+    const postBody = Buffer.concat([new Uint8Array([1]), AUTH_SETUP_PUBLIC_KEY]);
+    try {
+      await this.sendRequest('POST', '/auth-setup', postBody, ['Content-Type: application/octet-stream']);
+    } catch (e) {
+      log('POST /auth-setup returned error, ignoring');
+    }
+    // this.aesKey = crypto.randomBytes(16);
+    // this.aesIv = crypto.randomBytes(16);
     const announceBody = [
       `v=0`,
       `o=iTunes ${this.announceId} O IN IP4 ${(this.socket.address() as net.AddressInfo).address}`,
@@ -61,22 +68,23 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `t=0 0`,
       `m=audio 0 RTP/AVP 96`,
       // TODO: compress audio with ALAC
-      // `a=rtpmap:96 AppleLossless`,
-      // `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
-      `a=rtpmap:96 L16/44100/2`,
+      `a=rtpmap:96 AppleLossless`,
+      `a=fmtp:96 ${FRAMES_PER_PACKET} 0 16 40 10 14 2 255 0 0 44100`,
+      // `a=rtpmap:96 L16/44100/2`,
       // TODO: check if aekKey is not supported and fallback to unencrypted stream
       ...(this.aesKey ? [
         `a=rsaaeskey:${crypto.publicEncrypt(crypto.createPrivateKey(RSA_PRIVATE_KEY), this.aesKey).toString('base64').replace(/=/g, '')}`,
         `a=aesiv:${this.aesIv.toString('base64').replace(/=/g, '')}`,
       ] : []),
-    ].join(`\r\n`);
+    ].map((v) => `${v}\r\n`).join('');
     await this.sendRequest('ANNOUNCE', null, announceBody, ['Content-Type: application/sdp']);
     const res = await this.sendRequest('SETUP', null, null, [`Transport: RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port=${udpControlPort};timing_port=${udpTimingPort}`]);
     const [, serverPort] = res.headers.Transport.match(/;server_port=(\d+)/);
     const [, timingPort] = res.headers.Transport.match(/;timing_port=(\d+)/);
     const [, controlPort] = res.headers.Transport.match(/;control_port=(\d+)/);
-    const recordRes = await this.sendRequest('RECORD', null, null, [this.getRtpHeader()]);
-    await this.sendRequest('SET_PARAMETER', null, 'volume: 0.0', ['Content-Type: text/parameters']);
+    const recordRes = await this.sendRequest('RECORD', null, null, ['Session: 1', this.getRtpHeader()]);
+    // setting volume is necessary to start stream, we set it to the minimum then the airplay sink will update the volume to the correct value
+    await this.sendRequest('SET_PARAMETER', null, 'volume: -33\r\n', ['Session: 1', 'Content-Type: text/parameters']);
     return {
       serverPort: Number(serverPort),
       timingPort: Number(timingPort),
@@ -90,16 +98,16 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     this.socket = null;
   }
 
-  sendRequest(method: string, uri?: string, body?: string, additionalHeaders: string[] = []) {
+  sendRequest(method: string, uri?: string, body?: string | Buffer, additionalHeaders: string[] = []) {
     if (!this.socket) {
       throw new Error('Socket has been deleted');
     }
     let requestBody = this._makeHeader(method, uri, [
       ...additionalHeaders,
-      body && `Content-Length: ${body.length}`, // +4 because of the \r\n\r\n added at the end of the request
+      body && `Content-Length: ${body.length}`,
     ]);
     if (body) {
-      requestBody += body;
+      requestBody = Buffer.concat([requestBody, Buffer.isBuffer(body) ? body : Buffer.from(body)]);
     }
     const promise = new Promise<RtspResponse>((resolve, reject) => {
       this.requestsQueue.push({
@@ -118,7 +126,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       return;
     }
     const request = this.requestsQueue.splice(0, 1)[0];
-    log(`Sending`, request.body);
+    log(`Sending`, request.body.toString());
     this.socket.write(request.body);
     // TODO: implement timeout
     this.onResponseCallback = (body) => {
@@ -154,7 +162,7 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
       `${method} ${targetUri} RTSP/1.0`,
       `CSeq: ${this.sequenceCounter}`,
       `User-Agent: ${USER_AGENT}`,
-      // `DACP-ID: ${this.announceId}`,
+      `DACP-ID: ${this.announceId}`,
       `Client-Instance: ${this.announceId}`,
       ...additionalHeaders.filter(Boolean),
     ];
@@ -175,12 +183,12 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
     // }
 
     this.sequenceCounter++;
-    return `${headLines.join(`\r\n`)}\r\n\r\n`;
+    return Buffer.from(`${headLines.map((v) => `${v}\r\n`).join('')}\r\n`);
   }
 
   private getRtpHeader() {
-    const sequenceCounter = this.getRtpSequenceCounter();
-    return `RTP-Info: seq=${sequenceCounter};rtptime=${sequenceCounter * FRAMES_PER_PACKET}`;
+    const currentSample = this.getCurrentSample();
+    return `RTP-Info: seq=${Math.floor(currentSample / FRAMES_PER_PACKET)};rtptime=${currentSample}`;
   }
 
   private parseResponse(data: string): RtspResponse {

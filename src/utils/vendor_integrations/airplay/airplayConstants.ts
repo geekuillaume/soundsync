@@ -4,7 +4,7 @@ export const SAMPLE_RATE = 44100;
 export const CHANNELS = 2;
 export const FRAMES_PER_PACKET = 352;
 export const TIME_PER_PACKET = FRAMES_PER_PACKET / (SAMPLE_RATE / 1000);
-export const ALAC_HEADER_SIZE = 4;
+export const ALAC_HEADER_SIZE = 3;
 
 // From https://mailman.videolan.org/pipermail/vlc-devel/2011-April/079148.html
 export const RSA_PRIVATE_KEY = `
@@ -32,3 +32,5 @@ LAuE4Pu13aKiJnfft7hIjbK+5kyb3TysZvoyDnb3HOKvInK7vXbKuU4ISgxB2bB3HcYzQMGsz1qJ
 2gG0N5hvJpzwwhbhXqFKA4zaaSrw622wDniAK5MlIE0tIAKKP4yxNGjoD2QYjhBGuhvkWKaXTyY=
 -----END RSA PRIVATE KEY-----
 `;
+
+export const AUTH_SETUP_PUBLIC_KEY = Buffer.from('5902ede90d4ef2bd4cb68a6330038207a94dbd50d8aa465b5d8c012a0c7e1d4e', 'hex');

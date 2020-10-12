@@ -35,13 +35,18 @@ export class AirplaySink extends AudioSink {
   host: string;
   port: number;
   private airplay: AirplaySpeaker;
-  private buffer = new CircularTypedArray(Uint16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Uint16Array.BYTES_PER_ELEMENT * CHANNELS);
+  private buffer = new CircularTypedArray(Int16Array, MAX_LATENCY * (SAMPLE_RATE / 1000) * Int16Array.BYTES_PER_ELEMENT * CHANNELS);
   private resampler: SoxrResampler;
+  private cleanAirplay: () => void;
 
   constructor(descriptor: AirplaySinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
     this.host = descriptor.host;
     this.port = descriptor.port;
+  }
+
+  async _startSink() {
+    this.log('Connecting to Airplay sink');
     this.airplay = new AirplaySpeaker(
       this.host,
       this.port,
@@ -49,10 +54,6 @@ export class AirplaySink extends AudioSink {
       () => this.buffer.getWriterPointer() / CHANNELS,
       this.getSample,
     );
-  }
-
-  async _startSink() {
-    this.log('Connecting to Airplay sink');
     const resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
     await resampler.init();
     // only set it once it's ready to use to prevent handleAudioChunk from calling it before being initialized
@@ -65,13 +66,29 @@ export class AirplaySink extends AudioSink {
       }
       throw new AudioError('Unknown error', e);
     }
+
+    const updateHandler = () => {
+      this.airplay.setVolume(this.volume);
+    };
+    this.on('update', updateHandler);
+    // do it once to synchronize airplay state with current state
+    updateHandler();
+
+    this.cleanAirplay = () => {
+      this.off('update', updateHandler);
+      this.airplay.stop();
+      delete this.airplay;
+      delete this.resampler;
+      delete this.cleanAirplay;
+    };
   }
 
   private getSample = (offset: number, length: number) => this.buffer.get(offset, length)
 
   _stopSink = async () => {
-    this.airplay.stop();
-    this.resampler = null;
+    if (this.cleanAirplay) {
+      this.cleanAirplay();
+    }
   }
 
   handleAudioChunk = (data: AudioChunkStreamOutput) => {
@@ -86,7 +103,7 @@ export class AirplaySink extends AudioSink {
       // will also be set at the start of stream because lastReceivedChunkIndex is -1 at init
       this.buffer.setWriterPointer(this.getCurrentStreamTime() * this.channels * SAMPLE_RATE);
     }
-    this.buffer.setFromWriterPointer(new Uint16Array(resampled.buffer, resampled.byteOffset, resampled.byteLength / Uint16Array.BYTES_PER_ELEMENT));
+    this.buffer.setFromWriterPointer(new Int16Array(resampled.buffer, resampled.byteOffset, resampled.byteLength / Uint16Array.BYTES_PER_ELEMENT));
   }
 
   toDescriptor = (sanitizeForConfigSave = false): AudioInstance<AirplaySinkDescriptor> => ({
