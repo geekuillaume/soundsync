@@ -97,6 +97,18 @@ Soundsync is still in an early stage. It's evolving quickly but there is still a
 
 ## Development
 
+To start Soundsync from the source code you'll need NodeJS and Git installed and then:
+
+```
+git clone https://github.com/geekuillaume/soundsync
+cd soundsync
+npm install
+npm run build
+npm run start
+```
+
+You can also use the command `npm run start:electron` to activate the Electron integrations (Systray icon, error tracking).
+
 ### Building opus
 
 ```
