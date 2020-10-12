@@ -44,7 +44,7 @@ const main = async () => {
   await Promise.all(packagesJsonFiles.map(async (filepath) => {
     const path = resolve(__dirname, '../../', filepath);
     let content = (await readFile(path)).toString();
-    content = content.replace(/^\s*"version":.*$/gm, `  "version": "${newVersion}-dev",`);
+    content = content.replace(/^\s*"version":.*$/gm, `    "version": "${newVersion}-dev",`);
     await writeFile(path, content);
   }));
   await execPromisify(`git add --all`);
