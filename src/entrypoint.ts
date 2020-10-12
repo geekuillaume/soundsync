@@ -12,7 +12,7 @@ if (process.env[ENTRYPOINT_ENV_FLAG]) {
 } else {
   const args = [
     `--js-flags=--experimental-wasm-threads`,
-    ...process.argv.slice(process.argv[1]?.endsWith('.js') ? 2 : 1),
+    ...process.argv.slice(1),
   ];
   const child = spawn(process.execPath, args, {
     stdio: 'inherit',
