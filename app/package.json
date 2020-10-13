@@ -1,6 +1,6 @@
 {
     "name": "soundsync",
-  "version": "0.4.2-dev",
+    "version": "0.4.2-dev",
     "description": "Plug virtual cables between any audio source and any speakers in your home",
     "author": "Guillaume Besson <guillaume@besson.co>",
     "main": "./entrypoint.js",
@@ -9,7 +9,7 @@
     "dependencies": {
         "@koa/cors": "^3.0.0",
         "@sentry/node": "^5.17.0",
-        "audioworklet": "5.0.2",
+        "audioworklet": "5.0.4",
         "auto-launch": "^5.0.5",
         "bonjour": "^3.5.0",
         "castv2-client": "^1.2.0",
