@@ -3,6 +3,7 @@ import dgram from 'dgram';
 import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { FRAMES_PER_PACKET, SAMPLE_RATE } from './airplayConstants';
+import { now } from '../../misc';
 
 const RTP_HEADER_A_EXTENSION = 0x10;
 const RTP_HEADER_A_SOURCE = 0x0f;
@@ -195,16 +196,16 @@ export class AirplayUdpSocket extends TypedEmitter<UpdSocketEvents> {
       const header = this.getRtpHeader({
         payloadType: RTP_PAYLOAD_TYPES.sync,
         marker: true,
-        seqnum: 7,
+        seqnum: 4,
         extension: isFirst,
         source: 0,
       });
       header[0] = isFirst ? 0x90 : 0x80;
       header[1] = 0xd4;
       data.set(header);
-      dv.setUint32(RTP_HEADER_LENGTH, Math.floor(currentTimestamp));
-      data.set(this.getNtpTimestamp((currentTimestamp / SAMPLE_RATE) * 1000), RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT);
-      dv.setUint32(RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT * 3, currentTimestamp + latencySamples);
+      dv.setUint32(RTP_HEADER_LENGTH, currentTimestamp); // timestamp which should currently be coming out of the speakers
+      data.set(this.getNtpTimestamp(now()), RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT); // send time, same value as in the time packets
+      dv.setUint32(RTP_HEADER_LENGTH + Uint32Array.BYTES_PER_ELEMENT * 3, currentTimestamp + latencySamples); // current timestamp + latency
 
       this.socket.send(data, this.clientPort, this.clientHost);
     },

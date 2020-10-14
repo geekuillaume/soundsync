@@ -2,7 +2,6 @@ import net from 'net';
 import debug from 'debug';
 import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { promisify } from 'util';
 import { randomBase64 } from '../../misc';
 import { AUTH_SETUP_PUBLIC_KEY, RSA_PRIVATE_KEY } from './airplayConstants';
 
@@ -94,7 +93,11 @@ export class RtspSocket extends TypedEmitter<RtspSocketEvents> {
   }
 
   async stop() {
-    await this.sendRequest('TEARDOWN', null, null, ['Session: 1']);
+    try {
+      await this.sendRequest('TEARDOWN', null, null, ['Session: 1']);
+    } catch (e) {
+      log(`Error while airplay sink teardown`, e);
+    }
     this.socket.end();
     this.socket = null;
   }

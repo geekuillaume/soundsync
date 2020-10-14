@@ -6,6 +6,7 @@ import {
   SAMPLE_RATE, FRAMES_PER_PACKET, CHANNELS, ALAC_HEADER_SIZE,
 } from './airplayConstants';
 import { MAX_LATENCY } from '../../constants';
+import { now } from '../../misc';
 
 // To prevent negative timestamps, we add [MAX_LATENCY]ms to every timestamp sent to the Airplay speaker
 const MARGIN_FRAMES = MAX_LATENCY * (SAMPLE_RATE / 1000);
@@ -62,8 +63,7 @@ export class AirplaySpeaker {
       console.log('Received from control socket', message, header);
     });
     this.timingSocket.on('timingRequest', (request, header) => {
-      const currentTimestamp = (this.getCurrentSampleTimestampWithMargin() / SAMPLE_RATE) * 1000;
-      this.timingSocket.packetSender.timingResponse(request, header, currentTimestamp);
+      this.timingSocket.packetSender.timingResponse(request, header, now());
     });
     await Promise.all([
       this.controlSocket.bindToPort(5000 + Math.floor(Math.random() * 1000)),
@@ -87,14 +87,16 @@ export class AirplaySpeaker {
 
   setPushTimestamp(timestamp: number) {
     this.lastSentSampleTimestamp = timestamp + MARGIN_FRAMES;
+    this.lastSentSampleTimestamp -= this.lastSentSampleTimestamp % FRAMES_PER_PACKET; // we set it at the nearest FRAMES_PER_PACKET multiple
   }
 
   pushAudioChunk(chunk: Int16Array) {
+    // this is called everytime a new audio packet is available, it will cut it in chunks of 352 samples and send them on the audio UDP socket
+    // if chunk.length % 352 !== 0, then we store the additionnal samples in a buffer and prepend them to the next received audio chunk
     if (this.lastSentSampleTimestamp === -1) {
       return;
     }
     while ((this.bufferLength + chunk.length) / CHANNELS >= FRAMES_PER_PACKET) {
-      // console.log(`Pushing ${this.lastSentSampleTimestamp}, buffer length: ${chunk.length + this.bufferLength}`);
       if (this.samplesSinceLastSync > SAMPLE_RATE) { // every second send a sync packet
         this.sendSync(this.firstPacket);
         this.samplesSinceLastSync = 0;
@@ -110,10 +112,6 @@ export class AirplaySpeaker {
         packetSamples = chunk.subarray(0, FRAMES_PER_PACKET * CHANNELS);
         chunk = chunk.subarray(FRAMES_PER_PACKET * CHANNELS);
       }
-      // if (packetSamples.length / CHANNELS !== FRAMES_PER_PACKET) {
-      //   throw new Error('HERE');
-      // }
-      // console.log(`chunk size: ${packetSamples.length / CHANNELS} - ${this.lastSentSampleTimestamp}`);
 
       const alacBuffer = new Uint8Array(ALAC_HEADER_SIZE + (FRAMES_PER_PACKET * CHANNELS * Int16Array.BYTES_PER_ELEMENT));
       this.encoder.encode(packetSamples, alacBuffer);
@@ -123,8 +121,8 @@ export class AirplaySpeaker {
       this.lastSentSampleTimestamp += FRAMES_PER_PACKET;
       this.samplesSinceLastSync += FRAMES_PER_PACKET;
     }
+
     if (chunk.length > 0) {
-      // console.log(`Filling buffer: ${chunk.length}`);
       this.buffer.set(chunk);
       this.bufferLength = chunk.length;
     }

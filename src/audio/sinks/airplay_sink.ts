@@ -2,7 +2,7 @@ import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
 import { AudioError } from '../../utils/misc';
 import { AudioInstance } from '../utils';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+  OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_RATE,
 } from '../../utils/constants';
 import { AirplaySinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
@@ -15,7 +15,7 @@ export class AirplaySink extends AudioSink {
   local: true = true;
   type: 'airplay' = 'airplay';
 
-  latency = 1000;
+  latency = 1500;
   host: string;
   port: number;
   private airplay: AirplaySpeaker;
@@ -33,7 +33,7 @@ export class AirplaySink extends AudioSink {
     this.airplay = new AirplaySpeaker(
       this.host,
       this.port,
-      this.getCurrentStreamTime,
+      () => this.getCurrentStreamTime() - this.latency,
       this.latency,
     );
     const resampler = new SoxrResampler(CHANNELS, OPUS_ENCODER_RATE, SAMPLE_RATE, SoxrDatatype.SOXR_FLOAT32, SoxrDatatype.SOXR_INT16);
@@ -80,8 +80,10 @@ export class AirplaySink extends AudioSink {
       return;
     }
     if (outOfOrder || this.airplay.lastSentSampleTimestamp === -1) {
-      this.airplay.setPushTimestamp(data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT);
+      // we need to pass the timestamp to the correct sample rate for Airplay which is 44100
+      this.airplay.setPushTimestamp(((data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT) / OPUS_ENCODER_RATE) * SAMPLE_RATE);
     }
+    // console.log(`Buffer size: ${data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT}`);
     this.airplay.pushAudioChunk(new Int16Array(resampled.buffer, resampled.byteOffset, resampled.byteLength / Int16Array.BYTES_PER_ELEMENT));
   }
 
