@@ -1,12 +1,17 @@
 const mean = (vals: number[]) => vals.reduce((a, b) => a + b, 0) / vals.length;
 
+const IDENTITY = (a) => a as unknown as number;
+
 export class NumericStatsTracker<T> {
   private buffer: T[] = [];
+  public defaultGetter: (val: T) => number;
 
   constructor(
-    public defaultGetter: (val: T) => number,
+    defaultGetter: ((val: T) => number),
     private maxAge: number,
-  ) {}
+  ) {
+    this.defaultGetter = defaultGetter || IDENTITY;
+  }
 
   push(point: T) {
     this.buffer.unshift(point);
@@ -19,8 +24,23 @@ export class NumericStatsTracker<T> {
     if (age > this.maxAge) {
       throw new Error('Asked age is greater than maxAge');
     }
-    const buffer = this.buffer.filter(filter || (() => true)).slice(0, age);
-    return mean(buffer.map(getter));
+    // This function is used a lot, it makes sense to not use classic functionnal programming (filter / map / reduce) to help optimize performance
+    let limitIndex = age;
+    let usedValues = 0;
+    const bufferLength = this.buffer.length;
+    let accumulated = 0;
+    const customGetter = getter !== IDENTITY;
+    for (let i = 0; i < limitIndex && i < bufferLength; i++) {
+      if (filter && !filter(this.buffer[i])) {
+        limitIndex++;
+        continue;
+      }
+      accumulated += customGetter ? getter(this.buffer[i]) : this.buffer[i] as unknown as number;
+      usedValues++;
+    }
+    accumulated /= usedValues;
+
+    return accumulated;
   }
 
   meanInStandardDeviation({ age = this.maxAge, getter = this.defaultGetter, deviationGetter = this.defaultGetter } = {}) {
