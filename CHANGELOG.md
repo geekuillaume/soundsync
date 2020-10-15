@@ -1,5 +1,40 @@
 # Changelog
 
+<a name="0.4.3"></a>
+## 0.4.3 (2020-10-15)
+
+### Added
+
+- ✨ Support encrypted Airplay [[71d3a3e](https://github.com/geekuillaume/soundsync/commit/71d3a3eab38bff9617a730ea74d14427225520c0)]
+- ✨ Check if soundsync is already running before starting [[b6d029c](https://github.com/geekuillaume/soundsync/commit/b6d029ca9a1446053632b82a703f3bb0915ce730)]
+
+### Changed
+
+- 💄 Disable pipe animation on webui because of high CPU/GPU usage [[548ac21](https://github.com/geekuillaume/soundsync/commit/548ac213ea21a38eb9b66174f600c3150649c526)]
+- ⬆️ Update to last audioworklet version [[1fa4080](https://github.com/geekuillaume/soundsync/commit/1fa40803ebebe6e9a26ab5515c598016ebe11c71)]
+- ⬆️ Upgrades Electron to last version [[5559e39](https://github.com/geekuillaume/soundsync/commit/5559e39941ad04d2f801bc89ce7b61a1aa47ce7d)]
+
+### Fixed
+
+- 🐛 Improves browser compatibility detection and error message [[4618fdd](https://github.com/geekuillaume/soundsync/commit/4618fddf71ef4dd60f51a0ac9baacaf3e732aafc)]
+- 🐛 Fix RTCPeerConnection not a constructor error [[9f8b6fa](https://github.com/geekuillaume/soundsync/commit/9f8b6fa17ba15440bcbbc2eb68cc9f091cbe4f2b)]
+- 🐛 Fix entrypoint argv parsing when manually starting with npm run start:electron [[3454954](https://github.com/geekuillaume/soundsync/commit/34549544af2f07b98f0aa4742a68bfcd91622f0b)]
+
+### Security
+
+- 🔒 Enable hardened runtime for macos build [[42cdf88](https://github.com/geekuillaume/soundsync/commit/42cdf88ba67a82a64e35052acbf048d9f4ae59a9)]
+
+### Miscellaneous
+
+- 🚧 Improving airplay sink [[bae8e0c](https://github.com/geekuillaume/soundsync/commit/bae8e0cba8a69f508871031d43bc42115bb04d58)]
+- 🚧 Signal out of order chunk for first on in stream [[16a34eb](https://github.com/geekuillaume/soundsync/commit/16a34ebf41f8b74cc18ab9486bd37d844619a8d7)]
+- 🚧 Airplay sink integration in progress [[1e324b8](https://github.com/geekuillaume/soundsync/commit/1e324b80b4dd64ad00d11b8eaf03134beaabcfa7)]
+-  👷 Fix build script package.json indentation [[fd82bef](https://github.com/geekuillaume/soundsync/commit/fd82bef3c82efe54cd44fcc02b4d48ccd2fc5d85)]
+- 📝 Adds instructions to start Soundsync directly from the source code [[30bbe55](https://github.com/geekuillaume/soundsync/commit/30bbe557719b64c6805c9066b3504b1c72bd4527)]
+- 🚧 WIP Improving Airplay sink compatibility [[4afd9d2](https://github.com/geekuillaume/soundsync/commit/4afd9d25689ce56f778a28a56eb75f1800151ca7)]
+- 🚧 Bump to dev version [[4e1198e](https://github.com/geekuillaume/soundsync/commit/4e1198e5ebc650a43900b152e35047d1d24b88c2)]
+
+
 <a name="0.4.2"></a>
 ## 0.4.2 (2020-10-05)
 
