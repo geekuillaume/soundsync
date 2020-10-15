@@ -7,11 +7,14 @@ const l = debug('soundsync:localAudioDevice');
 let audioServer: AudioServer;
 const deviceChangeListeners: (() => any)[] = [];
 
+let audioDevices: ReturnType<typeof audioServer.getDevices>;
+
 export const getAudioServer = () => {
   if (!audioServer) {
     l(`Creating audio server`);
     audioServer = new AudioServer({
       onDeviceChange: _.debounce(() => {
+        audioDevices = null;
         deviceChangeListeners.forEach((listener) => listener());
       }, 200),
     });
@@ -20,7 +23,12 @@ export const getAudioServer = () => {
   return audioServer;
 };
 
-export const getAudioDevices = () => getAudioServer().getDevices();
+export const getAudioDevices = () => {
+  if (!audioDevices) {
+    audioDevices = getAudioServer().getDevices();
+  }
+  return audioDevices;
+};
 
 export const onAudioDevicesChange = (listener: () => void) => deviceChangeListeners.push(listener);
 
