@@ -1,5 +1,28 @@
 # Changelog
 
+<a name="0.4.4"></a>
+## 0.4.4 (2020-10-17)
+
+### Added
+
+- 🔊 Fix out-of-order log [[53dc37d](https://github.com/geekuillaume/soundsync/commit/53dc37dd36917301a63276bc3430b0bbc981aced)]
+- 🔊 Don&#x27;t show out-of-order chunk if received after discarded old chunks [[223cbad](https://github.com/geekuillaume/soundsync/commit/223cbad42fbe0b4a077eed56955ca2804141228c)]
+
+### Changed
+
+- ⚡ Force max 100ms max retransmit time for audio chunks webrtc messages [[3f6776d](https://github.com/geekuillaume/soundsync/commit/3f6776d3d40012bc63954aee5045a85e84d91a32)]
+- ⚡ Optimize mean calculation performance [[bec36ff](https://github.com/geekuillaume/soundsync/commit/bec36ff5914ad321a44c61038185e64681829076)]
+- ⚡ Memoize local audio devices list [[d9170d4](https://github.com/geekuillaume/soundsync/commit/d9170d4309b7830f7633879f901038711c7d32d5)]
+
+### Fixed
+
+- 🐛 Fix bug with local device audio push chunks before having synchronized timedelta with peer leading to silence [[43f54b2](https://github.com/geekuillaume/soundsync/commit/43f54b24faff91bc10eb99e4323866ac32b5e475)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[40f388e](https://github.com/geekuillaume/soundsync/commit/40f388ee1650fe7eed148c63e860cf068a9e2ebc)]
+
+
 <a name="0.4.3"></a>
 ## 0.4.3 (2020-10-15)
 
