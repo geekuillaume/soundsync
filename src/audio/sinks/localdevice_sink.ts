@@ -66,6 +66,7 @@ export class LocalDeviceSink extends AudioSink {
 
     const flushDriftHistory = () => {
       // in some situation (audio source latency change, peer timedelta big change), we flush the drift history so that we can correct quickly for this change
+      this.audioBufferTransformer.ignoreDriftFor = 0;
       this.audioClockDriftHistory.flush();
     };
     // we keep a reference here instead of using this.pipedSource to always be able remove the event listeners in the clean stream
@@ -112,6 +113,13 @@ export class LocalDeviceSink extends AudioSink {
       this.audioBufferTransformer.ignoreDriftFor = 0;
     }
     const { bufferTimestamp, buffer } = this.audioBufferTransformer.transformChunk(chunk, (data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT));
+
+    const bufferTimestampDelta = ((bufferTimestamp - this.audioStream.getPosition()) / this.rate) * 1000;
+    if (bufferTimestampDelta < 0 || bufferTimestampDelta > this.latency + this.latencyCorrection + 1000) {
+      // if we are trying to push a buffer already in the past or too far in the future, do nothing
+      return;
+    }
+
     try {
       this.audioStream.pushAudioChunk(bufferTimestamp, buffer);
     } catch (e) {
