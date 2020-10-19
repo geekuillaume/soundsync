@@ -1,10 +1,9 @@
 import Minipass from 'minipass';
 import debug from 'debug';
-import SoxrResampler, { SoxrDatatype, SoxrResamplerThread } from 'wasm-audio-resampler';
-import { createWriteStream } from 'fs';
-import { now } from '../misc';
+import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
+import { assert, now, rollover } from '../misc';
 import {
-  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+  OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
 } from '../constants';
 import { OpusApplication } from './opus';
 import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
@@ -223,6 +222,8 @@ export class AudioChunkStreamResampler extends Minipass {
   private resampler: SoxrResampler;
 
   private alignementBuffer: Uint8Array;
+  private resampledBuffer: Uint8Array;
+  private bufferOffset = 0;
   private bufferSize = 0;
 
   private chunkIndexToEmit: number[] = [];
@@ -232,35 +233,63 @@ export class AudioChunkStreamResampler extends Minipass {
     super({
       objectMode: true,
     });
+
     this.resampler = new SoxrResampler(channels, inRate, outRate, SoxrDatatype.SOXR_INT16, SoxrDatatype.SOXR_FLOAT32);
+    this.resampler.init();
+
     // chunks can be delayed and returned in one call so we need to realign them
     this.outputChunkTargetLength = OPUS_ENCODER_CHUNK_SAMPLES_COUNT * this.channels * Float32Array.BYTES_PER_ELEMENT;
-    this.alignementBuffer = new Uint8Array(this.outputChunkTargetLength * 3);
+    // we use a big alignement buffer because we want to return a slice of the buffer instead of a copy
+    // and we need to not use the same buffer space directly after so we use a circular buffer
+    this.alignementBuffer = new Uint8Array(MAX_LATENCY * (outRate / 1000));
+    assert((MAX_LATENCY * (outRate / 1000)) % this.outputChunkTargetLength === 0, 'alignement buffer length should be a multiple of outputChunkTargetLength');
+    this.resampledBuffer = new Uint8Array(this.outputChunkTargetLength * 3);
   }
 
   write(d: any, encoding?: string | (() => void), cb?: () => void) {
-    // TODO: Use threaded version of soxr resampler
-    this.resampler.init().then(async () => {
-      this.chunkIndexToEmit.push(d.i);
-
-      const outputChunk = this.resampler.processChunk(d.chunk, this.alignementBuffer.subarray(this.bufferSize));
-      this.bufferSize += outputChunk.length;
-
-      while (this.bufferSize >= this.outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
-        const [chunkIndex] = this.chunkIndexToEmit.splice(0, 1);
-        super.write({
-          i: chunkIndex,
-          chunk: this.alignementBuffer.slice(0, this.outputChunkTargetLength),
-        });
-        this.alignementBuffer.copyWithin(0, this.outputChunkTargetLength);
-        this.bufferSize -= this.outputChunkTargetLength;
-      }
-
+    const makeCallback = () => {
       const callback = typeof encoding === 'function' ? encoding : cb;
       if (callback) {
         callback();
       }
-    });
+    };
+    if (!this.resampler.soxrModule) {
+      // the resampler is not yet initialized, bailing out on the audio chunk
+      // (we optimize for latency so if the resampler is not yet ready, we drop the chunk instead of waiting as anyway the chunk will be too old to be useful)
+      makeCallback();
+      return true;
+    }
+    this.chunkIndexToEmit.push(d.i);
+
+    // TODO: Use threaded version of soxr resampler
+    const outputChunk = this.resampler.processChunk(d.chunk, this.resampledBuffer);
+    if (outputChunk.length === 0) {
+      makeCallback();
+      return true;
+    }
+    if (this.bufferOffset + outputChunk.length > this.alignementBuffer.length) {
+      // complex case: the resampled data don't fit in one go, need to write it in two passes
+      const overflow = (this.bufferOffset + outputChunk.length) - this.alignementBuffer.length;
+      this.alignementBuffer.set(outputChunk.subarray(0, outputChunk.length - overflow), this.bufferOffset);
+      this.alignementBuffer.set(outputChunk.subarray(outputChunk.length - overflow), 0);
+    } else {
+      // simple case: the resampled data fit in the alignement buffer
+      this.alignementBuffer.set(outputChunk, this.bufferOffset);
+    }
+
+    this.bufferSize += outputChunk.length;
+    this.bufferOffset = (this.bufferOffset + outputChunk.length) % this.alignementBuffer.length;
+
+    while (this.bufferSize >= this.outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
+      const [chunkIndex] = this.chunkIndexToEmit.splice(0, 1);
+      const offset = rollover(this.bufferOffset - this.bufferSize, 0, this.alignementBuffer.length);
+      super.write({
+        i: chunkIndex,
+        chunk: this.alignementBuffer.subarray(offset, offset + this.outputChunkTargetLength),
+      });
+      this.bufferSize -= this.outputChunkTargetLength;
+    }
+    makeCallback();
     return true;
   }
 }

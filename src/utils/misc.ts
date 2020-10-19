@@ -85,3 +85,15 @@ export class AudioError extends Error {
     return message;
   }
 }
+
+// util method used mainly for circular buffer indexes, when using an value plus or minus an offset this makes sure the index is always contained in the buffer length
+export const rollover = (value: number, min: number, max: number) => {
+  while (value < min) {
+    value += max - min;
+  }
+  while (value > max) {
+    value -= max - min;
+  }
+  return value;
+}
+
