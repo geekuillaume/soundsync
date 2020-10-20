@@ -69,9 +69,13 @@ jobs:
         uses: samuelmeuli/action-electron-builder@v1
         env:
           USE_HARD_LINKS: false # because of https://github.com/electron-userland/electron-builder/issues/3179
+          APPLEID: ${{ secrets.APPLEID }}
+          APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
         with:
           github_token: ${{ secrets.github_token }}
           release: false
+          mac_certs: ${{ secrets.CSC_LINK }}
+          mac_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Clean build directory
         shell: bash
