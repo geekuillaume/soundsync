@@ -35,6 +35,7 @@ interface ConfigData {
   sharedState: SharedState;
   disableTelemetry: boolean;
   createLoopbackInterface: boolean;
+  autoupdate: boolean;
 }
 
 const defaultConfig: ConfigData = {
@@ -53,6 +54,7 @@ const defaultConfig: ConfigData = {
   },
   disableTelemetry: false,
   createLoopbackInterface: true,
+  autoupdate: true,
 };
 
 let config: {

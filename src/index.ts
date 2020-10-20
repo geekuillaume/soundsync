@@ -27,6 +27,7 @@ import { initMdnsForRendezvousInitiator } from './communication/initiators/rende
 import { registerEventLoopMonitor } from './utils/environment/nodeEventLoopStats';
 import { createLoopbackInterface } from './utils/audio/loopbackDeviceManager';
 import { isAnotherInstanceAlreadyRunning } from './utils/environment/electron';
+import { installAutoUpdater } from './utils/environment/updater';
 
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:audioSinkDebug,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
@@ -134,6 +135,9 @@ const main = async () => {
   getClientCoordinator();
   if (argv.kiosk) {
     startKioskMode();
+  }
+  if (getConfigField('autoupdate')) {
+    installAutoUpdater();
   }
 };
 

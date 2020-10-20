@@ -16,6 +16,7 @@
         "cross-env": "^6.0.3",
         "debug": "^4.1.1",
         "dns-js": "^0.2.1",
+        "electron-updater": "^4.3.5",
         "env-paths": "^2.2.0",
         "freeice": "^2.2.2",
         "immer": "^5.3.5",
