@@ -56,7 +56,6 @@ export const createSystray = () => {
         tray.setContextMenu(contextMenu);
       };
 
-      tray.setTitle('Soundsync');
       refreshMenu();
     } catch (e) {
       console.error(e);
