@@ -6,8 +6,9 @@ import computerIcon from 'res/computer.svg';
 import philipsHueLogo from 'res/philipshuelogo.png';
 import chromecastLogo from 'res/chromecast.png';
 import airplayIcon from 'res/airplay.svg';
+import {isWebAudioAvailable} from '../../../../src/audio/sinks/webaudio_sink';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((t) => ({
   typeButton: {
     flex: 1,
     display: 'flex',
@@ -31,6 +32,11 @@ const useStyles = makeStyles(() => ({
     marginTop: 15,
     maxHeight: 50,
   },
+  webaudioNotAvailable: {
+    gridColumn: '1 / span 2',
+    marginTop: 10,
+    color: t.palette.grey[700],
+  }
 }));
 
 
@@ -57,6 +63,7 @@ export const SinkTypeSelection = ({ onTypeSelected }) => {
           <img src={computerIcon} alt="" className={styles.sourceTypeLogo} />
           <span>Computer</span>
         </Button>
+        {!isWebAudioAvailable() && document.location.protocol !== 'https' && <p className={styles.webaudioNotAvailable}>Using this browser as an audio output is not supported for this page. Please use <a href="https://soundsync.app">https://soundsync.app/</a> to use this feature.</p>}
       </DialogContent>
     </>
   );

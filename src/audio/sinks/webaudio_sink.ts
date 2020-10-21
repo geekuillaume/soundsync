@@ -14,6 +14,8 @@ import { NumericStatsTracker } from '../../utils/basicNumericStatsTracker';
 const AUDIO_DRIFT_HISTORY_INTERVAL = 50;
 const AUDIO_DRIFT_HISTORY_DURATION = 2 * 60 * 1000;
 
+export const isWebAudioAvailable = () => typeof AudioContext === 'function' && typeof AudioWorkletNode === 'function';
+
 export class WebAudioSink extends AudioSink {
   type: 'webaudio' = 'webaudio';
   local: true = true;
@@ -24,7 +26,7 @@ export class WebAudioSink extends AudioSink {
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
-    this.available = typeof AudioContext === 'function' && typeof AudioWorkletNode === 'function';
+    this.available = isWebAudioAvailable();
 
     if (!isBrowser) {
       throw new Error('WebAudio sink can only be created on a browser');
