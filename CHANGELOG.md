@@ -1,5 +1,31 @@
 # Changelog
 
+<a name="0.4.5"></a>
+## 0.4.5 (2020-10-21)
+
+### Changed
+
+- 💄 Remove title in systray [[464f2ac](https://github.com/geekuillaume/soundsync/commit/464f2ac860fa05a98717cba98e01acfbd0117b03)]
+- ⬆️ Upgrade audioworklet [[26d2152](https://github.com/geekuillaume/soundsync/commit/26d21522a91c44916ea97f82d80c6d996f0d909c)]
+- 💄 Adds BetaPopup and simplify some webui text [[a30a218](https://github.com/geekuillaume/soundsync/commit/a30a218e6e52e03255ecf62335a61c91004976d4)]
+- ⚡ Improve chunk_stream perfs [[78ec417](https://github.com/geekuillaume/soundsync/commit/78ec417bde0ed57b5f01bd366d7a9b858cc04a4f)]
+
+### Fixed
+
+- 🐛 Don&#x27;t crash on updater error [[7827b67](https://github.com/geekuillaume/soundsync/commit/7827b67638fa9f7ef7f3d5a422f51a7b06d56f10)]
+- 🐛 Fix entitlement file for macos build [[81c82c6](https://github.com/geekuillaume/soundsync/commit/81c82c66dd988d596771b8d9c99ccc16eed12831)]
+- 🐛 Fix Macos entitlements [[99d70be](https://github.com/geekuillaume/soundsync/commit/99d70bea8ec17ed5070f4edce0b0b6d31be64fcc)]
+
+### Miscellaneous
+
+- 🚧 Again fix for macos entitlement file [[a5aa5e0](https://github.com/geekuillaume/soundsync/commit/a5aa5e0ac8f8d052bbe6bfb4cf8573b1bde041fe)]
+-  👷 Adds yarn cache for webui build [[91af0b5](https://github.com/geekuillaume/soundsync/commit/91af0b598d0759655c96a0122c2283b9578ac061)]
+-  👷 Adds yarn cache on Github Actions [[84bb329](https://github.com/geekuillaume/soundsync/commit/84bb329aa500f9f7b5de31f59bff9e0ddff1e23d)]
+-  👷 Adds MacOS code signing and notarization [[895529c](https://github.com/geekuillaume/soundsync/commit/895529c17659bf9c532749f61a1fa7295bcd99bb)]
+- 🚧 Start implementing auto-updater [[3f68968](https://github.com/geekuillaume/soundsync/commit/3f68968cb0a19c046c20ded0b7d9487279cbd9e0)]
+- 🚧 Bump to dev version [[3f12feb](https://github.com/geekuillaume/soundsync/commit/3f12febea3c1ac876daaf78fe571299a9235afa4)]
+
+
 <a name="0.4.4"></a>
 ## 0.4.4 (2020-10-17)
 
