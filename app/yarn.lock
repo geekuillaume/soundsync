@@ -485,10 +485,10 @@ at-least-node@^1.0.0:
   resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
   integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
-audioworklet@5.0.4:
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-5.0.4.tgz#1fedcff6805fb821078182be93572e78622495d4"
-  integrity sha512-bT3zWTypAjwXR5Cke23X+M9LMIAhAk7YFdq0JWaTPV499x7PjzBAvntIAU7vwxjUNXWCB5AJo3XbQ+pQQlFkQQ==
+audioworklet@5.0.5:
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/audioworklet/-/audioworklet-5.0.5.tgz#15a2a3d2d9d25531b0bfc0cb156eb9941309b9e4"
+  integrity sha512-o2nd6uyxHbzfEm1j67zhhfMlIsgWzKF+ZB3AZOtPwufZngcLvMjoDm0FP0ExdrWg+7tAHghtIS+fPghu/NKyqQ==
   dependencies:
     bindings "^1.5.0"
     cmake-js "^6.1.0"
