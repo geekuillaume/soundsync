@@ -40,7 +40,7 @@ export const createSystray = () => {
           {
             label: 'Open Controller',
             click: () => {
-              open(`http://localhost:6512`);
+              open(`http://localhost:6512/controller`);
             },
           },
           {
