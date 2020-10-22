@@ -10,9 +10,8 @@ const mountNode = document.getElementById('app');
 ReactDOM.render(<App />, mountNode);
 
 // @ts-ignore
-window.soundsyncDebug = (debugAudio: boolean) => {
+window.soundsyncDebug = () => {
   localStorage['soundsync:debug'] = true;
-  localStorage.debug = "soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo";
-  localStorage.debug += `,${debugAudio ? 'soundsync:audioSinkDebug' : '-soundsync:audioSinkDebug'}`;
+  localStorage.debug = "soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo,soundsync:audioSinkDebug";
   document.location.reload();
 }
