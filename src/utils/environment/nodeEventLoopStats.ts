@@ -1,11 +1,11 @@
-import debug from 'debug';
 import { monitorEventLoopDelay } from 'perf_hooks';
+import { l } from './log';
 
 const EVENT_LOOP_BLOCK_THRESHOLD = 20;
 
 const nanoToMilli = (v: number) => v / (10 ** 6);
 
-const log = debug('soundsync:eventloop');
+const log = l.extend('eventloop');
 
 export const registerEventLoopMonitor = () => {
   const h = monitorEventLoopDelay();

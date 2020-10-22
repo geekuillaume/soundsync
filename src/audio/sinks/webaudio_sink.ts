@@ -1,6 +1,6 @@
 // This is only used in a browser context
 
-import debug from 'debug';
+import debug from '../../utils/environment/log';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { isBrowser } from '../../utils/environment/isBrowser';
 import { AudioSink } from './audio_sink';

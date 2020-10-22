@@ -5,13 +5,13 @@
 
 // /* eslint-disable no-continue */
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debug from 'debug';
 import os from 'os';
 import dgram from 'dgram';
-
 import dns from 'dns-js';
 
-const log = debug('soundsync:mdns');
+import { l } from '../environment/log';
+
+const log = l.extend('mdns');
 
 const DNSPacket = dns.DNSPacket;
 //var DNSRecord = dns.DNSRecord;

@@ -1,9 +1,7 @@
-import debug from 'debug';
+import { l } from './log';
 
 import { onElectronReady } from './electron';
 import { getConfigField } from '../../coordinator/config';
-
-const l = debug('soundsync');
 
 export const startKioskMode = () => {
   onElectronReady((electron) => {

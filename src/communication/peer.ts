@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 
-import debug, { Debugger } from 'debug';
+import debug, { l } from '../utils/environment/log';
 import { NO_RESPONSE_TIMEOUT } from '../utils/constants';
 import { BUILD_VERSION } from '../utils/version';
 import { handleSharedStateFromPeer } from '../coordinator/shared_state';
@@ -35,8 +35,8 @@ export abstract class Peer extends EventEmitter {
   version: string;
   state: 'connecting' | 'connected' | 'deleted' = 'connecting';
   private timekeeper = new Timekeeper();
-  log: Debugger;
-  protected logPerMessageType: {[type: string]: Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
+  log: debug.Debugger;
+  protected logPerMessageType: {[type: string]: debug.Debugger} = {}; // we use this to prevent having to create a debug() instance on each message receive which cause a memory leak
   private rpcResponseHandlers: {[uuid: string]: (message: RPCMessage) => void} = {};
   capacities: Capacity[];
   isLocal: boolean;
@@ -51,7 +51,7 @@ export abstract class Peer extends EventEmitter {
     this.isLocal = isLocal;
     this.name = name;
     this.uuid = uuid;
-    this.log = debug(`soundsync:peer:${uuid}`);
+    this.log = l.extend(`peer:${uuid}`);
     this.instanceUuid = instanceUuid;
     this.capacities = capacities || [];
     this.version = version;
@@ -95,7 +95,7 @@ export abstract class Peer extends EventEmitter {
       this.uuid = message.peer.uuid;
       this.version = message.peer.version;
       if (this.state !== 'connected') {
-        this.log = debug(`soundsync:peer:${message.peer.uuid}`);
+        this.log = l.extend(`peer:${message.peer.uuid}`);
         this.setState('connected');
         this.log('Connected');
       }

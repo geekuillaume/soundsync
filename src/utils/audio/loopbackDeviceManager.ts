@@ -1,10 +1,10 @@
 import { exec, execSync } from 'child_process';
-import debug from 'debug';
 import { promisify } from 'util';
+import { l } from '../environment/log';
 import { onExit } from '../on_exit';
 import { getAudioServer } from './localAudioDevice';
 
-const log = debug('soundsync:loopbackDeviceManager');
+const log = l.extend('loopbackDeviceManager');
 
 const execPromisify = promisify(exec);
 

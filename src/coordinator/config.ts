@@ -8,9 +8,9 @@ import { hostname } from 'os';
 import envPaths from 'env-paths';
 import mkdirp from 'mkdirp';
 import { v4 as uuidv4 } from 'uuid';
-import debug from 'debug';
 import _ from 'lodash';
 import produce from 'immer';
+import { l } from '../utils/environment/log';
 import { exit } from '../utils/on_exit';
 import { isBrowser } from '../utils/environment/isBrowser';
 import { SinkDescriptor } from '../audio/sinks/sink_type';
@@ -20,7 +20,7 @@ import { AudioSink } from '../audio/sinks/audio_sink';
 import { SharedState } from './shared_state';
 import { trackInstall } from '../utils/vendor_integrations/posthog';
 
-const log = debug(`soundsync:config`);
+const log = l.extend(`config`);
 
 interface ConfigData {
   name: string;

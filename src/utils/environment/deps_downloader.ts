@@ -1,15 +1,15 @@
 import { resolve } from 'path';
 import { promises as fsPromises, createWriteStream, createReadStream } from 'fs';
 
-import debug from 'debug';
 import { Extract } from 'unzipper';
+import { l } from './log';
 import { getConfigDir } from '../../coordinator/config';
 import { sha1sum, once } from '../misc';
 
 // fsPromise is undefined when executed in a web browser context
 const { readFile, chmod } = fsPromises || {};
 
-const l = debug(`soundsync:depsDownloader`);
+const log = l.extend(`depsDownloader`);
 import request = require('superagent');
 
 const deps = {
@@ -78,7 +78,7 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
     path += '.exe'; // the exe extension is required for a window executable
   }
   try {
-    l(`Ensuring dep ${depName} at ${path}`);
+    log(`Ensuring dep ${depName} at ${path}`);
     const file = await readFile(path);
     const sha1 = sha1sum(file);
     if (sha1 !== downloadInfo.sha1) {
@@ -86,7 +86,7 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
     }
   } catch (e) {
     // TODO: on error, remove zip folder
-    l(`Dep is not suitable, downloading from ${downloadInfo.url}`, e.message);
+    log(`Dep is not suitable, downloading from ${downloadInfo.url}`, e.message);
     const req = request.get(downloadInfo.url);
     const writeStream = createWriteStream(path);
     req.pipe(writeStream);
@@ -103,7 +103,7 @@ export const ensureDep = async <T extends keyof typeof deps>(depName: T) => {
     } else {
       await chmod(path, '775');
     }
-    l(`Downloaded dep to ${path}`);
+    log(`Downloaded dep to ${path}`);
   }
   if (dep.isZip) {
     return resolve(depPath(depName), dep.executableName);

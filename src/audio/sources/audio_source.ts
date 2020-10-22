@@ -1,9 +1,9 @@
-import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import MiniPass from 'minipass';
 import { TypedEmitter } from 'tiny-typed-emitter';
+import debug, { l } from '../../utils/environment/log';
 import { createAudioEncodedStream } from '../../utils/audio/chunk_stream';
 import {
   INACTIVE_TIMEOUT, SOURCE_MIN_LATENCY_DIFF_TO_RESYNC, LATENCY_MARGIN, OPUS_ENCODER_CHUNK_DURATION,
@@ -68,7 +68,7 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
     this.active = descriptor.active ?? false; // true by default, will be set to false if there is not activity, this is necessary to allow the source to be started
     this.started = descriptor.started ?? false;
     this.error = descriptor.error;
-    this.log = debug(`soundsync:audioSource:${this.uuid}`);
+    this.log = l.extend(`audioSource:${this.uuid}`);
     this.log(`Created new audio source`);
   }
 

@@ -1,5 +1,5 @@
-import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
+import { l } from '../../utils/environment/log';
 import { assert } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
 import { BUILD_VERSION } from '../../utils/version';
@@ -8,7 +8,7 @@ import { WebrtcPeer } from '../wrtc_peer';
 import { WebrtcInitiator, InitiatorMessage, InitiatorMessageContent } from './initiator';
 import { PeerConnectionInfoMessage } from '../messages';
 
-const log = debug('soundsync:peerRelayInitiator');
+const log = l.extend('peerRelayInitiator');
 
 const initiatorsListener: {[initiatorUuid: string]: (message: PeerConnectionInfoMessage) => unknown} = {};
 

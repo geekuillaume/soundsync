@@ -1,5 +1,5 @@
 import Router from 'koa-router';
-import debug from 'debug';
+import { l } from '../../utils/environment/log';
 import { onSniRequest } from '../https_sni_request';
 import { assert, addDashesToUuid } from '../../utils/misc';
 import { getLocalPeer } from '../local_peer';
@@ -13,7 +13,7 @@ import {
 } from '../rendezvous_service';
 import { Mdns } from '../../utils/network/mdns';
 
-const log = debug(`soundsync:rendezvous`);
+const log = l.extend(`rendezvous`);
 const POLLING_INTERVAL = 3000;
 const initiatorsListener: {[initiatorUuid: string]: (message: InitiatorMessage) => Promise<void>} = {};
 
@@ -153,7 +153,7 @@ export const initHttpServerRoutes = (router: Router) => {
   });
 };
 
-const mdnsLog = debug(`soundsync:mdns`);
+const mdnsLog = l.extend(`mdns`);
 // We also use MDNS to notify the rendezvous service initiator to support networks with DNS servers which are blocking local ip DNS records
 // and so the sslip.io domain names. Using this makes sure that the two devices are still on the same local network
 export const initMdnsForRendezvousInitiator = () => {

@@ -1,25 +1,25 @@
 import { autoUpdater } from 'electron-updater';
-import debug from 'debug';
+import { l } from './log';
 
 import { onElectronReady } from './electron';
 
-const l = debug(`soundsync:updater`);
+const log = l.extend(`updater`);
 
 export const installAutoUpdater = () => {
   onElectronReady(async () => {
     autoUpdater.logger = {
-      info: l,
-      warn: l,
-      error: l,
+      info: log,
+      warn: log,
+      error: log,
     };
-    l(`Updater starting, current version: ${autoUpdater.currentVersion}`);
+    log(`Updater starting, current version: ${autoUpdater.currentVersion}`);
     autoUpdater.on('update-available', (info) => {
-      l(`Update available: ${info.version}`);
+      log(`Update available: ${info.version}`);
     });
     try {
       await autoUpdater.checkForUpdatesAndNotify();
     } catch (e) {
-      l(`Error while checking for update: ${e.message}`);
+      log(`Error while checking for update: ${e.message}`);
     }
   });
 };

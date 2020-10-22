@@ -1,5 +1,5 @@
-import debug from 'debug';
 import _ from 'lodash';
+import debug, { l } from '../utils/environment/log';
 import { Peer } from '../communication/peer';
 import { getAudioSourcesSinksManager } from '../audio/get_audio_sources_sinks_manager';
 import { getPeersManager } from '../communication/get_peers_manager';
@@ -19,7 +19,7 @@ export class ClientCoordinator {
   log: debug.Debugger;
 
   constructor() {
-    this.log = debug(`soundsync:clientCoordinator`);
+    this.log = l.extend(`clientCoordinator`);
     this.log(`Created client coordinator`);
 
     getPeersManager().on('newSourceChannel', this.handleNewSourceChannel);
@@ -141,7 +141,6 @@ export class ClientCoordinator {
     getAudioSourcesSinksManager().removeSource(message.sourceUuid);
   }
 }
-
 
 let clientCoordinator: ClientCoordinator;
 export const getClientCoordinator = () => {

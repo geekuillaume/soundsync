@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import _ from 'lodash';
-import debug from 'debug';
 
+import { l } from '../utils/environment/log';
 import { onExit } from '../utils/on_exit';
 import { getLocalPeer } from './local_peer';
 import { createHttpApiInitiator, HttpApiInitiator } from './initiators/httpApiInitiator';
@@ -15,7 +15,7 @@ import { Peer } from './peer';
 import { createPeerRelayServiceInitiator, PeerRelayInitiator } from './initiators/peerRelayInitiator';
 import { RPCType, RPCRequestBody } from './rpc/rpc';
 
-const log = debug('soundsync:wrtc');
+const log = l.extend('wrtc');
 
 export class PeersManager extends EventEmitter {
   private peers: Peer[] = [];

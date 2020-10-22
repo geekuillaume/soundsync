@@ -1,11 +1,11 @@
 import net from 'net';
-import debug from 'debug';
 import crypto from 'crypto';
 import { TypedEmitter } from 'tiny-typed-emitter';
+import { l } from '../../environment/log';
 import { randomBase64 } from '../../misc';
 import { AUTH_SETUP_PUBLIC_KEY, RSA_PRIVATE_KEY } from './airplayConstants';
 
-const log = debug(`soundsync:rtsp`);
+const log = l.extend(`rtsp`);
 
 interface RtspSocketEvents {
   'message': (response: RtspResponse) => void;

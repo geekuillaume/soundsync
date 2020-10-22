@@ -1,7 +1,7 @@
-import debug from 'debug';
 import AutoLaunch from 'auto-launch';
+import { l } from './log';
 
-const log = debug(`soundsync:launchAtStartup`);
+const log = l.extend(`launchAtStartup`);
 
 const autoLaunchMock = {
   enable: () => Promise.resolve(),

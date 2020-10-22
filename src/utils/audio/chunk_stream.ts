@@ -1,6 +1,6 @@
 import Minipass from 'minipass';
-import debug from 'debug';
 import SoxrResampler, { SoxrDatatype } from 'wasm-audio-resampler';
+import { l } from '../environment/log';
 import { assert, now, rollover } from '../misc';
 import {
   OPUS_ENCODER_CHUNK_DURATION, OPUS_ENCODER_CHUNKS_PER_SECONDS, OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
@@ -14,7 +14,7 @@ import { OpusEncodeStream, OpusDecodeStream } from './opus_streams';
 // without letting rnough time for the child process to emit new data
 const MIN_LOOP_ITERATION_WITHOUT_DATA_TO_STOP_READING = 5;
 
-const l = debug('soundsync:audioSinkDebug');
+const log = l.extend('audioSinkDebug');
 
 export interface AudioChunkStreamOutput {
   i: number;
@@ -195,7 +195,7 @@ export class AudioChunkStreamOrderer extends Minipass {
     if (this.buffer.length && this.buffer.length >= this.maxUnorderedChunks) {
       // console.log(`== gap too big, starting emitting, next emitable ${this.nextEmittableChunkIndex}`);
       if (this.buffer[0].i - this.nextEmittableChunkIndex === 1) {
-        l(`Conceilling missing chunk ${this.nextEmittableChunkIndex}`);
+        log(`Conceilling missing chunk ${this.nextEmittableChunkIndex}`);
         // there is only one missing chunk, we can send empty packet to let OPUS try to coneal this
         this.emitChunk({
           i: this.nextEmittableChunkIndex,
@@ -203,7 +203,7 @@ export class AudioChunkStreamOrderer extends Minipass {
         });
       }
       if (this.nextEmittableChunkIndex !== this.buffer[0].i) {
-        l(`Missed ${this.buffer[0].i - this.nextEmittableChunkIndex} chunks, continuing without`);
+        log(`Missed ${this.buffer[0].i - this.nextEmittableChunkIndex} chunks, continuing without`);
       }
       // force consumming the buffer starting from the oldest chunk
       this.nextEmittableChunkIndex = this.buffer[0].i;

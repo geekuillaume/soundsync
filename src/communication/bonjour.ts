@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
 import bonjour from 'bonjour';
-import debug from 'debug';
+import { l } from '../utils/environment/log';
 import { getLocalPeer } from './local_peer';
 
-const l = debug('soundsync:bonjour');
+const log = l.extend('bonjour');
 
 const detectorEvents = new EventEmitter();
 let detector: bonjour.Browser;
@@ -16,7 +16,7 @@ export const publishService = (port) => {
       type: 'soundsync',
     });
   } catch (e) {
-    l('Error while casting the coordinator with Bonjour', e);
+    log('Error while casting the coordinator with Bonjour', e);
   }
 };
 
@@ -29,7 +29,7 @@ export const startDetection = () => {
     detector.on('up', () => detectorEvents.emit('update'));
     detector.on('down', () => detectorEvents.emit('update'));
   } catch (e) {
-    l('Error while detecting coordinator on the local network');
+    log('Error while detecting coordinator on the local network');
   }
 };
 

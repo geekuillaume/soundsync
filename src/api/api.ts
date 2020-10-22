@@ -1,15 +1,15 @@
 // import { Context } from 'koa';
 // import _ from 'lodash';
-import debug from 'debug';
 import path from 'path';
 import koaStatic from 'koa-static';
 import send from 'koa-send';
 
+import { l } from '../utils/environment/log';
 import { SoundSyncHttpServer } from '../communication/http_server';
 // import { getAudioSourcesSinksManager } from '../audio/audio_sources_sinks_manager';
 // import { getClientCoordinator } from '../coordinator/client_coordinator';
 
-const log = debug(`soundsync:api`);
+const log = l.extend(`api`);
 
 const WEBUI_ROOT_PATH = path.join(__dirname, '../../webui/dist');
 export const attachApi = (httpServer: SoundSyncHttpServer) => {

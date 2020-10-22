@@ -1,6 +1,6 @@
-import debug from 'debug';
 import { AudioServer, AudioStream } from 'audioworklet';
 
+import debug from '../../utils/environment/log';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';

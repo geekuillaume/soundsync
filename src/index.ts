@@ -1,9 +1,9 @@
-// eslint-disable-next-line import/order
 import { fatalErrorHandler } from './utils/environment/electronErrorHandler';
 import './utils/vendor_integrations/sentry';
+// eslint-disable-next-line import/order
 import yargs from 'yargs';
-import debug from 'debug';
 
+import debug, { l } from './utils/environment/log';
 import { registerAudioSourcesSinksManager, getAudioSourcesSinksManager } from './audio/get_audio_sources_sinks_manager';
 import { attachApi } from './api/api';
 import { enableAutolaunchAtStartup, disableAutolaunchAtStartup } from './utils/environment/launchAtStartup';
@@ -32,7 +32,6 @@ import { installAutoUpdater } from './utils/environment/updater';
 if (!process.env.DEBUG) {
   debug.enable('soundsync,soundsync:*,-soundsync:timekeeper,-soundsync:*:timekeepResponse,-soundsync:*:timekeepRequest,-soundsync:*:peerDiscovery,-soundsync:api,-soundsync:wrtcPeer:*:soundState,-soundsync:*:librespot,-soundsync:*:peerSoundState,-soundsync:*:peerConnectionInfo');
 }
-const l = debug('soundsync');
 
 const main = async () => {
   registerEventLoopMonitor();

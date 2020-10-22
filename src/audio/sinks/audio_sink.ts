@@ -1,9 +1,9 @@
-import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 
 import { EventEmitter } from 'events';
 import MiniPass from 'minipass';
+import { l } from '../../utils/environment/log';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
 import { AudioSource } from '../sources/audio_source';
 import {
@@ -59,7 +59,7 @@ export abstract class AudioSink extends EventEmitter {
     this.channels = 2;
     this.instanceUuid = descriptor.instanceUuid || uuidv4();
     this.latency = descriptor.latency ?? 0;
-    this.log = debug(`soundsync:audioSink:${this.uuid}`);
+    this.log = l.extend(`audioSink:${this.uuid}`);
     this.log(`Created new audio sink of type ${descriptor.type}`);
     this.manager.on('soundstateUpdated', this._syncPipeState);
     getPeersManager().on('peerChange', this._syncPipeState);

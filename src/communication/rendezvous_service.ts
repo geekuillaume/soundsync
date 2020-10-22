@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import debug from 'debug';
+import { l } from '../utils/environment/log';
 import { isBrowser } from '../utils/environment/isBrowser';
 import { InitiatorMessage } from './initiators/initiator';
 import { getPeersManager } from './get_peers_manager';
@@ -9,7 +9,7 @@ import {
 import { getInternalIps } from '../utils/network/ip';
 import { getLocalPeer } from './local_peer';
 
-const log = debug('soundsync:rendezvous');
+const log = l.extend('rendezvous');
 
 const rendezvousApi = superagent.agent().use((req) => {
   if (req.trustLocalhost) {

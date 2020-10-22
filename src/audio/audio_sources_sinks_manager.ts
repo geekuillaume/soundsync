@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
-import debug from 'debug';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
+import { l } from '../utils/environment/log';
 import { AirplaySink } from './sinks/airplay_sink';
 import { onExit } from '../utils/on_exit';
 import { assertNever } from '../utils/misc';
@@ -24,7 +24,7 @@ import { NullSink } from './sinks/null_sink';
 import { getLocalPeer } from '../communication/local_peer';
 import { LocalDeviceSource } from './sources/localdevice_source';
 
-const log = debug(`soundsync:sourcesSinksManager`);
+const log = l.extend(`sourcesSinksManager`);
 
 export class AudioSourcesSinksManager extends EventEmitter {
   autodetect: boolean;

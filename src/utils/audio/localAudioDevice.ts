@@ -1,8 +1,8 @@
 import { AudioServer, AudioDevice } from 'audioworklet';
 import _ from 'lodash';
-import debug from 'debug';
+import { l } from '../environment/log';
 
-const l = debug('soundsync:localAudioDevice');
+const log = l.extend('localAudioDevice');
 
 let audioServer: AudioServer;
 const deviceChangeListeners: (() => any)[] = [];
@@ -11,14 +11,14 @@ let audioDevices: ReturnType<typeof audioServer.getDevices>;
 
 export const getAudioServer = () => {
   if (!audioServer) {
-    l(`Creating audio server`);
+    log(`Creating audio server`);
     audioServer = new AudioServer({
       onDeviceChange: _.debounce(() => {
         audioDevices = null;
         deviceChangeListeners.forEach((listener) => listener());
       }, 200),
     });
-    l(`Created audio server`);
+    log(`Created audio server`);
   }
   return audioServer;
 };

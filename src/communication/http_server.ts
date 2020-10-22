@@ -2,15 +2,15 @@ import _ from 'lodash';
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
-import debug from 'debug';
 import { createServer } from 'http';
 import { createServer as createServerHttps } from 'https';
 import cors from '@koa/cors';
+import { l } from '../utils/environment/log';
 import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
 import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
 
-const l = debug(`soundsync:httpserver`);
+const log = l.extend(`httpserver`);
 
 export interface SoundSyncHttpServer {
   app: Koa<Koa.DefaultState, Koa.DefaultContext>;
@@ -19,7 +19,7 @@ export interface SoundSyncHttpServer {
 }
 
 export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHttpServer> => {
-  l(`Creating new http server`);
+  log(`Creating new http server`);
   const app = new Koa();
   const router = new Router();
 
@@ -40,12 +40,12 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
     server.listen(port);
     server.on('listening', resolve);
   });
-  l(`Listening on ${port}`);
+  log(`Listening on ${port}`);
 
   // The https server is used to receive a rendezvous message advertisement from a https browser context (like from https://soundsync.app)
   // The https context needs to communicate to the http context in the local network and this hack is here to do that
   const httpsPort = port + 1;
-  l(`Creating https server on ${httpsPort}`);
+  log(`Creating https server on ${httpsPort}`);
   const httpsServer = createServerHttps({
     SNICallback: async (serverName, cb) => {
       await sniRequestReceived(serverName);
