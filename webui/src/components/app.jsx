@@ -48,6 +48,10 @@ export const App = () => {
     );
   }
 
+  const shouldRedirectToController = window.localStorage.getItem('soundsync:redirectToController') === 'true' ||
+    document.location.hostname === 'localhost' ||
+    document.location.hostname.match(/^\d+\.\d+\.\d+\.\d+$/);
+
   return (
     <ThemeProvider theme={theme}>
       <SnackbarProvider>
@@ -66,7 +70,7 @@ export const App = () => {
                 <LandingPage />
               </Route>
               <Route path="/">
-                <Redirect to={window.localStorage.getItem('soundsync:redirectToController') === 'true' ? '/controller' : '/landing'} />
+                <Redirect to={shouldRedirectToController ? '/controller' : '/landing'} />
               </Route>
             </Switch>
           </Router>
