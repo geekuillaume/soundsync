@@ -1,5 +1,27 @@
 # Changelog
 
+<a name="0.4.6"></a>
+## 0.4.6 (2020-10-23)
+
+### Added
+
+- 🔊 Add more info in /debuginfo route [[ef2677f](https://github.com/geekuillaume/soundsync/commit/ef2677fffd04fe398bccdf419bec5486da17f787)]
+- 🔊 Improve logs for synchronized audio buffer [[a9879da](https://github.com/geekuillaume/soundsync/commit/a9879daffdc7fb12e2dbc364e66ac14c025709a1)]
+- ✨ Adds /logs route to get last 1000 log lines [[4272af6](https://github.com/geekuillaume/soundsync/commit/4272af6b564b7f2177f762522f7d7016d92750c9)]
+- 🔊 Active audio drift log byu default [[5048237](https://github.com/geekuillaume/soundsync/commit/50482372386e331154c9b5173426fd851f4d85c7)]
+
+### Changed
+
+- ♻️ Centralize log module [[926e4bf](https://github.com/geekuillaume/soundsync/commit/926e4bfa331915726a7e6d83f7f618885234afec)]
+- 💄 Redirect to controller when accessing webui from localhost or direct IP [[2062bcc](https://github.com/geekuillaume/soundsync/commit/2062bcc94aa41a1d04b31619cc63ddc96b885709)]
+- 💄 Redirect to /controller when using open button on systray [[7a88199](https://github.com/geekuillaume/soundsync/commit/7a881990d86200a428f9bfb19a78666c6348feaa)]
+- 💄 Add message about webaudio sink unavailability [[d908145](https://github.com/geekuillaume/soundsync/commit/d90814536940c12de92079c4b96a89a2c3f734af)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[b5b19a5](https://github.com/geekuillaume/soundsync/commit/b5b19a5a5acdcd3012f3223167f7272b6ccb19e5)]
+
+
 <a name="0.4.5"></a>
 ## 0.4.5 (2020-10-21)
 
