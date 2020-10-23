@@ -1,5 +1,18 @@
 # Changelog
 
+<a name="0.4.7"></a>
+## 0.4.7 (2020-10-23)
+
+### Fixed
+
+- 🐛 Don&#x27;t crash on electron update error [[a086bd3](https://github.com/geekuillaume/soundsync/commit/a086bd3f83b8e513216c85b36d2db83ea133dd1d)]
+
+### Miscellaneous
+
+-  👷 Upload zip package for macos [[9f5b629](https://github.com/geekuillaume/soundsync/commit/9f5b6295f49fac22ef875aa0cd550bf955b134f7)]
+- 🚧 Bump to dev version [[fadaced](https://github.com/geekuillaume/soundsync/commit/fadacedc89a11918ddc1355bedc05e5b16934e4c)]
+
+
 <a name="0.4.6"></a>
 ## 0.4.6 (2020-10-23)
 
