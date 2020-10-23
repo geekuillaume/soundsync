@@ -5,7 +5,7 @@ import bodyParser from 'koa-bodyparser';
 import { createServer } from 'http';
 import { createServer as createServerHttps } from 'https';
 import cors from '@koa/cors';
-import { l } from '../utils/environment/log';
+import { getLogHistory, l } from '../utils/environment/log';
 import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
 import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
@@ -28,6 +28,11 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
   }));
   app.use(bodyParser());
   app.use(router.routes());
+
+  router.get('/logs', (ctx) => {
+    ctx.body = getLogHistory();
+    ctx.status = 200;
+  });
 
   initHttpInitiator(router);
   initRendezvousInitiator(router);
