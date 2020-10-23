@@ -9,6 +9,7 @@ import { getLogHistory, l } from '../utils/environment/log';
 import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
 import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
+import { BUILD_VERSION_NOT_SANITIZED } from '../utils/version';
 
 const log = l.extend(`httpserver`);
 
@@ -29,8 +30,13 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
   app.use(bodyParser());
   app.use(router.routes());
 
-  router.get('/logs', (ctx) => {
-    ctx.body = getLogHistory();
+  router.get('/debuginfo', (ctx) => {
+    ctx.body = {
+      version: BUILD_VERSION_NOT_SANITIZED,
+      platform: process.platform,
+      arch: process.arch,
+      logs: getLogHistory(),
+    };
     ctx.status = 200;
   });
 
