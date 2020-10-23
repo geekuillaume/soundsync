@@ -56,9 +56,6 @@ export class LocalDeviceSink extends AudioSink {
     this.audioBufferTransformer = new DriftAwareAudioBufferTransformer(
       this.channels,
       () => this.audioClockDriftHistory.mean(),
-      {
-        debug: debug.enabled('soundsync:audioSinkDebug'),
-      },
     );
 
     this.updateInfo({ latency: device.minLatency });

@@ -2,6 +2,7 @@
 // at the right time for the audio output device
 // It  will hard or soft sync depending on the clock drift between the audio device and the ideal time
 
+import { l } from '../environment/log';
 import { CircularTypedArray } from '../circularTypedArray';
 import { HARD_SYNC_MIN_AUDIO_DRIFT, SOFT_SYNC_MIN_AUDIO_DRIFT, OPUS_ENCODER_RATE } from '../constants';
 
@@ -42,7 +43,7 @@ const smartResizeAudioBuffer = (buffer: Float32Array, targetSamplesPerChannel: n
 export class DriftAwareAudioBufferTransformer {
   public softSyncThreshold: number;
   public hardSyncThreshold: number;
-  private log: (str: string) => void;
+  private log = l.extend('synchronizedAudioBuffer');
   /** Represent the last written sample timestamp + 1 */
   public nextWrittenSampleTimestamp = -1;
   /** Number of samples to add or remove in the next received audio chunks to handle drift between audio and system clock */
@@ -55,13 +56,11 @@ export class DriftAwareAudioBufferTransformer {
     /** Diff between the chunk timestamp and the return buffer timestamp = delta between audio source clock and audio device clock */
     public chunkTimestampIdealDriftGetter: () => number,
     {
-      debug = false,
       softSyncThreshold = SOFT_SYNC_MIN_AUDIO_DRIFT,
       hardSyncThreshold = HARD_SYNC_MIN_AUDIO_DRIFT,
     } = {},
   ) {
     // eslint-disable-next-line no-console
-    this.log = debug ? console.log : () => null;
     this.softSyncThreshold = softSyncThreshold;
     this.hardSyncThreshold = hardSyncThreshold;
   }

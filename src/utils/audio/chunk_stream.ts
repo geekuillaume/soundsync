@@ -76,7 +76,7 @@ export class AudioChunkStream extends Minipass {
         this.loopIterationWithoutData++;
         if (this.loopIterationWithoutData >= MIN_LOOP_ITERATION_WITHOUT_DATA_TO_STOP_READING) {
           // nothing to read from source, we need to compute the next chunk from time instead of the sequence
-          console.log('Stream out of data, stopping reading loop until new data arrives');
+          log('Stream out of data, stopping reading loop until new data arrives');
           this.stopReadLoop();
         }
         break;
@@ -84,10 +84,10 @@ export class AudioChunkStream extends Minipass {
         this.loopIterationWithoutData = 0;
       }
       if (this.lastEmittedChunkIndex === -1) {
-        console.log('Stream started again');
+        log('Stream started again');
       }
       if (chunk.length !== this.chunkSize) {
-        console.log('INCOMPLETE CHUNK');
+        log('INCOMPLETE CHUNK');
         // it could mean we are at the end of the stream and receiving an incomplete chunk
         // so we complete it with zeros
         const incompleteChunk = chunk;
