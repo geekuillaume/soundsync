@@ -10,6 +10,7 @@ import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
 import { initHttpServerRoutes as initRendezvousInitiator } from './initiators/rendezvousServiceInititor';
 import { BUILD_VERSION_NOT_SANITIZED } from '../utils/version';
+import { getAudioSourcesSinksManager } from '../audio/get_audio_sources_sinks_manager';
 
 const log = l.extend(`httpserver`);
 
@@ -36,6 +37,8 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
       platform: process.platform,
       arch: process.arch,
       logs: getLogHistory(),
+      sources: getAudioSourcesSinksManager().sources.map((s) => s.getDebugInfo()),
+      sinks: getAudioSourcesSinksManager().sinks.map((s) => s.getDebugInfo()),
     };
     ctx.status = 200;
   });

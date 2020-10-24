@@ -13,6 +13,10 @@ export class NumericStatsTracker<T> {
     this.defaultGetter = defaultGetter || IDENTITY;
   }
 
+  length() {
+    return this.buffer.length;
+  }
+
   push(point: T) {
     this.buffer.unshift(point);
     if (this.buffer.length > this.maxAge) {

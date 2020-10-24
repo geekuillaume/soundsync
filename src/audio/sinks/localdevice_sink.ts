@@ -152,4 +152,15 @@ export class LocalDeviceSink extends AudioSink {
       error: this.error,
     }),
   })
+
+  _additionalDebugInfo = () => ({
+    audioClockDriftHistoryLength: this.audioClockDriftHistory.length(),
+    audioClockDriftHistoryStdDev: this.audioClockDriftHistory.standardDeviation(),
+    audioClockCurrentDrift: this.audioStream && ((this.audioStream.getPosition()) - ((
+      this.pipedSource.peer.getCurrentTime(true)
+        - this.pipedSource.startedAt
+        - this.pipedSource.latency
+        + this.latencyCorrection
+    ) * (this.rate / 1000))),
+  })
 }

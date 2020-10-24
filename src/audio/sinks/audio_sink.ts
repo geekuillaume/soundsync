@@ -39,6 +39,7 @@ export abstract class AudioSink extends EventEmitter {
   private manager: AudioSourcesSinksManager;
   private sourceStream: MiniPass; // stream returned asynchronously by the audio source
   protected lastReceivedChunkIndex = -1;
+  protected lastReceivedChunkTimeDelta = -1;
 
   abstract _startSink(source: AudioSource): Promise<void> | void;
   abstract _stopSink(): Promise<void> | void;
@@ -192,6 +193,8 @@ export abstract class AudioSink extends EventEmitter {
     }
     this.lastReceivedChunkIndex = chunk.i;
     const timeDelta = this.pipedSource.peer.getCurrentTime() - (chunk.i * OPUS_ENCODER_CHUNK_DURATION + this.pipedSource.startedAt);
+    // used for getDebugInfo()
+    this.lastReceivedChunkTimeDelta = timeDelta;
     if (timeDelta > this.pipedSource.latency) {
       this.log(`Received old chunk, discarding it: ${chunk.i}, current playing chunk is ${Math.floor((this.pipedSource.peer.getCurrentTime() - this.pipedSource.startedAt) / OPUS_ENCODER_CHUNK_DURATION)}`);
       // we received old chunks, discard them
@@ -230,4 +233,22 @@ export abstract class AudioSink extends EventEmitter {
       error: this.error,
     }),
   })
+
+  getDebugInfo = () => ({
+    uuid: this.uuid,
+    type: this.type,
+    error: this.error,
+    pipedFrom: this.pipedFrom,
+    volume: this.volume,
+    latency: this.latency,
+    latencyCorrection: this.latencyCorrection,
+    peerUuid: this.peerUuid,
+    instanceUuid: this.instanceUuid,
+    available: this.available,
+    lastReceivedChunkIndex: this.lastReceivedChunkIndex,
+    lastReceivedChunkTimeDelta: this.lastReceivedChunkTimeDelta,
+    ...this._additionalDebugInfo(),
+  })
+
+  _additionalDebugInfo = () => ({})
 }

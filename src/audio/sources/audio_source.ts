@@ -254,4 +254,17 @@ export abstract class AudioSource extends TypedEmitter<AudioSourceEvents> {
       active: this.active,
     }),
   })
+
+  getDebugInfo = () => ({
+    uuid: this.uuid,
+    type: this.type,
+    error: this.error,
+    started: this.started,
+    latency: this.latency,
+    peerUuid: this.peerUuid,
+    startedAt: this.startedAt,
+    instanceUuid: this.instanceUuid,
+    available: this.available,
+    active: this.active,
+  })
 }
