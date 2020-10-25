@@ -8,6 +8,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const SentryWebpackPlugin = require('@sentry/webpack-plugin');
 const PreloadWebpackPlugin = require('preload-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 
 const config = {
   entry: './src/index.tsx',
@@ -66,7 +67,7 @@ const config = {
     new PreloadWebpackPlugin({
       rel: 'preload',
       include: 'allAssets',
-      fileBlacklist: [/\.(png|ico|svg|jpg|js|json|woff|txt|wasm)$/],
+      fileBlacklist: [/\.(png|ico|svg|jpg|js|json|woff|txt|wasm|br|gz)$/],
     }),
     new webpack.ProvidePlugin({
       Buffer: 'buffer_polyfill',
@@ -88,6 +89,14 @@ const config = {
       ],
     }),
     new webpack.ProgressPlugin({ percentBy: 'entries' }),
+    new CompressionPlugin(),
+    new CompressionPlugin({
+      filename: '[path][base].br',
+      algorithm: 'brotliCompress',
+      compressionOptions: {
+        level: 11,
+      },
+    }),
   ],
   module: {
     defaultRules: [

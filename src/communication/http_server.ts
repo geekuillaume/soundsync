@@ -5,7 +5,6 @@ import bodyParser from 'koa-bodyparser';
 import { createServer } from 'http';
 import { createServer as createServerHttps } from 'https';
 import cors from '@koa/cors';
-import compress from 'koa-compress';
 import { getLogHistory, l } from '../utils/environment/log';
 import { sniRequestReceived } from './https_sni_request';
 import { initHttpServerRoutes as initHttpInitiator } from './initiators/httpApiInitiator';
@@ -29,7 +28,6 @@ export const getHttpServer = _.memoize(async (port: number): Promise<SoundSyncHt
   app.use(cors({
     // TODO limit CORS access here
   }));
-  app.use(compress({}));
   app.use(bodyParser());
   app.use(router.routes());
 

@@ -22,7 +22,6 @@
         "immer": "^5.3.5",
         "koa": "^2.11.0",
         "koa-bodyparser": "^4.2.1",
-        "koa-compress": "^5.0.1",
         "koa-router": "^7.4.0",
         "koa-send": "^5.0.1",
         "koa-static": "^5.0.0",

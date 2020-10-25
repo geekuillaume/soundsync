@@ -14,6 +14,7 @@
     "@sentry/webpack-plugin": "^1.13.0",
     "@types/chromecast-caf-receiver": "^5.0.5",
     "clean-webpack-plugin": "^3.0.0",
+    "compression-webpack-plugin": "^6.0.3",
     "copy-webpack-plugin": "^6.0.1",
     "cross-env": "^7.0.2",
     "css-loader": "^5.0.0",
