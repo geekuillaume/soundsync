@@ -109,7 +109,7 @@ export const Header = ({ showControls = true }) => {
       <Toolbar className={classes.toolbar}>
         <div className={classes.titleContainer}>
           <Link to="/landing">
-            <img src={logo} className="soundsync-logo" />
+            <img src={logo} className="soundsync-logo" height="30" width="30" />
 
             <Typography variant="h6" className={classes.title}>
               Soundsync
