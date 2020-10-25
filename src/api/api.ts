@@ -18,7 +18,9 @@ export const attachApi = (httpServer: SoundSyncHttpServer) => {
   // this.httpServer.router.delete('/source/:sourceUuid/pipe_to_sink/:sinkUuid', this.handleDeletePipe);
   // this.httpServer.router.put('/source/:sourceUuid', this.handleSourceUpdate);
   // this.httpServer.router.put('/sink/:sinkUuid', this.handleSinkUpdate);
-  httpServer.app.use(koaStatic(WEBUI_ROOT_PATH));
+  httpServer.app.use(koaStatic(WEBUI_ROOT_PATH, {
+    maxage: 365 * 24 * 1000 * 60 * 60, // 365 days cache
+  }));
   httpServer.app.use(async (ctx, next) => {
     await next();
     if (ctx.status === 404) {

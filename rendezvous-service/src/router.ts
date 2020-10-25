@@ -26,7 +26,7 @@ export const initHttpServer = () => {
   if (!config.get('proxyTarget')) {
     const staticWebuiPath = resolve(__dirname, '../../webui/dist');
     app.use(koaStatic(staticWebuiPath, {
-      maxage: 1000 * 60 * 60, // 1 hour cache
+      maxage: 365 * 24 * 1000 * 60 * 60, // 365 days cache
     }));
     app.use(async (ctx, next) => {
       await next();
