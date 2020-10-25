@@ -82,7 +82,9 @@ const config = {
       'process.stdout': 'null',
       'process.stderr': 'null',
     }),
-    new MiniCssExtractPlugin(),
+    new MiniCssExtractPlugin({
+      filename: '[name]-[contenthash].css',
+    }),
     new CopyPlugin({
       patterns: [
         { from: 'src/static', to: 'static' },
