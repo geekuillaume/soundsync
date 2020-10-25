@@ -1,5 +1,26 @@
 # Changelog
 
+<a name="0.4.8"></a>
+## 0.4.8 (2020-10-25)
+
+### Added
+
+- 🔊 Adds info about audio sinks and source in /debuginfo route [[854f24b](https://github.com/geekuillaume/soundsync/commit/854f24b01780c14dd50839856c44c78ab19d32b4)]
+
+### Changed
+
+- ⚡ Add cachebuster hash to style.css [[c3dbdf0](https://github.com/geekuillaume/soundsync/commit/c3dbdf0ce8c18154f65594479484745127081ce6)]
+- ⚡ Set cache to 365 days [[d69e188](https://github.com/geekuillaume/soundsync/commit/d69e188e11e220463dceb784b509e8bea3ba54de)]
+- ⚡ Set logo size in html to prevent layour shift [[5beb845](https://github.com/geekuillaume/soundsync/commit/5beb845564fddfe408f7ab917debc28187d2783f)]
+- ⚡ Compress webui in webpack build phase instead of on-the-fly [[8acc5a8](https://github.com/geekuillaume/soundsync/commit/8acc5a8d34006e31a517a44c40601abc2105d8a0)]
+- ⬆️ Migrate to webpack 5 and add some optimizations [[13e756e](https://github.com/geekuillaume/soundsync/commit/13e756e1fb6ce1397d2584de84151125e85dd05f)]
+- ⚡ Compress webui files when serving locally [[3f53c3c](https://github.com/geekuillaume/soundsync/commit/3f53c3c3f7e7b49dd1dd4312d73735ab9027e4b4)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[f9cf934](https://github.com/geekuillaume/soundsync/commit/f9cf934f1d647f82f56b426d0b50ffc7a5e69a89)]
+
+
 <a name="0.4.7"></a>
 ## 0.4.7 (2020-10-23)
 
