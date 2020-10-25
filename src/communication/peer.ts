@@ -152,14 +152,14 @@ export abstract class Peer extends EventEmitter {
       return; // once it's deleted, it's not possible to go back to another state
     }
     this.state = state;
-    // setImmediate is necessary to force same async behavior even for peer that are connected at start like local peer
-    setImmediate(() => {
+    // setTimeout is necessary to force same async behavior even for peer that are connected at start like local peer
+    setTimeout(() => {
       this.emit('stateChange', this);
       getPeersManager().emit('peerChange', this);
       if (state === 'connected') {
         getPeersManager().emit('connectedPeer', this);
       }
-    });
+    }, 0);
   }
 
   abstract sendControllerMessage(message: ControllerMessage): void;

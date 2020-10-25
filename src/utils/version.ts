@@ -1,4 +1,6 @@
-import { version } from '../package.json';
+import packagejson from '../package.json';
+
+const version = packagejson.version;
 
 const removeDevSuffix = (str) => str.replace('-dev', '');
 

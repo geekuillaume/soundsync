@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -5,17 +7,19 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const SentryWebpackPlugin = require('@sentry/webpack-plugin');
+const PreloadWebpackPlugin = require('preload-webpack-plugin');
 
 const config = {
   entry: './src/index.tsx',
   mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
-  target: 'web',
+  target: ['web', 'es2020'],
   optimization: {
     usedExports: true,
   },
   output: {
     filename: '[name]-[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
@@ -39,6 +43,7 @@ const config = {
       'castv2-client': 'utils/polyfills/empty.js',
       net: 'utils/polyfills/empty.js',
       open: 'utils/polyfills/empty.js',
+      'posthog-node': false,
     },
     modules: [
       'node_modules',
@@ -58,13 +63,23 @@ const config = {
       title: 'SoundSync',
       template: 'src/index.html',
     }),
+    new PreloadWebpackPlugin({
+      rel: 'preload',
+      include: 'allAssets',
+      fileBlacklist: [/\.(png|ico|svg|jpg|js|json|woff|txt|wasm)$/],
+    }),
     new webpack.ProvidePlugin({
       Buffer: 'buffer_polyfill',
     }),
     new webpack.DefinePlugin({
       'process.browser': JSON.stringify(true),
-      'process.env.RENDEZVOUS_SERVICE_URL': JSON.stringify(process.env.RENDEZVOUS_SERVICE_URL),
-      'process.env.DEV_MODE': process.env.NODE_ENV === 'development' ? 'true' : 'false',
+      'process.env': JSON.stringify({
+        RENDEZVOUS_SERVICE_URL: process.env.RENDEZVOUS_SERVICE_URL,
+        DEV_MODE: process.env.NODE_ENV === 'development',
+        NODE_ENV: process.env.NODE_ENV || 'development',
+      }),
+      'process.stdout': 'null',
+      'process.stderr': 'null',
     }),
     new MiniCssExtractPlugin(),
     new CopyPlugin({
@@ -72,6 +87,7 @@ const config = {
         { from: 'src/static', to: 'static' },
       ],
     }),
+    new webpack.ProgressPlugin({ percentBy: 'entries' }),
   ],
   module: {
     defaultRules: [
@@ -91,9 +107,6 @@ const config = {
             test: [/\.audioworklet\.(js|ts)$/i],
             use: [{
               loader: 'worklet-loader',
-              // options: {
-              //   name: '[name]-[contenthash].[ext]',
-              // },
             }, {
               loader: 'ts-loader',
               options: {
@@ -142,6 +155,18 @@ const config = {
       },
     ],
   },
+  // cache: {
+  //   // 1. Set cache type to filesystem
+  //   type: 'filesystem',
+
+  //   buildDependencies: {
+  //     // 2. Add your config as buildDependency to get cache invalidation on config change
+  //     config: [__filename],
+
+  //     // 3. If you have other things the build depends on you can add them here
+  //     // Note that webpack, loaders and all modules referenced from your config are automatically added
+  //   },
+  // },
 };
 
 if (process.env.NODE_ENV === 'development') {
@@ -166,13 +191,13 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.NODE_ENV === 'production') {
   config.plugins.push(new SentryWebpackPlugin({
     // sentry-cli configuration
     authToken: process.env.SENTRY_AUTH_TOKEN,
-    org: "soundsync",
-    project: "soundsync-desktop",
+    org: 'soundsync',
+    project: 'soundsync-desktop',
 
     // webpack specific configuration
-    include: ".",
-    ignore: ["node_modules", "webpack.config.js"],
-  }),)
+    include: '.',
+    ignore: ['node_modules', 'webpack.config.js'],
+  }));
 }
 
 module.exports = config;
