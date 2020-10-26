@@ -83,7 +83,7 @@ export const AddAirplaySink = ({ onDialogClose }) => {
       <DialogTitle>Connect to an Airplay Speaker</DialogTitle>
       {detectedAirplaySpeakers.loading && <p className={styles.scanMessage}>Scanning local network...</p>}
       {!detectedAirplaySpeakers.loading && !detectedAirplaySpeakers.airplaySpeakers.length && <p className={styles.scanMessage}>No Airplay speakers detected, try restarting the speaker.</p>}
-      {!detectedAirplaySpeakers.loading && detectedAirplaySpeakers.airplaySpeakers.length
+      {!detectedAirplaySpeakers.loading && detectedAirplaySpeakers.airplaySpeakers.length !== 0
         && (
         <>
           <DialogContent>
@@ -107,7 +107,7 @@ export const AddAirplaySink = ({ onDialogClose }) => {
             {detectedAirplaySpeakers.airplaySpeakers.map((airplaySpeaker, i) => (
               <>
                 {i !== 0 && <Divider component="li" /> }
-                <MenuItem key={airplaySpeaker.host} className={styles.airplaySpeakerItem} onClick={() => handleAddAirplaySink(airplaySpeaker)}>
+                <MenuItem key={airplaySpeaker.name} className={styles.airplaySpeakerItem} onClick={() => handleAddAirplaySink(airplaySpeaker)}>
                   <ListItemIcon>
                     <img className={styles.airplaySpeakerLogo} src={airplayIcon} />
                   </ListItemIcon>
