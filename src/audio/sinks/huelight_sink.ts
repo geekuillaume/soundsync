@@ -21,6 +21,8 @@ const FPS = 40; // Hue API docs indicate that the bridge will push new colors at
 const COLOR_ROTATE_LOOP_DURATION = 1000 * 60; // the colors associated with low/mid/high frequency band will change continuously and rotate fully in 60 seconds
 const SILENCE_CHUNK = Buffer.alloc(OPUS_ENCODER_CHUNK_SAMPLES_COUNT * 2 /* channels */ * Float32Array.BYTES_PER_ELEMENT);
 
+const MAX_TRIES = 10;
+
 export class HueLightSink extends AudioSink {
   local: true = true;
   type: 'huelight' = 'huelight';
@@ -73,21 +75,38 @@ export class HueLightSink extends AudioSink {
     // @ts-ignore
     await superagent.put(`http://${this.hueHost}/api/${credentials.username}/groups/${this.entertainmentZoneId}`).send({ stream: { active: true } });
     this.log('Connected to Hue Bridge, starting light pusher socket');
-    this.hueSocket = dtls.createSocket({
-      type: 'udp4',
-      address: this.hueHost,
-      port: 2100,
-      // @ts-ignore
-      psk: {
-        [credentials.username]: Buffer.from(credentials.clientKey, 'hex'),
-      },
-      timeout: 5000, // in ms, optional, minimum 100, default 1000
-    // ciphers: ["TLS_PSK_WITH_AES_128_GCM_SHA256"]
-    });
-    await new Promise((resolve, reject) => {
-      this.hueSocket.on('connected', resolve);
-      this.hueSocket.on('error', reject);
-    });
+    const connect = async () => {
+      this.hueSocket = dtls.createSocket({
+        type: 'udp4',
+        address: this.hueHost,
+        port: 2100,
+        // @ts-ignore
+        psk: {
+          [credentials.username]: Buffer.from(credentials.clientKey, 'hex'),
+        },
+        timeout: 100, // in ms, optional, minimum 100, default 1000
+        cipherSuites: ['TLS_PSK_WITH_AES_128_GCM_SHA256'],
+      });
+      await new Promise((resolve, reject) => {
+        this.hueSocket.on('connected', resolve);
+        this.hueSocket.on('error', reject);
+      });
+    };
+    // The DTLS connection sometime fails randomly because of a timeout, we try 10 times with a delay between each attempt
+    let tryCount = 0;
+    while (true) {
+      try {
+        await connect();
+        // eslint-disable-next-line no-continue
+        break;
+      } catch (e) {
+        if (tryCount >= MAX_TRIES) {
+          throw e;
+        }
+      }
+      await delay(500);
+      tryCount++;
+    }
     this.lightPusher();
     this.closeHue = async () => {
       this.closeHue = null;
