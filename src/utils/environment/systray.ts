@@ -8,6 +8,7 @@ import {
   enableAutolaunchAtStartup,
 } from './launchAtStartup';
 import { Sentry } from '../vendor_integrations/sentry';
+import { getConfigField } from '../../coordinator/config';
 
 let updateMenu;
 
@@ -40,7 +41,7 @@ export const createSystray = () => {
           {
             label: 'Open Controller',
             click: () => {
-              open(`http://localhost:6512/controller`);
+              open(`http://127.0.0.1:${getConfigField('port')}/controller`);
             },
           },
           {
