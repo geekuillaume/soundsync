@@ -178,7 +178,6 @@ if (process.env.NODE_ENV === 'development') {
     contentBase: path.join(__dirname, 'dist'), // boolean | string | array, static file location
     compress: true, // enable gzip compression
     historyApiFallback: true, // true for index.html upon 404, object for multiple paths
-    // hot: true, // hot module replacement. Depends on HotModuleReplacementPlugin
     overlay: true,
     host: '0.0.0.0',
     disableHostCheck: true,
@@ -186,6 +185,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 if (config.mode === 'production') {
+  config.devtool = 'source-map';
   config.plugins.push(new CompressionPlugin());
   config.plugins.push(new CompressionPlugin({
     filename: '[path][base].br',
