@@ -39,18 +39,20 @@ export const AddHueSink = ({ onDialogClose }) => {
   const [selectedHueEntertainmentZoneId, setSelectedHueEntertainmentZoneId] = useState('');
   const [authMessage, setAuthMessage] = useState(null);
 
-  useEffect(async () => {
+  useEffect(() => {
     if (!hueCapablePeers.length) {
       return;
     }
-    try {
-      const bridges = await hueCapablePeers[0].sendRcp('hueScan', null);
-      setHueBridges({ loading: false, error: null, bridges });
-      setSelectedHueBridgeHost((val) => val || bridges[0]?.ip);
-    } catch (e) {
-      setHueBridges({ loading: false, error: `Error while scanning for Hue Bridges: ${e.message}`});
-      return;
-    }
+    (async () => {
+      try {
+        const bridges = await hueCapablePeers[0].sendRcp('hueScan', null);
+        setHueBridges({ loading: false, error: null, bridges });
+        setSelectedHueBridgeHost((val) => val || bridges[0]?.ip);
+      } catch (e) {
+        setHueBridges({ loading: false, error: `Error while scanning for Hue Bridges: ${e.message}`});
+        return;
+      }
+    })();
   }, [hueCapablePeers.length > 0]);
   useEffect(() => {
     if (!selectedHueBridgeHost || !hueCapablePeers.length || !selectedHueHostId) {
