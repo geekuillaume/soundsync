@@ -67,7 +67,7 @@ const config = {
     new PreloadWebpackPlugin({
       rel: 'preload',
       include: 'allAssets',
-      fileBlacklist: [/\.(png|ico|svg|jpg|js|json|woff|txt|wasm|br|gz)$/],
+      fileBlacklist: [/\.(png|ico|svg|jpg|js|json|woff|txt|wasm|br|gz|map)$/],
     }),
     new webpack.ProvidePlugin({
       Buffer: 'buffer_polyfill',
