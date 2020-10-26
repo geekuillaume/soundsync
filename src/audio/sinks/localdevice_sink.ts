@@ -5,7 +5,7 @@ import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { AudioSink } from './audio_sink';
 import { AudioSource } from '../sources/audio_source';
 import {
-  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT,
+  OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, MAX_LATENCY,
 } from '../../utils/constants';
 import { LocalDeviceSinkDescriptor } from './sink_type';
 import { getOutputDeviceFromId, getAudioServer } from '../../utils/audio/localAudioDevice';
@@ -112,11 +112,10 @@ export class LocalDeviceSink extends AudioSink {
     const { bufferTimestamp, buffer } = this.audioBufferTransformer.transformChunk(chunk, (data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT));
 
     const bufferTimestampDelta = ((bufferTimestamp - this.audioStream.getPosition()) / this.rate) * 1000;
-    if (bufferTimestampDelta < 0 || bufferTimestampDelta > this.latency + this.latencyCorrection + 1000) {
+    if (bufferTimestampDelta < 0 || bufferTimestampDelta > MAX_LATENCY) {
       // if we are trying to push a buffer already in the past or too far in the future, do nothing
       return;
     }
-
     try {
       this.audioStream.pushAudioChunk(bufferTimestamp, buffer);
     } catch (e) {
