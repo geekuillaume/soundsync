@@ -1,5 +1,30 @@
 # Changelog
 
+<a name="0.4.9"></a>
+## 0.4.9 (2020-10-26)
+
+### Changed
+
+- ⬆️ Upgrade some webui deps [[b54f38e](https://github.com/geekuillaume/soundsync/commit/b54f38e54811940cf21eeeb3ce578739da6b9975)]
+- ⚡ Enable webpack cache [[5176fc0](https://github.com/geekuillaume/soundsync/commit/5176fc0065095de193a8e0bbe23577a6872d9e05)]
+- 💄 Fix additionnal 0 character showing when no airplay speakers detected [[6b93e12](https://github.com/geekuillaume/soundsync/commit/6b93e12fb8b550ccae655de9f79d328b930aa075)]
+- ⚡ Use port on &quot;open controller&quot; systray button and redirect to 127.0.0.1 instead of localhost [[8f615d5](https://github.com/geekuillaume/soundsync/commit/8f615d58cab4c7c5103ffbe0403eabc5fb13c0dc)]
+
+### Removed
+
+- 🔥 Fix AddHueSink crashing webui [[6fcc018](https://github.com/geekuillaume/soundsync/commit/6fcc0189ef8dd1841064a458984a4c535fd7881f)]
+
+### Fixed
+
+- 🐛 Fix localdevice sink being silent when source latency is too big [[19d3e71](https://github.com/geekuillaume/soundsync/commit/19d3e719c981f92a22198ebe208a4d9075e662b2)]
+
+### Miscellaneous
+
+-  👷 Don&#x27;t generate preload meta for sourcemaps [[4041872](https://github.com/geekuillaume/soundsync/commit/4041872caabb9cd8e27b9c08542b99605c6e2448)]
+-  👷 Emit sourcemap when building webui for production [[a11e9b2](https://github.com/geekuillaume/soundsync/commit/a11e9b26eaa229ae1a1aa6f4768166bfa88418e2)]
+- 🚧 Bump to dev version [[444e3c0](https://github.com/geekuillaume/soundsync/commit/444e3c06cfd6ed387c4b8481075be275cf3a544f)]
+
+
 <a name="0.4.8"></a>
 ## 0.4.8 (2020-10-25)
 
