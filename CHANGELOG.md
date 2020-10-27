@@ -1,5 +1,24 @@
 # Changelog
 
+<a name="0.4.10"></a>
+## 0.4.10 (2020-10-27)
+
+### Changed
+
+- ⚡ Improve webaudio sink sync by copying logic from localdevice sink [[f072df9](https://github.com/geekuillaume/soundsync/commit/f072df919e963e2939b4a84dfd0201e3ebde7ac3)]
+- 🎨 Make sink piped state verification in audiosink instead of each sink [[70a7b8f](https://github.com/geekuillaume/soundsync/commit/70a7b8f3f1be30473be20c3a7a00e4a1ef4d7cfb)]
+
+### Fixed
+
+- 🐛 Fix bug when RTCDataChannel is closed but not registered yet [[a4462c3](https://github.com/geekuillaume/soundsync/commit/a4462c3fe08598895438271b107fced7fddd761a)]
+- 🐛 Fix crash on Hue bridge add error on webui [[9f6e7b9](https://github.com/geekuillaume/soundsync/commit/9f6e7b9bdf6c05fffa10ce573038ce37cc0ffd0c)]
+- 🐛 Retry connecting to hue in case of DTLS error [[3da48c6](https://github.com/geekuillaume/soundsync/commit/3da48c6676aa30136eb036251b2ae7b529e76522)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[bda7507](https://github.com/geekuillaume/soundsync/commit/bda7507db3d138de7c59864e021a0cbbad252102)]
+
+
 <a name="0.4.9"></a>
 ## 0.4.9 (2020-10-26)
 
