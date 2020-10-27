@@ -49,7 +49,7 @@ export const AddHueSink = ({ onDialogClose }) => {
         setHueBridges({ loading: false, error: null, bridges });
         setSelectedHueBridgeHost((val) => val || bridges[0]?.ip);
       } catch (e) {
-        setHueBridges({ loading: false, error: `Error while scanning for Hue Bridges: ${e.message}`});
+        setHueBridges({ loading: false, error: `Error while scanning for Hue Bridges: ${e.message}`, bridges: []});
         return;
       }
     })();
