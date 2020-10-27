@@ -187,6 +187,10 @@ export abstract class AudioSink extends EventEmitter {
   }
 
   _handleAudioChunk = (chunk: AudioChunkStreamOutput) => {
+    if (!this.pipedSource || !this.pipedSource.peer) {
+      this.log(`Received a chunk for a not piped sink, ignoring`);
+      return;
+    }
     const outOfOrder = this.lastReceivedChunkIndex === -1 || chunk.i !== this.lastReceivedChunkIndex + 1;
     if (outOfOrder && this.lastReceivedChunkIndex !== -1) {
       this.log(`Received out-of-order chunk, received chunk index: ${chunk.i}, last chunk index: ${this.lastReceivedChunkIndex}`);

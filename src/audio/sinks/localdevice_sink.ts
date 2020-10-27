@@ -101,10 +101,6 @@ export class LocalDeviceSink extends AudioSink {
     if (!this.audioStream) {
       return;
     }
-    if (!this.pipedSource || !this.pipedSource.peer) {
-      this.log(`Received a chunk for a not piped sink, ignoring`);
-      return;
-    }
     const chunk = remapChannels(new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT), this.pipedSource.channels, this.channels);
     if (outOfOrder) {
       this.audioBufferTransformer.ignoreDriftFor = 0;
