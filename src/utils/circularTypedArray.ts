@@ -53,7 +53,10 @@ export class CircularTypedArray<T extends TypedArray> {
   }
 
   set(data: T, offset: number) {
-    const realOffset = offset % this.buffer.length;
+    let realOffset = offset % this.buffer.length;
+    if (realOffset < 0) {
+      realOffset += this.buffer.length;
+    }
     const overflow = Math.max(0, (realOffset + data.length) - this.buffer.length);
     if (!overflow) {
       this.buffer.set(data, realOffset);
