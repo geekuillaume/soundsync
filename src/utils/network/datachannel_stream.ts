@@ -33,7 +33,7 @@ export class DataChannelStream extends MiniPass {
       } catch (e) {
         // sometimes, the check for the readyState of the datachannel indicate open but still throws an error
         // if this happens, we ignore it
-        if (!e.message.includes('InvalidStateError')) {
+        if (!e.message.includes('readyState is not')) {
           throw e;
         }
       }
