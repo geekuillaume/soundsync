@@ -22,7 +22,7 @@ export class WebAudioSink extends AudioSink {
   private workletNode: AudioWorkletNode;
   private context: AudioContext;
   private cleanAudioContext: () => void;
-  private audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
+  audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
   private audioBufferTransformer: DriftAwareAudioBufferTransformer;
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
@@ -57,7 +57,8 @@ export class WebAudioSink extends AudioSink {
 
     this.audioBufferTransformer = new DriftAwareAudioBufferTransformer(
       this.channels,
-      () => Math.floor(this.audioClockDriftHistory.mean()),
+      // if latencyCorrection is >0 it means we need to send samples [latencyCorrection]ms early to compensate for the additionnal delay
+      () => Math.floor(this.audioClockDriftHistory.mean()) + (this.latencyCorrection * (this.rate / 1000)),
     );
 
     const driftRegisterInterval = setInterval(this.registerDrift, AUDIO_DRIFT_HISTORY_INTERVAL);
@@ -127,22 +128,20 @@ export class WebAudioSink extends AudioSink {
     this.workletNode.port.postMessage({
       type: 'chunk',
       chunk: buffer,
-      offset: bufferTimestamp * this.channels,
+      timestamp: bufferTimestamp,
     }, [buffer.buffer]); // we transfer the buffer.buffer to the audio worklet to prevent a memory copy
   }
 
   registerDrift = () => {
-    const contextTime = this.context.getOutputTimestamp().contextTime;
-    if (contextTime === 0) {
+    const deviceTime = this.context.getOutputTimestamp().contextTime * 1000;
+    if (deviceTime === 0) {
       // audio context is not started yet, could be because it's waiting for a user interaction to start
       return;
     }
-    const audioClockDrift = ((contextTime * 1000) - (
-      this.pipedSource.peer.getCurrentTime(true)
-        - this.pipedSource.startedAt
-        - this.pipedSource.latency
-        + this.latencyCorrection
-    )) * (this.rate / 1000);
+    const streamTime = this.pipedSource.peer.getCurrentTime(true)
+      - this.pipedSource.startedAt
+      - this.pipedSource.latency;
+    const audioClockDrift = (deviceTime - streamTime) * (this.rate / 1000);
     if (!Number.isNaN(audioClockDrift)) {
       this.audioClockDriftHistory.push(audioClockDrift);
     }

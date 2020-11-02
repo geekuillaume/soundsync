@@ -55,7 +55,8 @@ export class LocalDeviceSink extends AudioSink {
     });
     this.audioBufferTransformer = new DriftAwareAudioBufferTransformer(
       this.channels,
-      () => this.audioClockDriftHistory.mean(),
+      // if latencyCorrection is >0 it means we need to send samples [latencyCorrection]ms early to compensate for the additionnal delay
+      () => Math.floor(this.audioClockDriftHistory.mean()) + (this.latencyCorrection * (this.rate / 1000)),
     );
 
     this.updateInfo({ latency: device.minLatency });
@@ -121,12 +122,11 @@ export class LocalDeviceSink extends AudioSink {
   }
 
   registerDrift = () => {
-    const audioClockDrift = (this.audioStream.getPosition()) - (( // ideal position
-      this.pipedSource.peer.getCurrentTime(true)
-        - this.pipedSource.startedAt
-        - this.pipedSource.latency
-        + this.latencyCorrection
-    ) * (this.rate / 1000));
+    const deviceTime = (this.audioStream.getPosition() / (this.rate / 1000));
+    const streamTime = this.pipedSource.peer.getCurrentTime(true)
+      - this.pipedSource.startedAt
+      - this.pipedSource.latency;
+    const audioClockDrift = (deviceTime - streamTime) * (this.rate / 1000);
     this.audioClockDriftHistory.push(audioClockDrift);
   }
 
