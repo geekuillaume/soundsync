@@ -1,5 +1,24 @@
 # Changelog
 
+<a name="0.4.11"></a>
+## 0.4.11 (2020-11-02)
+
+### Changed
+
+- 🎨 Improves audio clock drift measures and better handle latencyCorrection changes [[5408c8a](https://github.com/geekuillaume/soundsync/commit/5408c8ab622c3e0d83b38fd7fb8023eb5eb66323)]
+- 🎨 Type audiosink events [[123fb0c](https://github.com/geekuillaume/soundsync/commit/123fb0c45dc7ea039dc994ccd05920b43398a3e5)]
+- 🎨 Allow Chromcast appid to be set by env vars for debugging purposes [[c232510](https://github.com/geekuillaume/soundsync/commit/c23251032c52c5034c68695664275955a6b9f92d)]
+
+### Removed
+
+- 🔇 Remove log in audioworklet [[b6b9ec6](https://github.com/geekuillaume/soundsync/commit/b6b9ec6893990259c62b56aea82311ef21a00794)]
+
+### Miscellaneous
+
+- 🚧 Add flush audio clock drift measure on webui in debug mode [[032420b](https://github.com/geekuillaume/soundsync/commit/032420ba540ac975fd206ac7ee11d4cb0520aa07)]
+- 🚧 Bump to dev version [[fa29f28](https://github.com/geekuillaume/soundsync/commit/fa29f281611d44e8ba8c1d387d86f0cc4ce4b68d)]
+
+
 <a name="0.4.10"></a>
 ## 0.4.10 (2020-10-27)
 
