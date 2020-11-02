@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
-import { EventEmitter } from 'events';
 import MiniPass from 'minipass';
 import { l } from '../../utils/environment/log';
 import { OPUS_ENCODER_RATE, OPUS_ENCODER_CHUNK_DURATION } from '../../utils/constants';
@@ -16,8 +16,12 @@ import { SourceUUID } from '../sources/source_type';
 import { AudioInstance, MaybeAudioInstance } from '../utils';
 import { AUDIO_SINK_EVENT_INTERVAL, captureEvent } from '../../utils/vendor_integrations/posthog';
 
+interface AudioSinkEvents {
+  'update': (descriptor: Partial<AudioInstance<SinkDescriptor>>) => void;
+}
+
 // This is an abstract class that shouldn't be used directly but implemented by real audio sink
-export abstract class AudioSink extends EventEmitter {
+export abstract class AudioSink extends TypedEmitter<AudioSinkEvents> {
   uuid: SinkUUID;
   name: string;
   type: SinkType;
@@ -75,9 +79,6 @@ export abstract class AudioSink extends EventEmitter {
     return this.updateInfo(descriptor);
   }
 
-  on: (type: 'update', listener: (...args: any[]) => void) => this;
-  emit: (type: 'update', ...args: any[]) => boolean;
-
   updateInfo(descriptor: Partial<AudioInstance<SinkDescriptor>>) {
     if (this.local && descriptor.instanceUuid && descriptor.instanceUuid !== this.instanceUuid) {
       this.log('Received update for a different instance of the sink, ignoring (can be because of a restart of the client or a duplicated config on two clients)');
@@ -93,7 +94,7 @@ export abstract class AudioSink extends EventEmitter {
     if (hasChanged) {
       this.manager.emit('sinkUpdate', this);
       this.manager.emit('soundstateUpdated');
-      this.emit('update');
+      this.emit('update', descriptor);
       if (this.local) {
         this.manager.emit('localSoundStateUpdated');
       }
