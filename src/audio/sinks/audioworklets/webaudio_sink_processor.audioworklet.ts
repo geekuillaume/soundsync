@@ -24,8 +24,7 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
 
   handleMessage_(event) {
     if (event.data.type === 'chunk') {
-      this.buffer.set(event.data.chunk, event.data.offset);
-      console.log(`received chunk at diff: ${(event.data.offset / 2) - currentFrame}`);
+      this.buffer.set(event.data.chunk, event.data.timestamp * CHANNELS);
     }
   }
 
