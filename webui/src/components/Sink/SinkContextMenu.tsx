@@ -18,6 +18,7 @@ import UpdateIcon from '@material-ui/icons/Update';
 import { useRegisterForPipe, useUnpipeAction } from 'utils/useSoundSyncState';
 import { nameWithoutHiddenMeta, isHidden } from 'utils/hiddenUtils';
 import { AudioSink } from '../../../../src/audio/sinks/audio_sink';
+import { WebAudioSink } from '../../../../src/audio/sinks/webaudio_sink';
 
 const DELETABLE_SINK_TYPES = ['huelight', 'airplay'];
 
@@ -191,6 +192,7 @@ export const SinkContextMenu = ({
       {sink.latencyCorrection === 0 && <PopoverButton disableElevation variant="contained" onClick={handleIncreaseLatencyCorrection}>Set latency correction</PopoverButton>}
       {canBeDeleted && <PopoverButton disableElevation variant="contained" onClick={handleDelete}>Delete</PopoverButton>}
       {window.localStorage.getItem('soundsync:debug') && <PopoverButton disableElevation variant="contained" onClick={() => console.log(sink)}>Log info</PopoverButton>}
+      {window.localStorage.getItem('soundsync:debug') && sink instanceof WebAudioSink && <PopoverButton disableElevation variant="contained" onClick={() => sink instanceof WebAudioSink && sink.audioClockDriftHistory.flush()}>Flush drift info</PopoverButton>}
     </>
   );
 
