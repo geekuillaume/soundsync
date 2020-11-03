@@ -52,6 +52,8 @@ export class LocalDeviceSink extends AudioSink {
       name: source.name,
       format: AudioServer.F32LE,
       channels: this.channels,
+      // special check for rapsberry pi as the default audio output is "lying" about its minimum latency and so we need to set a 150ms fixed latency to prevent underrun
+      latencyFrames: device.id.includes('bcm2835_audio') ? (OPUS_ENCODER_RATE / 1000) * 150 : undefined,
     });
     this.audioBufferTransformer = new DriftAwareAudioBufferTransformer(
       this.channels,
@@ -59,7 +61,7 @@ export class LocalDeviceSink extends AudioSink {
       () => Math.floor(this.audioClockDriftHistory.mean()) + (this.latencyCorrection * (this.rate / 1000)),
     );
 
-    this.updateInfo({ latency: device.minLatency });
+    this.updateInfo({ latency: this.audioStream.configuredLatencyFrames / (this.rate / 1000) });
     this.registerDrift();
 
     const flushDriftHistory = () => {
