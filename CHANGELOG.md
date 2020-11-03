@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.4.12"></a>
+## 0.4.12 (2020-11-03)
+
+### Fixed
+
+- 🐛 Fixed RaspberryPi audio output [[afda8f6](https://github.com/geekuillaume/soundsync/commit/afda8f6fd974252e6e57cb5cf415b6d17f6bc6b4)]
+
+### Miscellaneous
+
+- 🚧 Bump to dev version [[a6e282d](https://github.com/geekuillaume/soundsync/commit/a6e282d33f7e85da3589ed384a33802ba99a3929)]
+
+
 <a name="0.4.11"></a>
 ## 0.4.11 (2020-11-02)
 
