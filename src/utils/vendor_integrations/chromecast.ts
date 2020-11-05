@@ -16,7 +16,10 @@ interface ChromecastInfo {
 let detector: bonjour.Browser;
 const detectedChromecast: ChromecastInfo[] = [];
 
-export const startChromecastDetection = _.memoize(async () => {
+export const startChromecastDetection = async () => {
+  if (detector || detectedChromecast.length) {
+    return;
+  }
   detector = bonjour().find({
     type: 'googlecast',
   });
@@ -56,7 +59,7 @@ export const startChromecastDetection = _.memoize(async () => {
       });
     }),
   ]);
-});
+};
 
 export const getDetectedChromecasts = () => detectedChromecast;
 
@@ -71,7 +74,6 @@ function SoundsyncChromecastApplication(...args) {
 }
 SoundsyncChromecastApplication.APP_ID = CHROMECAST_APPID;
 util.inherits(SoundsyncChromecastApplication, Application);
-
 
 export const startSoundsyncOnChromecast = async (host: string) => {
   const client = new Client();

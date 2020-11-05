@@ -33,15 +33,17 @@ export const AddChromecastPeer = ({ onDialogClose }) => {
     if (!chromecastCapablePeers.length) {
       return;
     }
+    let timeout;
     const updateChromecasts = () => {
       chromecastCapablePeers[0].sendRcp('scanChromecast').then((chromecasts) => {
         setDetectedChromecasts({ loading: false, chromecasts });
+        timeout = setTimeout(updateChromecasts, CHROMECAST_UPDATE_INTERVAL);
       });
     };
-    const intervalHandle = setInterval(updateChromecasts, CHROMECAST_UPDATE_INTERVAL);
+    updateChromecasts();
     // eslint-disable-next-line consistent-return
     return () => {
-      clearInterval(intervalHandle);
+      clearTimeout(timeout);
     };
   }, [chromecastCapablePeers.length > 0]);
 
