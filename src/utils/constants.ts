@@ -5,7 +5,7 @@ export const OPUS_ENCODER_RATE = 48000;
 export const OPUS_ENCODER_CHUNKS_PER_SECONDS = 100;
 export const OPUS_ENCODER_CHUNK_DURATION = 1000 / OPUS_ENCODER_CHUNKS_PER_SECONDS;
 export const OPUS_ENCODER_CHUNK_SAMPLES_COUNT = OPUS_ENCODER_RATE / OPUS_ENCODER_CHUNKS_PER_SECONDS; // 100 chunks per second = 10ms per chunk
-export const NO_RESPONSE_TIMEOUT = 5000; // if there if no response from a wrtc peer during this time, assume connection is lost
+export const NO_RESPONSE_TIMEOUT = 30000; // if there if no response from a wrtc peer during this time, assume connection is lost, 30s to handle some Chromecast devices which can be stuck for a while when loading some resources
 export const AUDIO_CHANNEL_OPTIONS: RTCDataChannelInit = {
   ordered: false,
   maxPacketLifeTime: 100,
@@ -27,6 +27,7 @@ export const EMPTY_IMAGE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAf
 export const WILDCARD_DNS_DOMAIN_NAME = `sslip.io`;
 
 export const CHROMECAST_APPID = process.env.CHROMECAST_ID || 'BEB12660';
+export const CHROMECAST_MESSAGE_NAMESPACE = 'urn:x-cast:soundsync_chromecast_control';
 
 export const INACTIVE_TIMEOUT = 30 * 1000; // 30 seconds, after this period without sound, a source will be marked as inactive and all linked sinks will be stopped
 

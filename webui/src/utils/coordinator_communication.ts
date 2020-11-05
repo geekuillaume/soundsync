@@ -23,7 +23,8 @@ registerLocalPeer({
 });
 
 export const initializeCoordinator = memoize(async () => {
-  if (!RENDEZVOUS_SERVICE_URL.endsWith(document.location.host) && !localStorage.getItem('soundsync:disableConnectToLocalPeer')) {
+  // The chromecast check is useful to prevent a chromecast from connecting to a local peer when developping with another hostname than soundsync.app (for example a localtunnel like ngrok)
+  if (!IS_CHROMECAST && !RENDEZVOUS_SERVICE_URL.endsWith(document.location.host) && !localStorage.getItem('soundsync:disableConnectToLocalPeer')) {
     const peerHost = document.location.port === '8080' ? `//${document.location.hostname}:6512` : `//${document.location.host}`;
     await getPeersManager().joinPeerWithHttpApi(peerHost);
   }
@@ -49,7 +50,8 @@ export const initializeCoordinator = memoize(async () => {
       pipedFrom: null,
     });
   }
-  if (localStorage.getItem('soundsync:disableRendezvousService') === null || localStorage.getItem('soundsync:disableRendezvousService') === 'false') {
+  // If it's a chromecast, we don't need to use the rendezvous service as we are connecting directly with the peer who initiated the chromecast app
+  if (!IS_CHROMECAST && localStorage.getItem('soundsync:disableRendezvousService') === null || localStorage.getItem('soundsync:disableRendezvousService') === 'false') {
     enableRendezvousServicePeersDetection(true);
     setInterval(() => {
       if (!getPeersManager().isConnectedToAtLeastOnePeer()) {

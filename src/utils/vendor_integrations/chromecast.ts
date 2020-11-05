@@ -1,16 +1,30 @@
 import bonjour from 'bonjour';
 import _ from 'lodash';
 import util from 'util';
-import { Application, Client } from 'castv2-client';
+import {
+  Application, Client, RequestResponseController, HeartbeatController,
+} from 'castv2-client';
 
+import { getLocalPeer } from '../../communication/local_peer';
 import { delay } from '../misc';
-import { CHROMECAST_APPID } from '../constants';
+import { CHROMECAST_APPID, CHROMECAST_MESSAGE_NAMESPACE } from '../constants';
+import { WebrtcPeer } from '../../communication/wrtc_peer';
+import { createBasicInitiator } from '../../communication/initiators/basicInitiator';
+import { getPeersManager } from '../../communication/get_peers_manager';
 
 const CHROMECAST_DETECTION_TIMEOUT = 5 * 1000; // 5 seconds
 
 interface ChromecastInfo {
   host: string;
   name: string;
+  controller?: {
+    soundsyncController: {
+      request: (data: any) => any;
+      on: (type: 'message', listener: (data: any) => any) => any;
+    };
+    once: any;
+    heartbeatController: any;
+  };
 }
 
 let detector: bonjour.Browser;
@@ -63,19 +77,31 @@ export const startChromecastDetection = async () => {
 
 export const getDetectedChromecasts = () => detectedChromecast;
 
-// function SoundsyncChromecastController(client, sourceId, destinationId) {
-//   RequestResponseController.call(this, client, sourceId, destinationId, CHROMECAST_MESSAGE_NAMESPACE);
-// }
-// util.inherits(SoundsyncChromecastController, RequestResponseController);
+function SoundsyncChromecastController(client, sourceId, destinationId) {
+  RequestResponseController.call(this, client, sourceId, destinationId, CHROMECAST_MESSAGE_NAMESPACE);
+}
+util.inherits(SoundsyncChromecastController, RequestResponseController);
 function SoundsyncChromecastApplication(...args) {
   Application.call(this, ...args);
   //@ts-ignore
-  // this.soundsyncController = this.createController(SoundsyncChromecastController);
+  this.soundsyncController = this.createController(SoundsyncChromecastController);
+  this.heartbeatController = this.createController(HeartbeatController);
 }
 SoundsyncChromecastApplication.APP_ID = CHROMECAST_APPID;
 util.inherits(SoundsyncChromecastApplication, Application);
 
+// When starting Soundsync on a Chromecast, we send a message with the APPID and use the newly open websocket from the Chromecast SDK
+// to send the WebRTC initator messages so that it works even without the rendezvous service and is faster to start
 export const startSoundsyncOnChromecast = async (host: string) => {
+  const chromecast = detectedChromecast.find((cr) => cr.host === host) || {
+    name: null,
+    host,
+  };
+  if (chromecast.controller) {
+    // chromecast is already started
+    return;
+  }
+
   const client = new Client();
   await new Promise((resolve, reject) => {
     client.connect(host, resolve);
@@ -90,5 +116,45 @@ export const startSoundsyncOnChromecast = async (host: string) => {
       }
     });
   });
-  return controller as any;
+
+  chromecast.controller = controller as any;
+
+  chromecast.controller.soundsyncController.request({
+    type: 'soundsync_init',
+    data: {
+      peerName: chromecast.name,
+      callerPeerUuid: getLocalPeer().uuid,
+    },
+  });
+
+  const peer = new WebrtcPeer({
+    name: chromecast.name,
+    uuid: `chromecastPlaceholder_${host}`,
+    instanceUuid: 'placeholder',
+    initiatorConstructor: createBasicInitiator((message) => {
+      chromecast.controller.soundsyncController.request({
+        type: 'initiator_message',
+        data: message,
+      });
+    }),
+  });
+  getPeersManager().registerPeer(peer);
+
+  chromecast.controller.soundsyncController.on('message', (data) => {
+    if (data.type === 'initiator_message') {
+      peer.initiator.handleReceiveMessage(data.data);
+    }
+  });
+
+  peer.connect();
+
+  chromecast.controller.heartbeatController.start();
+  chromecast.controller.heartbeatController.on('timeout', () => {
+    chromecast.controller = undefined;
+    peer.destroy('Chromecast timeout');
+  });
+  chromecast.controller.once('close', () => {
+    chromecast.controller = undefined;
+    peer.destroy('Chromecast close');
+  });
 };
