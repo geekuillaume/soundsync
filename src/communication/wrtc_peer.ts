@@ -112,16 +112,14 @@ export class WebrtcPeer extends Peer {
     this.datachannelsBySourceUuid = {};
   }
 
-  initiateConnection = async (): Promise<RTCSessionDescription> => {
+  initiateConnection = async (): Promise<void> => {
     this.initWebrtcIfNeeded();
     if (this.hasSentOffer) {
-      return null;
+      return;
     }
     await once(this.connection, 'negotiationneeded');
     this.hasSentOffer = true;
     await this.connection.setLocalDescription(await this.connection.createOffer());
-
-    return this.connection.localDescription;
   }
 
   handleInitiatorMessage = async (message: InitiatorMessage) => {
@@ -191,14 +189,14 @@ export class WebrtcPeer extends Peer {
     if (this.state === 'deleted' || this.state === 'connected') {
       return;
     }
-    const localDescription = await this.initiateConnection();
+    await this.initiateConnection();
     try {
-      this.initiator.startPolling();
-      if (localDescription) {
+      if (this.connection.localDescription) {
         await this.initiator.sendMessage({
-          description: localDescription,
+          description: this.connection.localDescription,
         });
       }
+      this.initiator.startPolling();
     } catch (e) {
       if (!isRetry) {
         this.log(`Cannot connect to peer with initiator ${this.initiator.type}`, e.message);
