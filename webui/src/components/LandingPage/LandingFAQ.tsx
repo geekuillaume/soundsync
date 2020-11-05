@@ -201,7 +201,7 @@ export const LandingFAQ = () => {
           )}
         />
         <Question
-          title="Is it Open-source ?"
+          title="Is it Open-source?"
           content={(
             <p>
               Soundsync code is released under the Business Source License. It is a special open-source compatible license which is 100% free to use as long as you don&apos;t use it for production work. It means you can use it at home or in your office but you cannot resell it or sell a service/product that directly uses it. I&apos;m open to licensing it for a business usage,
@@ -239,7 +239,7 @@ export const LandingFAQ = () => {
           title="How to install on a headless RaspberryPi?"
           content={(
             <p>
-              Assuming you&apos;re using raspbian, first download the package with
+              Soundsync is comptabile with RapsberryPi 2 and above. Assuming you&apos;re using raspbian, first download the package with
               {' '}
               <code>wget https://soundsync.app/download/soundsync-deb-arm.deb</code>
               , install it with
