@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {
-  useSinks, useSources, usePipes, useIsConnected,
+  useSinks, useSources, usePipes, useIsConnected, useSetTroubleshootingVisible,
 } from 'utils/useSoundSyncState';
 import { Button } from '@material-ui/core';
 import { Link } from 'react-router-dom';
@@ -11,8 +11,8 @@ import { Sink } from './Sink';
 import { Pipe } from './Pipe';
 import { AddSinkButton } from './AddSink/AddSinkButton';
 import { AddSourceButton } from './AddSource';
-import { BUILD_VERSION } from '../../../src/utils/version';
 import { BetaPopup } from './BetaPopup/BetaPopup';
+import { Troubleshooting } from 'components/Troubleshooting/Troubleshooting';
 
 export const SoundState = () => {
   const pipes = usePipes();
@@ -43,6 +43,7 @@ export const SoundState = () => {
         )}
       </div>
       {!isConnected && <ConnectingIndicator />}
+      <Troubleshooting />
     </div>
   );
 };
@@ -73,6 +74,7 @@ const ConnectingIndicator = () => {
       clearTimeout(handle);
     };
   }, []);
+  const setVisible = useSetTroubleshootingVisible();
 
   return (
     <>
@@ -81,13 +83,7 @@ const ConnectingIndicator = () => {
         <p>Connecting...</p>
         {longConnect && (
           <>
-            <p>
-              Soundsync is scanning your local network for Soundsync enabled devices. Make sure Soundsync is started on your computer and that you are connected to the same network / wifi. You can also use the "Open Controller" button in the Soundsync menu on your computer system tray. Also make sure you are running the latest version of Soundsync:
-              {' '}
-              {BUILD_VERSION}
-              .
-            </p>
-            <Link to="/landing#download"><Button variant="outlined">Download Soundsync</Button></Link>
+            <Button variant="outlined" onClick={() => setVisible(true)}>Troubleshooting</Button>
           </>
         )}
       </div>

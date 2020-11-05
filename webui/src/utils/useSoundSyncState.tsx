@@ -19,19 +19,21 @@ const initialState = {
   stateVersion: 0,
   registeringForPipe: { selectedSink: null, selectedSource: null },
   showHidden: false,
+  troubleshootingVisible: false,
 };
 
 const soundSyncContext = createContext({
   state: initialState,
   dispatch: (...args) => {},
   audioSourcesSinksManager: getAudioSourcesSinksManager(),
-  peersManagers: {},
+  peersManagers: {} as PeersManager,
 });
 
 const stateUpdate = createAction('stateUpdate');
 const registerForPipe = createAction('registerForPipe');
 const unregisterForPipe = createAction('unregisterForPipe');
 const changeHiddenVisibility = createAction('changeHiddenVisibility');
+const changeTroubleshootingVisibility = createAction('changeTroubleshootingVisibility');
 
 export const SoundSyncProvider = ({ children }) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -54,6 +56,9 @@ export const SoundSyncProvider = ({ children }) => {
     [changeHiddenVisibility.toString()]: produce((s, { payload }) => {
       s.showHidden = payload;
     }),
+    [changeTroubleshootingVisibility.toString()]: produce((s, { payload }) => {
+      s.troubleshootingVisible = payload;
+    }),
   }, initialState), initialState);
 
   const refreshData = useCallback(async () => {
@@ -73,7 +78,7 @@ export const SoundSyncProvider = ({ children }) => {
 
   return (
     <soundSyncContext.Provider value={{
-      state,
+      state: state as typeof initialState,
       dispatch,
       audioSourcesSinksManager: getAudioSourcesSinksManager(),
       peersManagers: getPeersManager(),
@@ -156,4 +161,10 @@ export const useShowHidden = () => useContext(soundSyncContext).state.showHidden
 export const useSetHiddenVisibility = () => {
   const { dispatch } = useContext(soundSyncContext);
   return (...args) => dispatch(changeHiddenVisibility(...args));
+};
+
+export const useTroubleshootingVisible = () => useContext(soundSyncContext).state.troubleshootingVisible;
+export const useSetTroubleshootingVisible = () => {
+  const { dispatch } = useContext(soundSyncContext);
+  return (...args) => dispatch(changeTroubleshootingVisibility(...args));
 };

@@ -12,7 +12,8 @@ import { Link } from 'react-router-dom';
 
 import GitHubIcon from '@material-ui/icons/GitHub';
 import QuestionAnswerIcon from '@material-ui/icons/QuestionAnswer';
-import { useShowHidden, useSetHiddenVisibility, useIsConnected } from 'utils/useSoundSyncState';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import { useShowHidden, useSetHiddenVisibility, useIsConnected, useSetTroubleshootingVisible } from 'utils/useSoundSyncState';
 import logo from 'res/logo_only.svg';
 import { PeersListDialog } from 'components/PeersList';
 import { CircularProgress, Button } from '@material-ui/core';
@@ -101,6 +102,7 @@ export const Header = ({ showControls = true }) => {
   const classes = useStyles();
   const showHidden = useShowHidden();
   const setHidden = useSetHiddenVisibility();
+  const setTroubleshootingVisible = useSetTroubleshootingVisible();
   const [peersListOpen, setPeersListOpen] = useState(false);
   const isConnected = useIsConnected();
 
@@ -134,6 +136,16 @@ export const Header = ({ showControls = true }) => {
           )}
         </div>
         <div className={classes.iconButtonsContainer}>
+          <Tooltip title="Troubleshooting" aria-label="Troubleshooting">
+            <IconButton
+              color="inherit"
+              className={classes.menuButton}
+              onClick={() => setTroubleshootingVisible(true)}
+            >
+              <HelpOutlineIcon />
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title="Join the discussion on Discord" aria-label="Join the discussion on Discord">
             <IconButton
               color="inherit"
