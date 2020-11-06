@@ -24,6 +24,8 @@ export class WebAudioSink extends AudioSink {
   private cleanAudioContext: () => void;
   audioClockDriftHistory = new NumericStatsTracker<number>((v) => v, AUDIO_DRIFT_HISTORY_DURATION / AUDIO_DRIFT_HISTORY_INTERVAL);
   private audioBufferTransformer: DriftAwareAudioBufferTransformer;
+  private audioVolumeDisabled = false;
+  private volumeNode: GainNode;
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -48,10 +50,10 @@ export class WebAudioSink extends AudioSink {
         latencyHint: 0.01,
       });
     }
-    const volumeNode = this.context.createGain();
-    volumeNode.gain.value = this.volume;
+    this.volumeNode = this.context.createGain();
+    this.volumeNode.gain.value = this.audioVolumeDisabled ? 1 : this.volume;
     const syncDeviceVolume = () => {
-      volumeNode.gain.value = this.volume;
+      this.volumeNode.gain.value = this.audioVolumeDisabled ? 1 : this.volume;
     };
     this.on('update', syncDeviceVolume);
 
@@ -89,8 +91,8 @@ export class WebAudioSink extends AudioSink {
     const audioworkletPath = require('./audioworklets/webaudio_sink_processor.audioworklet.ts');
     await this.context.audioWorklet.addModule(audioworkletPath);
     this.workletNode = new RawPcmPlayerWorklet(this.context);
-    this.workletNode.connect(volumeNode);
-    volumeNode.connect(this.context.destination);
+    this.workletNode.connect(this.volumeNode);
+    this.volumeNode.connect(this.context.destination);
 
     this.context.resume();
 
@@ -144,6 +146,13 @@ export class WebAudioSink extends AudioSink {
     const audioClockDrift = (deviceTime - streamTime) * (this.rate / 1000);
     if (!Number.isNaN(audioClockDrift)) {
       this.audioClockDriftHistory.push(audioClockDrift);
+    }
+  }
+
+  setWebaudioVolumeDisabled = (disabled = true) => {
+    this.audioVolumeDisabled = disabled;
+    if (this.volumeNode) {
+      this.volumeNode.gain.value = this.audioVolumeDisabled ? 1 : this.volume;
     }
   }
 
