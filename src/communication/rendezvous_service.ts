@@ -19,7 +19,13 @@ const rendezvousApi = superagent.agent().use((req) => {
   }
 });
 
+let registerToRendezvousServiceRetryTimeout;
 const registerToRendezvousService = async (port: number) => {
+  // this method is called every 4 hours, if the rendezvous service is unavailable, clear the previous retry to prevent the accumulation of retry processes
+  if (registerToRendezvousServiceRetryTimeout) {
+    clearTimeout(registerToRendezvousServiceRetryTimeout);
+    registerToRendezvousServiceRetryTimeout = undefined;
+  }
   const localUuid = getLocalPeer().uuid;
   const ips = getInternalIps().map((ip) => `${ip}:${port}_${localUuid}`).join(',');
   log(`Registering to rendezvous service with: ${ips}`);
@@ -30,7 +36,10 @@ const registerToRendezvousService = async (port: number) => {
       .type('text')
       .send(ips);
   } catch (e) {
-    log('Error while registering', e);
+    log('Error while registering, trying again in 1 minute', e);
+    registerToRendezvousServiceRetryTimeout = setTimeout(() => {
+      registerToRendezvousService(port);
+    }, 1 * 60 * 1000);
   }
 };
 
