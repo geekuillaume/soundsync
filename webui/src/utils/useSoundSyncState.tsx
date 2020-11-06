@@ -91,7 +91,7 @@ export const SoundSyncProvider = ({ children }) => {
 
 export const useIsConnected = () => some(useContext(soundSyncContext).peersManagers.peers, (peer) => !peer.isLocal && peer.state === 'connected');
 
-const audioSourceSinkGetter = (collection) => {
+const audioSourceSinkGetter: <T>(collection:T[]) => T[] = (collection: T[]) => {
   const inputCollection = Array.from(collection) as (AudioSource | AudioSink)[];
   const sortedCollection = inputCollection.sort((a, b) => a.uuid.localeCompare(b.uuid));
   const availableCollection = sortedCollection.filter((s) => s.peer && s.peer.state === 'connected' && s.available !== false);
