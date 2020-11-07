@@ -172,7 +172,7 @@ const config = {
   },
 };
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' || process.env.WEBPACK_SERVER) {
   config.devtool = 'inline-source-map';
   config.devServer = {
     contentBase: path.join(__dirname, 'dist'), // boolean | string | array, static file location
