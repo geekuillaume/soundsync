@@ -1,6 +1,6 @@
 {
   "name": "soundsync",
-    "version": "0.4.13",
+    "version": "0.4.13-dev",
   "description": "Plug virtual cables between any audio source and any speakers in your home",
   "author": "Guillaume Besson <guillaume@besson.co>",
   "homepage": "https://soundsync.app",
