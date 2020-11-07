@@ -53,15 +53,16 @@ export const ChromecastView = () => {
 
   useEffect(() => {
     if (loaded) {
-      // This is a hack to prevent the Chromecast framework from loading all its media player libs
-      // which are useless in this context but quite big to load, in my test this bring the WebRTC peer connect time from ~1.5s to ~1s
       try {
+        // This is a hack to prevent the Chromecast framework from loading all its media player libs
+        // which are useless in this context but quite big to load, in my test this bring the WebRTC peer connect time from ~1.5s to ~1s
         // @ts-ignore
         cast.C.common.wd.load = () => undefined;
       } catch (e) {
         // Hack is not longer functionnal, do nothing
       }
-      cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+      // cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+
       const context = cast.framework.CastReceiverContext.getInstance();
       const options = new cast.framework.CastReceiverOptions();
       options.disableIdleTimeout = true;
@@ -74,10 +75,9 @@ export const ChromecastView = () => {
           });
           getLocalPeer().name = 'Chromecast';
 
-          if (
-            !window.location.search.includes('disable-local-sink=true') &&
-            !audioSourcesSinksManager.sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio')
-          ) {
+          const getLocalSink = () => sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio') as WebAudioSink;
+
+          if (!getLocalSink()) {
             audioSourcesSinksManager.addSink({
               type: 'webaudio',
               name: data.data.peerName,
@@ -90,7 +90,7 @@ export const ChromecastView = () => {
           }
 
           // Synchronize Chromecast audio volume with sink volume
-          const localSink = sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio') as WebAudioSink;
+          const localSink = getLocalSink();
           localSink.setWebaudioVolumeDisabled(true);
 
           context.addEventListener(cast.framework.system.EventType.SYSTEM_VOLUME_CHANGED, (volume) => {
