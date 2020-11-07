@@ -75,7 +75,12 @@ export const startChromecastDetection = async () => {
   ]);
 };
 
-export const getDetectedChromecasts = () => detectedChromecast;
+export const getDetectedChromecasts = () => detectedChromecast.map(({ name, host, controller }) => ({
+  // we need to map the object to prevent the chromecast controller object from being sent
+  name,
+  host,
+  isConnected: !!controller,
+}));
 
 function SoundsyncChromecastController(client, sourceId, destinationId) {
   RequestResponseController.call(this, client, sourceId, destinationId, CHROMECAST_MESSAGE_NAMESPACE);
