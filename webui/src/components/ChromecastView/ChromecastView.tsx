@@ -1,9 +1,10 @@
 /// <reference types="chromecast-caf-receiver" />
 /*global cast */
 
+import { v4 as uuidv4 } from 'uuid';
 import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { usePeersManager, useSinks } from 'utils/useSoundSyncState';
+import { useAudioSourcesSinksManager, usePeersManager, useSinks } from 'utils/useSoundSyncState';
 import { useScript } from '../../utils/useScript';
 import { CHROMECAST_MESSAGE_NAMESPACE } from '../../../../src/utils/constants';
 import logo from '../../res/logo_only.svg';
@@ -48,21 +49,76 @@ export const ChromecastView = () => {
   const sinks = useSinks();
   const [loaded] = useScript('//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js');
   const peerManager = usePeersManager();
+  const audioSourcesSinksManager = useAudioSourcesSinksManager();
 
   useEffect(() => {
     if (loaded) {
+      // This is a hack to prevent the Chromecast framework from loading all its media player libs
+      // which are useless in this context but quite big to load, in my test this bring the WebRTC peer connect time from ~1.5s to ~1s
+      try {
+        // @ts-ignore
+        cast.C.common.wd.load = () => undefined;
+      } catch (e) {
+        // Hack is not longer functionnal, do nothing
+      }
+      cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
       const context = cast.framework.CastReceiverContext.getInstance();
       const options = new cast.framework.CastReceiverOptions();
       options.disableIdleTimeout = true;
 
       context.addCustomMessageListener(CHROMECAST_MESSAGE_NAMESPACE, ({data}) => {
         if (data.type === 'soundsync_init' && data.data.peerName) {
-          const name = `${data.data.peerName} - Chromecast`;
           setConfig((config) => {
-            config.name = name;
+            config.name = 'Chromecast';
             return config;
           });
-          getLocalPeer().name = name;
+          getLocalPeer().name = 'Chromecast';
+
+          if (
+            !window.location.search.includes('disable-local-sink=true') &&
+            !audioSourcesSinksManager.sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio')
+          ) {
+            audioSourcesSinksManager.addSink({
+              type: 'webaudio',
+              name: data.data.peerName,
+              peerUuid: getLocalPeer().uuid,
+              uuid: uuidv4(),
+              volume: 1,
+              available: true,
+              pipedFrom: null,
+            });
+          }
+
+          // Synchronize Chromecast audio volume with sink volume
+          const localSink = sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio') as WebAudioSink;
+          localSink.setWebaudioVolumeDisabled(true);
+
+          context.addEventListener(cast.framework.system.EventType.SYSTEM_VOLUME_CHANGED, (volume) => {
+            if (Math.abs(volume.data.level - localSink.volume) > 0.05) {
+              // prevent float conversions from starting a infinite loop when synchronizing both volume
+              localSink.updateInfo({volume: volume.data.level});
+            }
+          });
+
+          localSink.on('update', (descriptor) => {
+            if (descriptor.volume) {
+              // @ts-ignore
+              context.setSystemVolumeLevel(descriptor.volume);
+            }
+          });
+
+
+          setTimeout(() => {
+            // TODO: find a good event that indicate that we can read the system volume from here
+            try {
+              localSink.updateInfo({
+                // @ts-ignore
+                volume: context.getSystemVolume().level
+              });
+            } catch (e) {
+              // do nothing and use the previously set volume
+            }
+          }, 1000);
         }
         if (data.type === 'initiator_message') {
           if (!callerPeer) {
@@ -83,37 +139,7 @@ export const ChromecastView = () => {
         }
       });
 
-      // Synchronize Chromecast audio volume with sink volume
-      const localSink = sinks.find((sink) => sink.local && sink.type === 'webaudio') as WebAudioSink;
-      localSink.setWebaudioVolumeDisabled(true);
-
-      context.addEventListener(cast.framework.system.EventType.SYSTEM_VOLUME_CHANGED, (volume) => {
-        if (Math.abs(volume.data.level - localSink.volume) > 0.05) {
-          // prevent float conversions from starting a infinite loop when synchronizing both volume
-          localSink.updateInfo({volume: volume.data.level});
-        }
-      });
-
-      localSink.on('update', (descriptor) => {
-        if (descriptor.volume) {
-          // @ts-ignore
-          context.setSystemVolumeLevel(descriptor.volume);
-        }
-      });
-
       context.start(options);
-
-      setTimeout(() => {
-        // TODO: find a good event that indicate that we can read the system volume from here
-        try {
-          localSink.updateInfo({
-            // @ts-ignore
-            volume: context.getSystemVolume().level
-          });
-        } catch (e) {
-          // do nothing and use the previously set volume
-        }
-      }, 1000);
     }
   }, [loaded]);
 

@@ -99,11 +99,11 @@ const audioSourceSinkGetter: <T>(collection:T[]) => T[] = (collection: T[]) => {
   return [...visible, ...hidden];
 };
 
-export const getContextAudioSourcesSinksManager = () => useContext(soundSyncContext).audioSourcesSinksManager;
+export const useAudioSourcesSinksManager = () => useContext(soundSyncContext).audioSourcesSinksManager;
 
-export const useSinks = () => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sinks);
-export const useSources = () => audioSourceSinkGetter(getContextAudioSourcesSinksManager().sources);
-export const usePipes = () => getContextAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
+export const useSinks = () => audioSourceSinkGetter(useAudioSourcesSinksManager().sinks);
+export const useSources = () => audioSourceSinkGetter(useAudioSourcesSinksManager().sources);
+export const usePipes = () => useAudioSourcesSinksManager().sinks.filter((s) => s.pipedFrom).map((s) => ({ sinkUuid: s.uuid, sourceUuid: s.pipedFrom }));
 
 export const usePeersManager = () => useContext(soundSyncContext).peersManagers as PeersManager;
 export const usePeers = () => useContext(soundSyncContext).peersManagers.peers;

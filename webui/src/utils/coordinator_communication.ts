@@ -37,12 +37,13 @@ export const initializeCoordinator = memoize(async () => {
 
   getClientCoordinator();
   if (
+    !IS_CHROMECAST && // chromecast webaudio sink is created in ChromecastView.tsx to name it properly with the name info from calling peer
     !window.location.search.includes('disable-local-sink=true') &&
-    !audioSourcesSinksManager.sinks.filter((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio').length
+    !audioSourcesSinksManager.sinks.find((sink) => sink.peerUuid === getLocalPeer().uuid && sink.type === 'webaudio')
   ) {
     audioSourcesSinksManager.addSink({
       type: 'webaudio',
-      name: IS_CHROMECAST ? 'Chromecast' : 'Web Page Output',
+      name: 'Web Browser',
       peerUuid: getLocalPeer().uuid,
       uuid: uuidv4(),
       volume: 1,
