@@ -41,7 +41,7 @@ const PopoverTextField = withStyles(() => ({
   },
 }))(({ classes, InputProps, ...props }) => (<TextField {...props} InputProps={{ classes, ...InputProps }} />));
 
-export const SourceContextMenu = (
+export const SourceContextMenu = React.memo((
   {
     isOpen, onClose, source, anchor,
   }: { source: AudioSource; isOpen: boolean; onClose: () => any; anchor: HTMLElement },
@@ -144,4 +144,4 @@ export const SourceContextMenu = (
       )}
     </EditPopover>
   );
-};
+});

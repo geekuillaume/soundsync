@@ -88,6 +88,10 @@ export const Source = ({ source }) => {
     enqueueSnackbar('Click on the speaker you want to link');
   }, 5000, { leading: true, trailing: false }), []);
 
+  const closeContext = useCallback(() => {
+    setContextMenuOpen(false);
+  }, []);
+
   return (
     <Zoom
       in={!hidden || shouldShowHidden}
@@ -117,7 +121,7 @@ export const Source = ({ source }) => {
           {source.active && <div className={styles.activeIndicator} alt="Currently playing" />}
           {source.error && <AudioErrorIndicator error={source.error} />}
         </div>
-        <SourceContextMenu isOpen={contextMenuOpen} source={source} onClose={() => setContextMenuOpen(false)} anchor={anchor.current} />
+        <SourceContextMenu isOpen={contextMenuOpen} source={source} onClose={closeContext} anchor={anchor.current} />
       </div>
     </Zoom>
   );

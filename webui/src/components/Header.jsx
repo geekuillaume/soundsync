@@ -98,13 +98,12 @@ const useStyles = makeStyles((t) => ({
   },
 }));
 
-export const Header = ({ showControls = true }) => {
+export const Header = React.memo(() => {
   const classes = useStyles();
   const showHidden = useShowHidden();
   const setHidden = useSetHiddenVisibility();
   const setTroubleshootingVisible = useSetTroubleshootingVisible();
   const [peersListOpen, setPeersListOpen] = useState(false);
-  const isConnected = useIsConnected();
 
   return (
     <AppBar position="static" className={classes.root}>
@@ -120,21 +119,7 @@ export const Header = ({ showControls = true }) => {
             </Typography>
           </Link>
         </div>
-        <div>
-          {!showControls && !isConnected
-          && (
-          <div className={classes.loadingContainer}>
-            <CircularProgress className={classes.loadingIndicator} />
-            <p className={classes.loadingText}>Scanning local network</p>
-          </div>
-          )}
-          {!showControls && isConnected
-          && (
-            <div className={classes.connectedContainer}>
-              <Link to="/controller"><Button variant="contained" className={classes.connectedButton}>Open controller</Button></Link>
-            </div>
-          )}
-        </div>
+        <div />
         <div className={classes.iconButtonsContainer}>
           <Tooltip title="Troubleshooting" aria-label="Troubleshooting">
             <IconButton
@@ -166,34 +151,29 @@ export const Header = ({ showControls = true }) => {
             </IconButton>
           </Tooltip>
 
-          {showControls
-          && (
-          <>
-            <Tooltip title="Show peers" aria-label="Show peers">
-              <IconButton
-                color="inherit"
-                className={classes.menuButton}
-                onClick={() => setPeersListOpen(true)}
-              >
-                <SettingsEthernetIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Show/Hide hidden" aria-label="Show/Hide hidden">
-              <IconButton
-                edge="end"
-                className={classes.menuButton}
-                color="inherit"
-                onClick={() => setHidden(!showHidden)}
-              >
-                {showHidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
-              </IconButton>
-            </Tooltip>
-          </>
-          )}
+          <Tooltip title="Show peers" aria-label="Show peers">
+            <IconButton
+              color="inherit"
+              className={classes.menuButton}
+              onClick={() => setPeersListOpen(true)}
+            >
+              <SettingsEthernetIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Show/Hide hidden" aria-label="Show/Hide hidden">
+            <IconButton
+              edge="end"
+              className={classes.menuButton}
+              color="inherit"
+              onClick={() => setHidden(!showHidden)}
+            >
+              {showHidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
+            </IconButton>
+          </Tooltip>
         </div>
       </Toolbar>
 
-      <PeersListDialog open={showControls && peersListOpen} onClose={() => setPeersListOpen(false)} />
+      <PeersListDialog open={peersListOpen} onClose={() => setPeersListOpen(false)} />
     </AppBar>
   );
-};
+});
