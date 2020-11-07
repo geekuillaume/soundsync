@@ -64,15 +64,15 @@ export const AddChromecastPeer = ({ onDialogClose }) => {
         && (
         <List>
           {detectedChromecasts.chromecasts.map((chromecast, i) => (
-            <>
+            <React.Fragment key={chromecast.host} >
               {i !== 0 && <Divider component="li" /> }
-              <MenuItem key={chromecast.host} className={styles.chromecastItem} onClick={() => handleStartChromecast(chromecast.host)}>
+              <MenuItem className={styles.chromecastItem} onClick={() => handleStartChromecast(chromecast.host)}>
                 <ListItemIcon>
                   <img className={styles.chromecastLogo} src={chromecastLogo} />
                 </ListItemIcon>
                 <ListItemText primary={chromecast.name} />
               </MenuItem>
-            </>
+            </React.Fragment>
           ))}
         </List>
         )}
