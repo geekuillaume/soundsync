@@ -17,7 +17,8 @@ const useStyles = makeStyles({
 
 export const PeersListDialog = ({ open, onClose }) => {
   const styles = useStyles();
-  const peers = usePeersManager().peers.filter((peer) => peer.state !== 'deleted');
+  const peersManager = usePeersManager();
+  const peers = peersManager.peers.filter((peer) => peer.state !== 'deleted');
 
   const connectedPeers = peers.filter((peer) => peer.state === 'connected');
   const otherPeers = peers.filter((peer) => peer.state !== 'connected');
