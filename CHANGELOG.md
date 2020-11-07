@@ -1,5 +1,38 @@
 # Changelog
 
+<a name="0.4.13"></a>
+## 0.4.13 (2020-11-07)
+
+### Added
+
+- ✨ Synchronize Chromecast volume with Chromecast system volume [[9b62a6e](https://github.com/geekuillaume/soundsync/commit/9b62a6ea5db7530e89a22a55170db9b708dcc017)]
+
+### Changed
+
+- 🎨 Adds webui start:prod command [[2836a79](https://github.com/geekuillaume/soundsync/commit/2836a793226719209780d1665c1fca78f22d2cb0)]
+- 🎨 Disable chromecast debug log and clean code [[b489310](https://github.com/geekuillaume/soundsync/commit/b4893105e75f7a0a5c7266ea3d351ac8efaddfcd)]
+- ⚡ Improves chromecast perf and name the sink with the chromecast name [[b4a2034](https://github.com/geekuillaume/soundsync/commit/b4a2034205959f6f053bc4cb3d2e571240596e63)]
+- 🎨 Add React key to right location in AddChromecastSink [[b732409](https://github.com/geekuillaume/soundsync/commit/b732409ef96640b2a3c3d7431f92d355a3c08ccc)]
+- ⚡ Optimize some React components perf [[45ce705](https://github.com/geekuillaume/soundsync/commit/45ce705a5f6569adae7292a142618473811f5fb1)]
+- ⚡ Throttle volume updates on the webui [[f8a2b31](https://github.com/geekuillaume/soundsync/commit/f8a2b3154f932a4b4df145182fa63aa06e23bb15)]
+- 🎨 Fix type of useSinks and useSources on webui [[b8beaa3](https://github.com/geekuillaume/soundsync/commit/b8beaa3a718a249f7adbedae412ba6be9642732b)]
+- ⚡ Adds direct connect with Chromecast websocket without using rendezvous service [[6e1fb85](https://github.com/geekuillaume/soundsync/commit/6e1fb85dfefe295cd1730f6cc5f0613516e02b13)]
+- ⚡ Improves Chromecast search speed [[684d36e](https://github.com/geekuillaume/soundsync/commit/684d36e1602a3f03a84e5c4dee3d958bb6460474)]
+
+### Fixed
+
+- 🐛 Fix peersManager debug button [[d5465ba](https://github.com/geekuillaume/soundsync/commit/d5465baf7bde9afd5d6b932c95442e0bb0cc8a32)]
+- 🐛 Fix chromecast detection bug when chromecast is started [[0943b7b](https://github.com/geekuillaume/soundsync/commit/0943b7be353cdd12194eef758deca93dd3b86dc4)]
+- 🐛 Adds retry strategy for register to rendezvous service method [[f7f2e66](https://github.com/geekuillaume/soundsync/commit/f7f2e66eda2fe001b24caf6a9b1afa37919fc98a)]
+- 🐛 Fix reconnection of httpApiInitiator peer when first try failed [[ccd6129](https://github.com/geekuillaume/soundsync/commit/ccd6129a1e43908b9a6800807653a4edb4795768)]
+
+### Miscellaneous
+
+- 📝 Adds troubleshooting section on the controller [[0c3c7f4](https://github.com/geekuillaume/soundsync/commit/0c3c7f40d520d62a8220a1e633226cfb2cf2635d)]
+- 📝 Add info about raspberry pi compatibility [[f5c5299](https://github.com/geekuillaume/soundsync/commit/f5c5299136fb3dee6ed981fd2cda1ca118ab4be8)]
+- 🚧 Bump to dev version [[c2a2543](https://github.com/geekuillaume/soundsync/commit/c2a254396847e4d9b484878d3e2b658a1dd9a2e8)]
+
+
 <a name="0.4.12"></a>
 ## 0.4.12 (2020-11-03)
 
