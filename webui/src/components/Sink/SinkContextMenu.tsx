@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
+import throttle from 'lodash/throttle';
 
 // import Dialog from '@material-ui/core/Dialog';
 // import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -71,6 +72,35 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
+// This is used to throttle the volume updates to the sink and prevent a lot of updates to the sink when dragging
+// it also makes sure the slider is smooth during dragging even if the real volume update is throttled
+const VolumeSlider = ({sink}: {sink: AudioSink}) => {
+  const styles = useStyles();
+  const [tmpVolume, setTmpVolume] = useState(sink.volume);
+
+  useEffect(() => {
+    setTmpVolume(sink.volume);
+  }, [sink.volume]);
+
+  const handleVolumeChange = useMemo(() => throttle((volume: number) => {
+    sink.patch({
+      volume: volume,
+    });
+  }, 300), [sink]);
+
+  const smoothHandleVolumeChange = (e, volume) => {
+    setTmpVolume(volume);
+    handleVolumeChange(volume);
+  }
+
+  return (
+    <div className={styles.volumeContainer}>
+      <VolumeDown />
+      <Slider value={tmpVolume} min={0} max={1} step={0.01} onChange={smoothHandleVolumeChange} />
+      <VolumeUp />
+    </div>
+  );
+}
 
 export const SinkContextMenu = ({
   isOpen, onClose, sink, anchor,
@@ -150,12 +180,6 @@ export const SinkContextMenu = ({
     />
   );
 
-  const handleVolumeChange = (e, newValue) => {
-    sink.patch({
-      volume: newValue,
-    });
-  };
-
   const handleDelete = () => {
     sink.peer.sendRcp('deleteSink', sink.uuid);
   };
@@ -173,11 +197,7 @@ export const SinkContextMenu = ({
 
   const defaultModalContent = (
     <>
-      <div className={styles.volumeContainer}>
-        <VolumeDown />
-        <Slider value={sink.volume} min={0} max={1} step={0.01} onChange={handleVolumeChange} />
-        <VolumeUp />
-      </div>
+      <VolumeSlider sink={sink} />
       {sink.latencyCorrection !== 0 &&
         <div className={styles.latencyContainer}>
           <RestoreIcon onClick={handleDecreaseLatencyCorrection} />
