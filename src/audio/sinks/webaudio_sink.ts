@@ -26,6 +26,8 @@ export class WebAudioSink extends AudioSink {
   private audioBufferTransformer: DriftAwareAudioBufferTransformer;
   private audioVolumeDisabled = false;
   private volumeNode: GainNode;
+  // will only be used if SharedArrayBuffer is supported by the browser
+  private sharedAudioBuffer: SharedArrayBuffer;
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -67,7 +69,9 @@ export class WebAudioSink extends AudioSink {
     // this should be set before any await to make sure we have the clean method available if _stopSink is called between _startSink ends
     this.cleanAudioContext = () => {
       this.off('update', syncDeviceVolume);
-      this.workletNode.disconnect();
+      if (this.workletNode) {
+        this.workletNode.disconnect();
+      }
       delete this.workletNode;
       this.context.suspend();
       delete this.context;
