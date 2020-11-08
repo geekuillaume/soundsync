@@ -1,5 +1,6 @@
 // This is only used in a browser context
 
+import { CircularTypedArray } from '../../utils/circularTypedArray';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
 import { isBrowser } from '../../utils/environment/isBrowser';
 import { AudioSink } from './audio_sink';
@@ -7,7 +8,7 @@ import { AudioSource } from '../sources/audio_source';
 import { WebAudioSinkDescriptor } from './sink_type';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioInstance } from '../utils';
-import { OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_RATE } from '../../utils/constants';
+import { MAX_LATENCY, OPUS_ENCODER_CHUNK_SAMPLES_COUNT, OPUS_ENCODER_RATE } from '../../utils/constants';
 import { NumericStatsTracker } from '../../utils/basicNumericStatsTracker';
 import { DriftAwareAudioBufferTransformer } from '../../utils/audio/synchronizedAudioBuffer';
 
@@ -28,6 +29,7 @@ export class WebAudioSink extends AudioSink {
   private volumeNode: GainNode;
   // will only be used if SharedArrayBuffer is supported by the browser
   private sharedAudioBuffer: SharedArrayBuffer;
+  private sharedCircularAudioBuffer: CircularTypedArray<Float32Array>;
 
   constructor(descriptor: WebAudioSinkDescriptor, manager: AudioSourcesSinksManager) {
     super(descriptor, manager);
@@ -77,6 +79,8 @@ export class WebAudioSink extends AudioSink {
       delete this.context;
       this.cleanAudioContext = undefined;
       this.audioClockDriftHistory.flush();
+      delete this.sharedAudioBuffer;
+      delete this.sharedCircularAudioBuffer;
       clearInterval(driftRegisterInterval);
     };
 
@@ -97,6 +101,15 @@ export class WebAudioSink extends AudioSink {
     this.workletNode = new RawPcmPlayerWorklet(this.context);
     this.workletNode.connect(this.volumeNode);
     this.volumeNode.connect(this.context.destination);
+
+    if (typeof SharedArrayBuffer !== 'undefined') {
+      this.sharedAudioBuffer = new SharedArrayBuffer(MAX_LATENCY * (OPUS_ENCODER_RATE / 1000) * this.channels);
+      this.sharedCircularAudioBuffer = new CircularTypedArray(Float32Array, this.sharedAudioBuffer);
+    }
+    this.workletNode.port.postMessage({
+      type: 'init',
+      sharedAudioBuffer: this.sharedAudioBuffer,
+    });
 
     this.context.resume();
 
@@ -131,11 +144,15 @@ export class WebAudioSink extends AudioSink {
     }
     const chunk = new Float32Array(data.chunk.buffer, data.chunk.byteOffset, data.chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
     const { bufferTimestamp, buffer } = this.audioBufferTransformer.transformChunk(chunk, (data.i * OPUS_ENCODER_CHUNK_SAMPLES_COUNT));
-    this.workletNode.port.postMessage({
-      type: 'chunk',
-      chunk: buffer,
-      timestamp: bufferTimestamp,
-    }, [buffer.buffer]); // we transfer the buffer.buffer to the audio worklet to prevent a memory copy
+    if (this.sharedCircularAudioBuffer) {
+      this.sharedCircularAudioBuffer.set(buffer, bufferTimestamp * this.channels);
+    } else {
+      this.workletNode.port.postMessage({
+        type: 'chunk',
+        chunk: buffer,
+        timestamp: bufferTimestamp,
+      }, [buffer.buffer]); // we transfer the buffer.buffer to the audio worklet to prevent a memory copy
+    }
   }
 
   registerDrift = () => {

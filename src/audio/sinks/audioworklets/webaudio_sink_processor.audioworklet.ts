@@ -13,7 +13,7 @@ declare const sampleRate: number;
 // @ts-ignore
 class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   chunkBuffer = new Float32Array(128 * CHANNELS);
-  buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
+  buffer: CircularTypedArray<Float32Array>;
 
   port: MessagePort;
 
@@ -23,12 +23,23 @@ class RawPcmPlayerProcessor extends AudioWorkletProcessor {
   }
 
   handleMessage_(event) {
+    if (event.data.type === 'init') {
+      if (event.data.sharedAudioBuffer) {
+        this.buffer = new CircularTypedArray(Float32Array, event.data.sharedAudioBuffer);
+      } else {
+        this.buffer = new CircularTypedArray(Float32Array, BUFFER_SIZE);
+      }
+    }
     if (event.data.type === 'chunk') {
       this.buffer.set(event.data.chunk, event.data.timestamp * CHANNELS);
     }
   }
 
   process(inputs, outputs) {
+    if (!this.buffer) {
+      // audioworklet is not initialized yet
+      return true;
+    }
     this.buffer.getInTypedArray(this.chunkBuffer, currentFrame * CHANNELS, this.chunkBuffer.length);
 
     for (let sampleIndex = 0; sampleIndex < outputs[0][0].length; sampleIndex++) {
