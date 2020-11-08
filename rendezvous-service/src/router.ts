@@ -21,6 +21,13 @@ export const initHttpServer = () => {
     app.use(logger());
   }
 
+  app.use((ctx, next) => {
+    // Used to enable SharedArrayBuffer compatibility for Firefox: https://hacks.mozilla.org/2020/07/safely-reviving-shared-memory/
+    ctx.set('Cross-Origin-Opener-Policy', 'same-origin');
+    ctx.set('Cross-Origin-Embedder-Policy', 'require-corp');
+    return next();
+  });
+
   app.proxy = true;
 
   if (!config.get('proxyTarget')) {

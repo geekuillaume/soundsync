@@ -181,6 +181,11 @@ if (process.env.NODE_ENV === 'development' || process.env.WEBPACK_SERVER) {
     overlay: true,
     host: '0.0.0.0',
     disableHostCheck: true,
+    headers: {
+      // Used to enable SharedArrayBuffer compatibility for Firefox: https://hacks.mozilla.org/2020/07/safely-reviving-shared-memory/
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    }
   };
 }
 
