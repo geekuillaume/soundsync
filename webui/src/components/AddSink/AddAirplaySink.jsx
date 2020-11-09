@@ -47,12 +47,14 @@ export const AddAirplaySink = ({ onDialogClose }) => {
     if (!airplaySpeakerCapablePeers.length) {
       return;
     }
+    let timeout;
     const updateAirplaySpeakers = () => {
       airplaySpeakerCapablePeers[0].sendRcp('scanAirplay').then((airplaySpeakers) => {
         setDetectedAirplaySpeakers({ loading: false, airplaySpeakers });
+        timeout = setTimeout(updateAirplaySpeakers, CHROMECAST_UPDATE_INTERVAL);
       });
     };
-    const intervalHandle = setInterval(updateAirplaySpeakers, AIRPLAYSPEAKER_UPDATE_INTERVAL);
+    updateAirplaySpeakers();
     // eslint-disable-next-line consistent-return
     return () => {
       clearInterval(intervalHandle);
