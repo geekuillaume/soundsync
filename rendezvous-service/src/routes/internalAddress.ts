@@ -30,7 +30,7 @@ router.use(cors({
 
 router.post(`/api/ip_registry/register`, async (ctx) => {
   ctx.assert(typeof ctx.request.body === 'string', 400, 'body should be a string');
-  ctx.assert(ctx.request.body.length < 256, 400, 'body length should be less than 256 chars');
+  ctx.assert(ctx.request.body.length < 1024, 400, 'body length should be less than 1024 chars'); // 1024 because in some cases a peer can have a lot of internal IP addresses (Docker for example)
   const internalIps = ctx.request.body.split(',');
   const externalIp = sanitizeIp(ctx.request.ip);
   // we add the ip to two sets, one for the current day and one for the next day and set the expire time accordingly
