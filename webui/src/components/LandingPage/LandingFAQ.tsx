@@ -104,7 +104,7 @@ export const LandingFAQ = () => {
           title="Is it free?"
           content={(
             <p>
-              Soundsync is free during the beta. Once it&apos;s stable enough, I&apos;ll need to find a way to generate money to continue working on it. My goal is to keep it free for most uses and put in place a pricing model for professional use. Anyway, the code will stay under the same license and you&apos;ll alway be free to tweak it.
+              Soundsync is free during the beta. Once it&apos;s stable enough, I&apos;ll need to find a way to generate money to continue working on it. My goal is to keep it free for most uses and put in place a pricing model for professional use. Anyway, the code will stay under the same license and you&apos;ll always be free to tweak it.
             </p>
           )}
         />
@@ -135,7 +135,7 @@ export const LandingFAQ = () => {
                   <li>
                     <span>Computer audio:</span>
                     {' '}
-                    On Windows and Linux, Soundsync capture the sound emitted from your computer in any program
+                    On Windows and Linux, Soundsync captures the sound emitted from your computer in any program
                   </li>
                 </ul>
               </p>
@@ -196,7 +196,7 @@ export const LandingFAQ = () => {
           title="How well is it synchronized?"
           content={(
             <p>
-              Soundsync will try its best to keep every device synchronized. In practice, the audio synchronization between two computer will be precise at 25ms max. This is precise enough for speakers in different rooms but the difference can be heard if the two speakers are very near from each other. Soundsync will select the minimum latency between the audio source and the audio output dynamically depending on the network connection quality and the audio outputs reactivity. In general, you can expect around 250ms latency between the audio being emitted by the source and being heard from the connected audio outputs.
+              Soundsync will try its best to keep every device synchronized. In practice, the audio synchronization between two computers will be accurate at 25ms max. This is precise enough for speakers in different rooms but the difference can be heard if the two speakers are very close from each other. Soundsync will select the minimum latency between the audio source and the audio output dynamically depending on the network connection quality and the audio outputs reactivity. In general, you can expect around 250ms latency between the audio being emitted by the source and being heard from the connected audio outputs.
             </p>
           )}
         />
@@ -219,7 +219,7 @@ export const LandingFAQ = () => {
               Every Soundsync peer (a device on which Soundsync is installed) can be used offline. Each peer will detect other peers on the local network with Bonjour and if connected to Internet, will use a rendez-vous service to detect other peers with the same IP address. As Bonjour isn&apos;t available in a web browser, you need to connect to a peer on your local network with its IP and the port 6512 (for example
               {' '}
               <code>http://192.168.1.12:6512</code>
-              ). Also note that you won&apos;t be able to use the webpage as an audio output because the page cannot be served in a `https` context.
+              ). Also note that you won&apos;t be able to use the webpage as an audio output because the page cannot be served locally in a https context.
             </p>
           )}
         />
@@ -260,7 +260,7 @@ export const LandingFAQ = () => {
           title="I need help!"
           content={(
             <p>
-              The fatest way to get help is to
+              The fastest way to get help is to
               {' '}
               <a href="https://discord.gg/j2BZ5KC">join the Discord server</a>
               {' '}
@@ -274,11 +274,11 @@ export const LandingFAQ = () => {
           title="How to integrate Soundsync in my product?"
           content={(
             <p>
-              Soundsync is using the Business Source Licence, in short: you can use it freely for personnal use but you cannot use it as-is for professional use. If you are a professional you can install Soundsync in your office freely but you cannot resell it to someone else. If you want to resell it or integrate it in products that you will commercialize, you need a special licence. In this case,
+              Soundsync is using the Business Source Licence, in short: you can use it freely for personal use but you cannot use it as-is for professional use. If you are a professional you can install Soundsync in your office freely but you cannot resell it to someone else. If you want to resell it or integrate it in products that you will commercialize, you need a special licence. In this case,
               {' '}
               <a href="mailto:guillaume+soundsync@besson.co">send me an email</a>
               {' '}
-              and we&apos;ll work on the details.
+              and we&apos;ll work on the details. Look at the <a href="https://github.com/geekuillaume/soundsync/blob/master/LICENSE">license file</a> for more details.
             </p>
           )}
         />
