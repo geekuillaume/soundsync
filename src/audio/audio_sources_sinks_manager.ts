@@ -135,6 +135,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     const isLocal = !sourceDescriptor.peerUuid || sourceDescriptor.peerUuid === getLocalPeer().uuid;
     log(`Adding source ${sourceDescriptor.name} of type ${sourceDescriptor.type}`);
     let source;
+    // TODO: lazy load every source type to prevent unused load on webui
     if (!isLocal) {
       source = new RemoteSource(sourceDescriptor, this);
     } else if (sourceDescriptor.type === 'librespot') {
@@ -202,6 +203,7 @@ export class AudioSourcesSinksManager extends EventEmitter {
     log(`Adding sink  ${sinkDescriptor.name} of type ${sinkDescriptor.type}`);
     let sink: AudioSink;
     const isLocal = !sinkDescriptor.peerUuid || sinkDescriptor.peerUuid === getLocalPeer().uuid;
+    // TODO: lazy load every sink type to prevent unused load on webui
     if (!isLocal) {
       sink = new RemoteSink(sinkDescriptor, this);
     } else if (sinkDescriptor.type === 'localdevice') {

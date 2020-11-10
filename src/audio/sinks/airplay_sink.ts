@@ -8,7 +8,7 @@ import { AirplaySinkDescriptor } from './sink_type';
 import { AudioSink } from './audio_sink';
 import { AudioSourcesSinksManager } from '../audio_sources_sinks_manager';
 import { AudioChunkStreamOutput } from '../../utils/audio/chunk_stream';
-import { AirplaySpeaker } from '../../utils/vendor_integrations/airplay/airplaySpeaker';
+import { AirplaySpeaker as AirplaySpeakerType } from '../../utils/vendor_integrations/airplay/airplaySpeaker';
 import { SAMPLE_RATE, CHANNELS } from '../../utils/vendor_integrations/airplay/airplayConstants';
 
 export class AirplaySink extends AudioSink {
@@ -18,7 +18,7 @@ export class AirplaySink extends AudioSink {
   latency = 1500;
   host: string;
   port: number;
-  private airplay: AirplaySpeaker;
+  private airplay: AirplaySpeakerType;
   private resampler: SoxrResampler;
   private cleanAirplay: () => Promise<void>;
 
@@ -30,6 +30,8 @@ export class AirplaySink extends AudioSink {
 
   async _startSink() {
     this.log('Connecting to Airplay sink');
+    // lazy load airplay speaker to prevent webui from loading it
+    const { AirplaySpeaker } = await import('../../utils/vendor_integrations/airplay/airplaySpeaker');
     this.airplay = new AirplaySpeaker(
       this.host,
       this.port,
