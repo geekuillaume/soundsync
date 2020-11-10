@@ -4,6 +4,7 @@ import {
 } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { Button, Typography } from '@material-ui/core';
+import classnames from 'classnames';
 
 import { useIsConnected } from 'utils/useSoundSyncState';
 import { LandingCompatibility } from 'components/LandingPage/LandingCompatibility';
@@ -77,6 +78,10 @@ const useStyles = makeStyles((t) => ({
       backgroundColor: 'rgb(20,20,20)',
     },
   },
+  controllerButton: {
+    fontSize: '1.2em',
+    padding: '1em 2em',
+  },
   subHeadline: {
     fontSize: '1.5rem',
     color: t.palette.grey[600],
@@ -136,7 +141,7 @@ export const LandingPage = () => {
           <div className={classes.headerTitleContainer}>
             <img src={Logo} className="soundsync-logo" />
 
-            <Typography variant="h6" className={classes.title}>
+            <Typography variant="h6">
               Soundsync
               {' '}
               <span className={classes.betaIndicator}>BETA</span>
@@ -146,15 +151,15 @@ export const LandingPage = () => {
         </div>
         <div className={classes.headlineContainer}>
           <h1 className={classes.headline}>
-            Control all your speakers
+            Listen to your music in sync
             {' '}
-            <span>from a single place</span>
+            <span>on every speaker in your home</span>
           </h1>
           {!isConnected
             && <Button onClick={scrollToDownload} variant="contained" size="large" className={classes.cta}>Download</Button>}
           {isConnected
           && (
-            <Link to="/controller"><Button variant="contained" size="large" className={classes.cta}>Open controller</Button></Link>
+            <Link to="/controller"><Button variant="contained" size="large" className={classnames(classes.cta, classes.controllerButton)}>Open controller</Button></Link>
           )}
         </div>
       </div>

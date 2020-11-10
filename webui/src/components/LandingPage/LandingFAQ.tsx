@@ -71,7 +71,7 @@ const useStyles = makeStyles((t) => ({
       marginBottom: 15,
     },
     '& span': {
-      fontWeight: 'bold',
+      fontWeight: '500',
     },
   },
 }));
