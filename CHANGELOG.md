@@ -1,5 +1,23 @@
 # Changelog
 
+<a name="0.4.15"></a>
+## 0.4.15 (2020-11-10)
+
+### Changed
+
+- 💬 Change some footer wording [[d76dbec](https://github.com/geekuillaume/soundsync/commit/d76dbec685981a43e076a90ce65ef468fbd4f877)]
+- 💬 Adds info about data collection [[72acac0](https://github.com/geekuillaume/soundsync/commit/72acac085497d0a994c6be25deabc4586a8228dc)]
+- 💬 Fix typos [[8553bd5](https://github.com/geekuillaume/soundsync/commit/8553bd5c9797b97581de877c71ebe231a6faf9eb)]
+- 🎨 Change wording on landing page [[764754c](https://github.com/geekuillaume/soundsync/commit/764754c3beff38b90fc4f5d4f2e53b4911da07f4)]
+- ⚡ Lazy load airplay sink to prevent webui useless load [[c618f7e](https://github.com/geekuillaume/soundsync/commit/c618f7e7a7d58ea4151af153e4a176f6200b0b0f)]
+- 🎨 Self host fonts to prevent errors from cross-origin requests [[905cd77](https://github.com/geekuillaume/soundsync/commit/905cd77829e7e46d226b8c9bcb3e31bbe27110ad)]
+
+### Miscellaneous
+
+- 📸 Updates social preview [[d1ddaf0](https://github.com/geekuillaume/soundsync/commit/d1ddaf08f63b8446fcde65940726fb6004e7eea2)]
+- 🚧 Bump to dev version [[dcd684b](https://github.com/geekuillaume/soundsync/commit/dcd684b289310c1578b552944d7233925705803e)]
+
+
 <a name="0.4.14"></a>
 ## 0.4.14 (2020-11-10)
 
