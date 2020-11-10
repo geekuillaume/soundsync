@@ -40,7 +40,7 @@ const deps = {
       url: 'https://github.com/geekuillaume/shairport-sync/releases/download/20200428/shairport-sync-Linux-x64.zip',
       sha1: 'ee8594c0b8387b1a1c85c083dbf74ee3e1e85ffd',
     },
-    'linus-arm': {
+    'linux-arm': {
       url: 'https://github.com/geekuillaume/shairport-sync/releases/download/20200428/shairport-sync-Linux-arm.zip',
       sha1: 'e1575248de0dd17d627212b44d999025197061e2',
     },
