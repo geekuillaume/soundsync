@@ -53,7 +53,7 @@ export const LandingFooter = () => {
           <a href="https://discord.gg/j2BZ5KC">Discord</a>
         </p>
         <p>
-          Made with love in Lyon, France by Guillaume Besson - Design by
+          Made with passion in Lyon, France by Guillaume Besson - Design by
           {' '}
           <a href="https://www.thomasgrangeon.com">Thomas Grangeon</a>
         </p>
