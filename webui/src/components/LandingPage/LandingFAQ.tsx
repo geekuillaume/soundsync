@@ -282,6 +282,14 @@ export const LandingFAQ = () => {
             </p>
           )}
         />
+        <Question
+          title="What data is collected?"
+          content={(
+            <p>
+              Soundsync only collects anonymously how long you've used Soundsync, on which type of sources and outputs, to help me focus on the most important features. This data is collected on a self-hosted Posthog instance and never shared with any third-party. You can inspect exactly what is collected in the <a href="https://github.com/geekuillaume/soundsync/blob/master/src/utils/vendor_integrations/posthog.ts#L30">Posthog integration source code</a>.
+            </p>
+          )}
+        />
       </div>
     </div>
   );
