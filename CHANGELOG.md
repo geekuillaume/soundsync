@@ -1,5 +1,26 @@
 # Changelog
 
+<a name="0.4.14"></a>
+## 0.4.14 (2020-11-10)
+
+### Changed
+
+- 🎨 Fix scanned airplay devices&#x27; name [[6570ccf](https://github.com/geekuillaume/soundsync/commit/6570ccfe2ec093f2ad28ae531dd08ce6f5a72120)]
+- ⚡ Speed up first airplay device scan [[4c7d9dd](https://github.com/geekuillaume/soundsync/commit/4c7d9ddb4af2fde7f40c193f61e35d304824ebad)]
+- ⚡ Use SharedArrayBuffer for webaudio when possible [[4ca0f47](https://github.com/geekuillaume/soundsync/commit/4ca0f47c3f9960c36c0a0a0fe3680bb56b300606)]
+
+### Fixed
+
+- 🐛 Fix rendezvous service for peers with a lot of IP addresses [[54b267e](https://github.com/geekuillaume/soundsync/commit/54b267e80247550935eb4c31e7e5a112b54f0205)]
+- 🐛 Fix typo to enable airplay source on linux-arm [[7226ee1](https://github.com/geekuillaume/soundsync/commit/7226ee14ce1ca1a0fdc160651107e829d78f73d8)]
+- 🐛 Fix race-condition error on webaudio delete [[3d87b6e](https://github.com/geekuillaume/soundsync/commit/3d87b6e2846f1ee004c0fd400dd3a9cb67810bf8)]
+
+### Miscellaneous
+
+- 🚧 Enable security headers to activate SharedArrayBuffer support on Firefox [[b07eaff](https://github.com/geekuillaume/soundsync/commit/b07eaff6a649196704320563859d1ede36fd8aa2)]
+- 🚧 Bump to dev version [[c080793](https://github.com/geekuillaume/soundsync/commit/c080793e9a860b8fa669b78e15f91e1bba272d45)]
+
+
 <a name="0.4.13"></a>
 ## 0.4.13 (2020-11-07)
 
