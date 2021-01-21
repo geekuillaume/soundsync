@@ -19,7 +19,7 @@
         "electron-updater": "^4.3.5",
         "env-paths": "^2.2.0",
         "freeice": "^2.2.2",
-        "immer": "^5.3.5",
+        "immer": "^8.0.1",
         "koa": "^2.11.0",
         "koa-bodyparser": "^4.2.1",
         "koa-router": "^7.4.0",
