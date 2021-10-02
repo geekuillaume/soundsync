@@ -81,7 +81,7 @@ jobs:
 
       - name: Install requirements
         if: "runner.os == 'Linux'"
-        run: sudo apt-get -y install bsdtar
+        run: sudo apt-get -y install libarchive-tools
 
       - name: Update version global
         run: sh scripts/update_build_version.sh
