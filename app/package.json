@@ -31,7 +31,7 @@
         "ndarray": "^1.0.19",
         "ndarray-fft": "^1.0.3",
         "node-cleanup": "^2.1.2",
-        "node-dtls-client": "^0.6.0",
+        "node-dtls-client": "^1.0.1",
         "node-hue-api": "^4.0.6",
         "open": "^7.2.1",
         "perf_hooks": "^0.0.1",
