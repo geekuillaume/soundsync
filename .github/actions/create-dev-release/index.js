@@ -21,8 +21,8 @@ async function run() {
     const body = core.getInput('body', { required: false });
     const draft = core.getInput('draft', { required: false }) === 'true';
     const prerelease = core.getInput('prerelease', { required: false }) === 'true';
-    const contentType = core.getInput('asset_content_type', {required: true});
-    const fileGlob = core.getInput('files_glob', {required: true});
+    const contentType = core.getInput('asset_content_type', { required: true });
+    const fileGlob = core.getInput('files_glob', { required: true });
 
     // Create a release
     let uploadUrl;
@@ -44,7 +44,7 @@ async function run() {
         name: releaseName,
         body,
         draft,
-        prerelease
+        prerelease,
       });
       uploadUrl = createReleaseResponse.data.upload_url;
       releaseId = createReleaseResponse.data.id;
@@ -54,14 +54,14 @@ async function run() {
       owner, repo, release_id: releaseId,
     });
 
-    const contentLength = filePath => fs.statSync(filePath).size;
+    const contentLength = (filePath) => fs.statSync(filePath).size;
 
-    const globber = await glob.create(fileGlob)
+    const globber = await glob.create(fileGlob);
     for await (const file of globber.globGenerator()) {
       const existingAsset = assets.data.find((asset) => asset.name === path.basename(file));
       if (existingAsset) {
         await github.repos.deleteReleaseAsset({
-          owner, repo, asset_id: existingAsset.id
+          owner, repo, asset_id: existingAsset.id,
         });
       }
       // Determine content-length for header to upload asset
@@ -73,13 +73,15 @@ async function run() {
       const headers = { 'content-type': contentType, 'content-length': fileStat.size };
       console.log(`Uploading ${file}`);
       await github.repos.uploadReleaseAsset({
-        url: uploadUrl,
+        owner,
         headers,
+        repo,
+        release_id: releaseId,
         name: path.basename(file),
-        data: fs.readFileSync(file)
+        label: path.basename(file),
+        data: fs.readFileSync(file),
       });
     }
-
   } catch (error) {
     core.setFailed(error.message);
   }
