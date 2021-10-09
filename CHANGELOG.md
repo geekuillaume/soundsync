@@ -1,5 +1,29 @@
 # Changelog
 
+<a name="0.4.16"></a>
+## 0.4.16 (2021-10-09)
+
+### Changed
+
+- ⬆️ Upgrade node version for Github actions runner [[42f79be](https://github.com/geekuillaume/soundsync/commit/42f79be2bc78e849d9134adec771bb7d6ff0755f)]
+- ⬆️ Upgrade electorn-builder and node-dtls-client [[e42d8b7](https://github.com/geekuillaume/soundsync/commit/e42d8b7b255f941146289f46d64934e3ec1fe6c1)]
+- ⬆️ Upgrade electron and wrtc to latest version [[1a7ffd7](https://github.com/geekuillaume/soundsync/commit/1a7ffd74529fc5f7f0ed75fe5a557a0dbd9dc0af)]
+
+### Fixed
+
+- 💚 Try fixing github action by removing cache because it crashes with license field warning from yarn [[39a949f](https://github.com/geekuillaume/soundsync/commit/39a949f40ab78c0bf6bb7cfe182dd861d0f49009)]
+- 💚 Upgrades node version for ARM crossbuilding [[73de166](https://github.com/geekuillaume/soundsync/commit/73de16609a46e4704cbc42a539c5941ad0210df1)]
+- 💚 Try fixing github action upload [[e6601ed](https://github.com/geekuillaume/soundsync/commit/e6601edd93871f2e23c678387ec5deef9c026303)]
+- 💚 Upgrade github actions lib [[659c2b4](https://github.com/geekuillaume/soundsync/commit/659c2b40f77f5ffbe91589ed09df165ca53f3e2e)]
+- 💚 Fix CI lib install [[82f0b5b](https://github.com/geekuillaume/soundsync/commit/82f0b5bc06fc7470b9ae61ba6598666c3155c6c3)]
+
+### Miscellaneous
+
+- 📄 Use correct Business source license value in  package.json [[cf4b1cd](https://github.com/geekuillaume/soundsync/commit/cf4b1cd4937111f7294c633e702c1b70c4d08d2d)]
+-  Update github actions checkout and setup-node [[7814c84](https://github.com/geekuillaume/soundsync/commit/7814c84a9dc09289eef32ea8ffa0418b668943ef)]
+- 🚧 Bump to dev version [[0ffe703](https://github.com/geekuillaume/soundsync/commit/0ffe7031dc790abbeb664430f76289bf690bb89b)]
+
+
 <a name="0.4.15"></a>
 ## 0.4.15 (2020-11-10)
 
