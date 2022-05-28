@@ -22,7 +22,7 @@ const deps = {
     },
     'linux-arm': {
       url: 'https://github.com/geekuillaume/librespot/releases/download/v0.4.1/librespot-linux-arm-featureless',
-      sha1: '3822d7304641d3928c6a8d08553dcdebfbc82f9b',
+      sha1: 'ca49d65141a5091bf43ed6dc8b8faeb80f82d9b3',
     },
     'darwin-x64': {
       url: 'https://github.com/geekuillaume/librespot/releases/download/v0.4.1/librespot-macos-x64-featureless',
