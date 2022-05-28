@@ -283,10 +283,14 @@ export class AudioChunkStreamResampler extends Minipass {
     while (this.bufferSize >= this.outputChunkTargetLength && this.chunkIndexToEmit.length > 0) {
       const [chunkIndex] = this.chunkIndexToEmit.splice(0, 1);
       const offset = rollover(this.bufferOffset - this.bufferSize, 0, this.alignementBuffer.length);
-      super.write({
-        i: chunkIndex,
-        chunk: this.alignementBuffer.subarray(offset, offset + this.outputChunkTargetLength),
-      });
+      try {
+        super.write({
+          i: chunkIndex,
+          chunk: this.alignementBuffer.subarray(offset, offset + this.outputChunkTargetLength),
+        });
+      } catch (e) {
+        l('Error while writting in AudioChunkStreamResampler', e);
+      }
       this.bufferSize -= this.outputChunkTargetLength;
     }
     makeCallback();
