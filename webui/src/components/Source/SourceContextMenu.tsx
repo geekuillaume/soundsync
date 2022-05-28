@@ -72,6 +72,10 @@ export const SourceContextMenu = React.memo((
     handleClose();
   };
 
+  const handleRestart = async () => {
+    source.peer.sendRcp('restartSource', source.uuid);
+  }
+
   const handleHide = async () => {
     const newName = hidden ? nameWithoutHiddenMeta(source.name) : `[hidden] ${source.name}`;
     // await edit(type, source.uuid, { name: newName });
@@ -134,6 +138,7 @@ export const SourceContextMenu = React.memo((
       {!renameOpen && (
         <>
           <PopoverButton disableElevation variant="contained" onClick={handleLink}>Link</PopoverButton>
+          <PopoverButton disableElevation variant="contained" onClick={handleRestart}>Restart</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleRenameButtonClick}>Rename</PopoverButton>
           <PopoverButton disableElevation variant="contained" onClick={handleHide}>{hidden ? 'Unhide' : 'Hide'}</PopoverButton>
           {canBeDeleted && (

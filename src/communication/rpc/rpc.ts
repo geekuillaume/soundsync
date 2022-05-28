@@ -8,6 +8,7 @@ import { onScanChromecast } from './scanChromecast';
 import { onSharedStateUpdate } from './sharedStateUpdate';
 import { onDeleteSink } from './deleteSink';
 import { onScanAirplaySpeaker } from './scanAirplay';
+import { onRestartSource } from './restartSource';
 
 // the lazy loading is mainly used for the WebUI
 const lazyLoader = (moduleGetter: () => any, accessor?: (module: any) => any) => {
@@ -33,6 +34,7 @@ export const rpcHandlers = {
   startChromecast: lazyLoader(() => import(/* webpackChunkName: "chromecast" */ './startChromecast'), (m) => m.onStartChromecast) as typeof onStartChromecast,
   startSource: onStartSource, // used to start a source when it's considered inactive to determine if it's active or not (for example for a localdevice source)
   scanAirplay: lazyLoader(() => import(/* webpackChunkName: "airplay" */ './scanAirplay'), (m) => m.onScanAirplaySpeaker) as typeof onScanAirplaySpeaker,
+  restartSource: onRestartSource,
 };
 
 export type RPCType = keyof typeof rpcHandlers;
