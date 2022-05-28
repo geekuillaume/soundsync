@@ -8,10 +8,13 @@ import { createAudioChunkStream } from '../../utils/audio/chunk_stream';
 import { ensureDep } from '../../utils/environment/deps_downloader';
 import { AudioInstance } from '../utils';
 
+const LIBRESPOT_STDERR_BUFFER_SIZE = 5000; // keep the last 5000 characters from the librespot process stderr
+
 export class LibrespotSource extends AudioSource {
   local = true;
   rate = 44100;
   channels = 2;
+  processStderrBuffer = '';
 
   options: LibresportSourceDescriptor['librespotOptions'];
   librespotProcess: ChildProcessWithoutNullStreams;
@@ -48,12 +51,20 @@ export class LibrespotSource extends AudioSource {
       });
     });
     const librespotLog = this.log.extend('librespot');
-    this.librespotProcess.stderr.on('data', (d) => librespotLog(d.toString()));
+    this.librespotProcess.stderr.on('data', (d) => {
+      this.processStderrBuffer += d.toString();
+      if (this.processStderrBuffer.length > LIBRESPOT_STDERR_BUFFER_SIZE) {
+        this.processStderrBuffer = this.processStderrBuffer.slice(this.processStderrBuffer.length - LIBRESPOT_STDERR_BUFFER_SIZE);
+      }
+      librespotLog(d.toString());
+    });
     this.librespotProcess.on('exit', (code) => {
-      this.log('Librespot exited with code:', code);
+      this.log('Librespot exited with code:', code, this.processStderrBuffer);
       if (code) {
         this.updateInfo({
-          error: code === 101 ? `Spotify username or password invalid` : `Spotify process exited with error code ${code}`,
+          error: code === 101
+            ? `Spotify username or password invalid`
+            : `Spotify process exited with error code ${code}: ${this.processStderrBuffer}`,
         });
       }
     });
@@ -65,6 +76,7 @@ export class LibrespotSource extends AudioSource {
     if (this.librespotProcess) {
       this.librespotProcess.kill();
     }
+    this.processStderrBuffer = '';
     delete this.librespotProcess;
   }
 
