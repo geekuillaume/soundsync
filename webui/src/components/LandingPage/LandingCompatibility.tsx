@@ -335,7 +335,7 @@ export const LandingCompatibility = () => {
           <AudioObject
             name="Vinyl Player"
             icon={RecorderPlayerIcon}
-            description="Use a old vinyl player or any device that can be plugged to an audio line-in input"
+            description="Use an old vinyl player or any device that can be plugged to an audio line-in input"
             column={1}
             row={2}
             inRowCount={3}
@@ -405,7 +405,7 @@ export const LandingCompatibility = () => {
           <AudioObject
             name="Chromecast"
             icon={ChromecastIcon}
-            description="Soundsync detects every Chromecast on your wifi network and let you listen to your music anywhere in your home"
+            description="Soundsync detects every Chromecast on your wifi network and lets you listen to your music anywhere in your home"
             column={3}
             row={0}
             inRowCount={5}
@@ -416,7 +416,7 @@ export const LandingCompatibility = () => {
           <AudioObject
             name="Airplay Speaker"
             icon={AirplaySpeakerIcon}
-            description="Soundsync detects every Airplay speaker on your wifi network and let you listen to your music anywhere in your home"
+            description="Soundsync detects every Airplay speaker on your wifi network and lets you listen to your music anywhere in your home"
             column={3}
             row={1}
             inRowCount={5}
