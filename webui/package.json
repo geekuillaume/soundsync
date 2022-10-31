@@ -12,7 +12,7 @@
     "lint": "eslint --ext .jsx,.js --fix src"
   },
   "devDependencies": {
-    "@sentry/webpack-plugin": "^1.13.0",
+    "@sentry/webpack-plugin": "^1.18.9",
     "@types/chromecast-caf-receiver": "^5.0.5",
     "clean-webpack-plugin": "^3.0.0",
     "compression-webpack-plugin": "^6.0.3",

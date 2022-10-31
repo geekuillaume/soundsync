@@ -1,6 +1,6 @@
 # This is used only for the rendezvous service
 
-FROM node:12 AS builder
+FROM node:14 AS builder
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY ./rendezvous-service/tsconfig.json ./rendezvous-service/
 COPY ./rendezvous-service/src ./rendezvous-service/src/
 RUN cd rendezvous-service && yarn build
 
-FROM node:12-alpine AS runner
+FROM node:14-alpine AS runner
 
 EXPOSE 8080
 ENV NODE_ENV=production
