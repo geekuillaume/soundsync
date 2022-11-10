@@ -360,10 +360,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.54.tgz#a4b58d8df3a4677b6c08bfbc94b7ad7a7a5f82d1"
   integrity sha512-ge4xZ3vSBornVYlDnk7yZ0gK6ChHf/CHB7Gl1I0Jhah8DDnEQqBzgohYG4FX4p81TNirSETOiSyn+y1r9/IR6w==
 
-"@types/node@^14.6.2":
-  version "14.17.20"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.17.20.tgz#74cc80438fd0467dc4377ee5bbad89a886df3c10"
-  integrity sha512-gI5Sl30tmhXsqkNvopFydP7ASc4c2cLfGNQrVKN3X90ADFWFsPEsotm/8JHSUJQKTHbwowAHtcJPeyVhtKv0TQ==
+"@types/node@^16.11.26":
+  version "16.18.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.18.3.tgz#d7f7ba828ad9e540270f01ce00d391c54e6e0abc"
+  integrity sha512-jh6m0QUhIRcZpNv7Z/rpN+ZWXOicUUQbSoWks7Htkbb9IjFQj4kzcX/xFCkjstCj5flMsN8FiSvt+q+Tcs4Llg==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -1718,13 +1718,13 @@ electron-publish@22.14.13:
     lazy-val "^1.0.5"
     mime "^2.5.2"
 
-electron@15.1.0:
-  version "15.1.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-15.1.0.tgz#a57f6978b5e8ef1918429b8c62f918868258f5a3"
-  integrity sha512-QZJKZdrOG2G9lyOrDpCHh+arMrj7ZVVBulrukhNXwCeCEHgNLTVULEQzMOB9AVXUbIs+FthcddlMgcgpaErohw==
+electron@18.3.7:
+  version "18.3.7"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-18.3.7.tgz#a22a23d63811d067c8e33abc5674122408319265"
+  integrity sha512-SDvX0VYejR1xw9PrJyvnyiDcuIhdzFVaA1NaRN2LEWXr5R6mEFl8NVTM+i5dtxMm2SHP/FPnkvmsWZs6MHijqg==
   dependencies:
     "@electron/get" "^1.13.0"
-    "@types/node" "^14.6.2"
+    "@types/node" "^16.11.26"
     extract-zip "^1.0.3"
 
 emoji-regex@^7.0.1:
