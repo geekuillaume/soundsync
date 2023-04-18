@@ -51,7 +51,7 @@
     "eslint-config-airbnb": "^18.1.0",
     "events": "^3.1.0",
     "html-loader": "^0.5.5",
-    "immer": "^5.3.2",
+    "immer": "^9.0.6",
     "lodash-es": "^4.17.15",
     "notistack": "^0.9.16",
     "process": "^0.11.10",
